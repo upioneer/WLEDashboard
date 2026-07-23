@@ -110,9 +110,9 @@ export function Settings() {
         <section className={styles.section} aria-labelledby="about-heading">
           <h2 id="about-heading" className={styles.sectionTitle}>About</h2>
           <div className={styles.aboutGrid}>
-            <AboutRow label="Version" value="0.1.0" />
+            <AboutRow label="Version" value="0.3.0" />
             <AboutRow label="Storage" value="Local SQLite (local-first, no cloud)" />
-            <AboutRow label="License" value="MIT" />
+            <AboutRow label="License" value="All Rights Reserved (Copyright (c) 2026 Jasen Henry)" />
           </div>
         </section>
       </div>

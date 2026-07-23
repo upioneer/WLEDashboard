@@ -13,6 +13,8 @@ import { deviceRoutes } from './routes/devices.js'
 import { settingsRoutes } from './routes/settings.js'
 import { groupRoutes } from './routes/groups.js'
 import { configRoutes } from './routes/config.js'
+import { automationRoutes } from './routes/automation.js'
+import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -66,7 +68,7 @@ if (IS_PROD) {
 
 fastify.get('/api/health', async () => ({
   status: 'ok',
-  version: '0.2.0',
+  version: '0.3.0',
   uptime: process.uptime(),
 }))
 
@@ -77,6 +79,7 @@ await fastify.register(async (api) => {
   await api.register(settingsRoutes)
   await api.register(groupRoutes)
   await api.register(configRoutes)
+  await api.register(automationRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────
@@ -108,6 +111,9 @@ async function start() {
   // Start mDNS discovery
   startDiscovery()
 
+  // Start automation scheduler
+  startAutomationScheduler()
+
   try {
     await fastify.listen({ port: PORT, host: HOST })
     console.log(`[server] WLEDashboard API listening on http://${HOST}:${PORT}`)
@@ -122,12 +128,14 @@ async function start() {
 process.on('SIGINT', async () => {
   console.log('\n[server] Shutting down...')
   stopDiscovery()
+  stopAutomationScheduler()
   await fastify.close()
   process.exit(0)
 })
 
 process.on('SIGTERM', async () => {
   stopDiscovery()
+  stopAutomationScheduler()
   await fastify.close()
   process.exit(0)
 })

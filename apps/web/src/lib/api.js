@@ -57,6 +57,23 @@ export const configApi = {
   import: (data, mode = 'merge') => request('POST', '/config/import', { data, mode }),
 }
 
+// ─── Automation (Schedules & Routines) ────────────────────────────────────────
+export const automationApi = {
+  listSchedules: () => request('GET', '/automation/schedules'),
+  createSchedule: (data) => request('POST', '/automation/schedules', data),
+  updateSchedule: (id, data) => request('PATCH', `/automation/schedules/${id}`, data),
+  deleteSchedule: (id) => request('DELETE', `/automation/schedules/${id}`),
+  triggerSchedule: (id) => request('POST', `/automation/schedules/${id}/trigger`),
+
+  listRoutines: () => request('GET', '/automation/routines'),
+  createRoutine: (data) => request('POST', '/automation/routines', data),
+  updateRoutine: (id, data) => request('PATCH', `/automation/routines/${id}`, data),
+  deleteRoutine: (id) => request('DELETE', `/automation/routines/${id}`),
+  executeRoutine: (id) => request('POST', `/automation/routines/${id}/execute`),
+
+  getSunTimes: () => request('GET', '/automation/suntimes'),
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: () => request('GET', '/health'),

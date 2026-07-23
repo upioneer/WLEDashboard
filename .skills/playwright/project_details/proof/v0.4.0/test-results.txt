@@ -1,0 +1,41 @@
+≡ƒÄ¡ Playwright Skill - Universal Executor
+
+≡ƒôä Executing file: C:\Users\hgran\OneDrive\Documents\code\Projects\WLEDashboard\project_details\playbooks\test-v0.4.0.js
+≡ƒÜÇ Starting automation...
+
+
+ WLEDashboard v0.4.0 Functional Test (Phase 4: Automation)
+
+[ API Health ]
+  PASS  API responds on :3001
+
+[ SunTimes API ]
+  PASS  GET /api/automation/suntimes returns sunrise and sunset
+
+[ Schedules API ]
+  PASS  POST /api/automation/schedules creates schedule
+  PASS  GET /api/automation/schedules includes schedule
+  PASS  PATCH /api/automation/schedules/:id updates schedule
+  PASS  POST /api/automation/schedules/:id/trigger runs action
+
+[ Routines API ]
+  PASS  POST /api/automation/routines creates routine
+  PASS  GET /api/automation/routines includes routine
+  PASS  POST /api/automation/routines/:id/execute runs routine
+
+[ Automation UI ]
+  PASS  Automation view renders
+  PASS  Sun times badge displays in header
+  PASS  Schedule item renders in list
+  PASS  Create Schedule button opens ScheduleEditorModal
+  PASS  Switching tab to Routines renders routine cards
+  PASS  Create Routine button opens RoutineEditorModal
+
+[ Cleanup ]
+  PASS  DELETE /api/automation/schedules/:id removes schedule
+  PASS  DELETE /api/automation/routines/:id removes routine
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ Results: 17 passed, 0 failed
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+

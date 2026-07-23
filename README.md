@@ -24,6 +24,12 @@ Easily build and customize lighting groups with custom color palettes, group typ
 
 ![Group Editor Modal](project_details/changelog/v0.3.0/screenshots/02-group-modal.png)
 
+### Automation & Schedules
+
+Automate lighting based on fixed times or astronomical sunrise/sunset triggers (`suncalc`). Build multi-step routine timelines with custom delay intervals between step actions.
+
+![Automation & Schedules](project_details/changelog/v0.4.0/screenshots/01-automation-schedules.png)
+
 ---
 
 ## Core Features
@@ -32,6 +38,7 @@ Easily build and customize lighting groups with custom color palettes, group typ
 * **Automatic Device Discovery**: mDNS network scanning (`_wled._tcp`) automatically discovers WLED controllers on your local network and populates MAC addresses, firmware versions, and LED counts.
 * **Spring Physics Motion**: Dynamic damped harmonic oscillator spring engine drives interactive UI controls, toggle switches, hover elevations, and card transitions.
 * **Group Management & Nesting**: Organize controllers into Zone, Scene, Sync, or Custom groups. Support for nested child groups and concurrent group command execution.
+* **Automation & Schedules Engine**: Astronomical sunrise/sunset calculations (`suncalc`), time-based schedules, step-by-step routine timelines, and a 30s background scheduler loop.
 * **Dashboard Group Clustering**: Instant toggle between individual device grid view and group cluster cards for high density setups.
 * **JSON Configuration Backup**: Full export and import capabilities for backing up, restoring, or transferring dashboard state and device configurations.
 * **Fastify & WebSocket Backend**: Fast Node.js API server with low latency WebSocket connection pushing live WLED state updates instantly to all connected clients.
@@ -124,6 +131,6 @@ node .skills/playwright/run.js project_details/playbooks/test-v0.3.0.js
 
 ---
 
-## License
+## License & Copyright
 
-This project is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
+Copyright (c) 2026 Jasen Henry. All Rights Reserved. See [LICENSE.md](LICENSE.md) for details.

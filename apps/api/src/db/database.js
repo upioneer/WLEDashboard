@@ -37,6 +37,7 @@ function applyMigrations(db) {
 
   const migrations = [
     { version: 1, sql: migration_001 },
+    { version: 2, sql: migration_002 },
   ]
 
   for (const m of migrations) {
@@ -193,3 +194,15 @@ const migration_001 = `
     ('card_density', 'comfortable'),
     ('theme', 'dark');
 `
+
+const migration_002 = `
+  ALTER TABLE schedules ADD COLUMN trigger_value TEXT DEFAULT '12:00';
+  ALTER TABLE schedules ADD COLUMN payload_json TEXT DEFAULT '{}';
+  ALTER TABLE schedules ADD COLUMN enabled INTEGER DEFAULT 1;
+  ALTER TABLE schedules ADD COLUMN last_run_at TEXT;
+
+  ALTER TABLE routines ADD COLUMN description TEXT DEFAULT '';
+  ALTER TABLE routines ADD COLUMN steps_json TEXT DEFAULT '[]';
+  ALTER TABLE routines ADD COLUMN enabled INTEGER DEFAULT 1;
+`
+

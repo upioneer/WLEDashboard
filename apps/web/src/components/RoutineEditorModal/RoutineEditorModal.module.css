@@ -1,0 +1,297 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  animation: fadeIn 180ms var(--ease-out-expo);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 88dvh;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleUp 220ms var(--ease-out-expo);
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modalTitle {
+  font: var(--type-h2);
+  color: var(--text-primary);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  transition: color 120ms, background-color 120ms;
+}
+
+.closeBtn:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-overlay);
+}
+
+.form {
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 180px;
+}
+
+.required {
+  color: var(--accent-rose);
+  margin-left: 2px;
+}
+
+.textInput,
+.selectInput,
+.numInput {
+  height: 36px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+}
+
+.numInput {
+  width: 80px;
+  font-feature-settings: 'tnum';
+}
+
+.textInput:focus,
+.selectInput:focus,
+.numInput:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: var(--type-small);
+  color: var(--text-primary);
+  cursor: pointer;
+  height: 38px;
+}
+
+.checkbox {
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+/* ── Timeline Steps ──────────────────────────────────────────── */
+.stepHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.addStepBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-violet-10);
+  color: var(--accent-violet);
+  border: 1px solid hsl(262, 68%, 62%, 0.3);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms;
+}
+
+.addStepBtn:hover {
+  background-color: hsl(262, 68%, 62%, 0.2);
+}
+
+.stepsTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: var(--sp-1);
+}
+
+.emptySteps {
+  padding: var(--sp-6);
+  text-align: center;
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  background-color: var(--surface-input);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-s);
+}
+
+.stepCard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+}
+
+.stepBadge {
+  font: var(--type-micro);
+  font-weight: 700;
+  color: var(--accent-amber);
+  background-color: var(--accent-amber-10);
+  padding: 4px 8px;
+  border-radius: var(--radius-s);
+  white-space: nowrap;
+}
+
+.stepControls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.powerLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.smallLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.rangeInput {
+  flex: 1;
+  accent-color: var(--accent-amber);
+  min-width: 100px;
+}
+
+.removeStepBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 120ms, background-color 120ms;
+}
+
+.removeStepBtn:hover {
+  color: var(--accent-rose);
+  background-color: var(--accent-rose-10);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.cancelBtn {
+  height: 36px;
+  padding: 0 var(--sp-4);
+  background-color: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.saveSubmitBtn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.saveSubmitBtn:hover:not(:disabled) {
+  background-color: hsl(38, 92%, 64%);
+}
+
+.saveSubmitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
