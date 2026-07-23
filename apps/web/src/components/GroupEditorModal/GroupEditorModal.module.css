@@ -1,0 +1,294 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  animation: fadeIn 180ms var(--ease-out-expo);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85dvh;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scaleUp 220ms var(--ease-out-expo);
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modalTitle {
+  font: var(--type-h2);
+  color: var(--text-primary);
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  transition: color 120ms, background-color 120ms;
+}
+
+.closeBtn:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-overlay);
+}
+
+/* ── Form ────────────────────────────────────────────────────── */
+.form {
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 200px;
+}
+
+.required {
+  color: var(--accent-rose);
+  margin-left: 2px;
+}
+
+.textInput {
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+/* ── Type Selector ───────────────────────────────────────────── */
+.typeSelector {
+  display: flex;
+  gap: var(--sp-1);
+  background-color: var(--surface-input);
+  padding: 3px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border-subtle);
+}
+
+.typeBtn {
+  flex: 1;
+  height: 30px;
+  border-radius: calc(var(--radius-s) - 2px);
+  font: var(--type-micro);
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms;
+}
+
+.typeBtnActive {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+}
+
+/* ── Color Palette ───────────────────────────────────────────── */
+.colorPalette {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.colorSwatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-out-expo), border-color 120ms;
+}
+
+.colorSwatch:hover {
+  transform: scale(1.15);
+}
+
+.colorSwatchActive {
+  border-color: var(--text-primary);
+  transform: scale(1.15);
+}
+
+.colorInput {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+
+/* ── Selection List (Devices & Child Groups) ─────────────────── */
+.selectionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-height: 160px;
+  overflow-y: auto;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  padding: var(--sp-2);
+}
+
+.emptyHint {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  padding: var(--sp-2);
+}
+
+.selectionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  transition: background-color 100ms;
+}
+
+.selectionItem:hover {
+  background-color: var(--surface-overlay);
+}
+
+.selectionItemActive {
+  background-color: var(--accent-violet-10);
+}
+
+.checkbox {
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dotOnline { background-color: var(--accent-emerald); }
+.dotOffline { background-color: var(--text-tertiary); }
+
+.groupBadge {
+  font: var(--type-micro);
+  color: white;
+  padding: 1px 6px;
+  border-radius: var(--radius-s);
+  text-transform: uppercase;
+}
+
+.itemTitle {
+  font: var(--type-small);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.itemSub {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  font-family: monospace;
+}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.cancelBtn {
+  height: 36px;
+  padding: 0 var(--sp-4);
+  background-color: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms;
+}
+
+.cancelBtn:hover {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.saveSubmitBtn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms;
+}
+
+.saveSubmitBtn:hover:not(:disabled) {
+  background-color: hsl(38, 92%, 64%);
+}
+
+.saveSubmitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

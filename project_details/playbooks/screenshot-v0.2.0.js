@@ -2,18 +2,29 @@ const { chromium } = require('playwright')
 const path = require('path')
 
 const TARGET_URL = 'http://localhost:5173'
-const SCREENSHOTS_DIR = path.resolve(
-  __dirname,
-  '../changelog/v0.2.0/screenshots'
-)
+const SCREENSHOTS_DIR = 'C:/Users/hgran/OneDrive/Documents/code/Projects/WLEDashboard/project_details/changelog/v0.2.0/screenshots'
+
+async function anonymizeIPs(page) {
+  await page.evaluate(() => {
+    const ipRegex = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    let node
+    while ((node = walker.nextNode())) {
+      if (ipRegex.test(node.nodeValue)) {
+        node.nodeValue = node.nodeValue.replace(ipRegex, '192.168.1.xxx')
+      }
+    }
+  })
+}
 
 ;(async () => {
   const browser = await chromium.launch({ headless: true })
 
   async function shot(page, name, description) {
+    await anonymizeIPs(page)
     const file = path.join(SCREENSHOTS_DIR, `${name}.png`)
     await page.screenshot({ path: file, fullPage: true })
-    console.log(`Captured: ${name} - ${description}`)
+    console.log(`Captured (Sanitized): ${name} - ${description}`)
     return file
   }
 
@@ -64,17 +75,6 @@ const SCREENSHOTS_DIR = path.resolve(
   await page.waitForTimeout(600)
   await shot(page, '06-settings', 'Settings view with poll interval controls')
 
-  // 7. Dashboard empty search state - if more than 4 devices
-  await page.click('a[href="/"]')
-  await page.waitForTimeout(600)
-  const searchInput = page.locator('#device-search')
-  if (await searchInput.count() > 0) {
-    await searchInput.fill('zzznomatch')
-    await page.waitForTimeout(500)
-    await shot(page, '07-search-no-results', 'Search with no matching results')
-    await searchInput.clear()
-  }
-
   await browser.close()
-  console.log('\nAll screenshots saved to:', SCREENSHOTS_DIR)
+  console.log('\nAll v0.2.0 screenshots re-captured with IP sanitization!')
 })()

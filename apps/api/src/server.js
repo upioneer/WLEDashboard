@@ -11,8 +11,8 @@ import { startAllPolling, subscribe } from './services/deviceService.js'
 import { startDiscovery, stopDiscovery } from './services/discoveryService.js'
 import { deviceRoutes } from './routes/devices.js'
 import { settingsRoutes } from './routes/settings.js'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
+import { groupRoutes } from './routes/groups.js'
+import { configRoutes } from './routes/config.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ if (IS_PROD) {
 
 fastify.get('/api/health', async () => ({
   status: 'ok',
-  version: '0.1.0',
+  version: '0.2.0',
   uptime: process.uptime(),
 }))
 
@@ -75,6 +75,8 @@ fastify.get('/api/health', async () => ({
 await fastify.register(async (api) => {
   await api.register(deviceRoutes)
   await api.register(settingsRoutes)
+  await api.register(groupRoutes)
+  await api.register(configRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────

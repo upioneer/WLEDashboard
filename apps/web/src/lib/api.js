@@ -40,6 +40,23 @@ export const settingsApi = {
   update: (data) => request('PATCH', '/settings', data),
 }
 
+// ─── Groups ───────────────────────────────────────────────────────────────────
+export const groupsApi = {
+  list: () => request('GET', '/groups'),
+  get: (id) => request('GET', `/groups/${id}`),
+  create: (data) => request('POST', '/groups', data),
+  update: (id, data) => request('PATCH', `/groups/${id}`, data),
+  delete: (id) => request('DELETE', `/groups/${id}`),
+  reorder: (ids) => request('POST', '/groups/reorder', { ids }),
+  command: (id, payload) => request('POST', `/groups/${id}/command`, payload),
+}
+
+// ─── Config (Export/Import) ───────────────────────────────────────────────────
+export const configApi = {
+  export: () => request('GET', '/config/export'),
+  import: (data, mode = 'merge') => request('POST', '/config/import', { data, mode }),
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: () => request('GET', '/health'),

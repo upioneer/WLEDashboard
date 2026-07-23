@@ -14,8 +14,10 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useDeviceStore } from '../../stores/deviceStore.js'
+import { useGroupStore } from '../../stores/groupStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { DeviceCard } from '../../components/DeviceCard/DeviceCard.jsx'
+import { GroupCard } from '../../components/GroupCard/GroupCard.jsx'
 import { SearchBar } from '../../components/SearchBar/SearchBar.jsx'
 import { extractDominantColor, blendColors } from '../../lib/colors.js'
 import styles from './Dashboard.module.css'
@@ -50,21 +52,25 @@ function SortableCard({ device }) {
 
 export function Dashboard() {
   const { devices, loading, error, fetchDevices, reorderDevices } = useDeviceStore()
+  const { groups, fetchGroups } = useGroupStore()
   const setHeaderAccentColor = useUIStore(s => s.setHeaderAccentColor)
 
-  const [search, setSearch]   = useState('')
-  const [filter, setFilter]   = useState('all')
+  const [search, setSearch]       = useState('')
+  const [filter, setFilter]       = useState('all')
+  const [viewMode, setViewMode]   = useState('devices') // 'devices' | 'groups'
   const [localOrder, setLocalOrder] = useState([])
 
-  useEffect(() => { fetchDevices() }, [fetchDevices])
+  useEffect(() => {
+    fetchDevices()
+    fetchGroups()
+  }, [fetchDevices, fetchGroups])
 
   // Keep local order in sync with store (e.g. after initial load or external add)
   useEffect(() => {
     setLocalOrder(prev => {
       const prevIds = new Set(prev)
       const newIds  = new Set(devices.map(d => d.id))
-      // Preserve existing order, append new devices at end, remove deleted
-      const merged = prev.filter(id => newIds.has(id))
+      const merged  = prev.filter(id => newIds.has(id))
       devices.forEach(d => { if (!prevIds.has(d.id)) merged.push(d.id) })
       return merged
     })
@@ -98,7 +104,7 @@ export function Dashboard() {
   const onlineCount = devices.filter(d => d.is_online === 1).length
   const activeCount = devices.filter(d => d.liveState?.on).length
 
-  // dnd-kit sensors — require 8px drag before activating to allow card clicks
+  // dnd-kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
@@ -126,9 +132,27 @@ export function Dashboard() {
             <Stat label="Devices" value={devices.length} />
             <Stat label="Online"  value={onlineCount} accent="emerald" />
             <Stat label="Active"  value={activeCount}  accent="amber" />
+            {groups.length > 0 && <Stat label="Groups" value={groups.length} />}
           </div>
         </div>
+
         <div className={styles.headerRight}>
+          {groups.length > 0 && (
+            <div className={styles.modeToggle} role="group" aria-label="Dashboard view mode">
+              <button
+                className={[styles.modeBtn, viewMode === 'devices' && styles.modeBtnActive].filter(Boolean).join(' ')}
+                onClick={() => setViewMode('devices')}
+              >
+                Devices
+              </button>
+              <button
+                className={[styles.modeBtn, viewMode === 'groups' && styles.modeBtnActive].filter(Boolean).join(' ')}
+                onClick={() => setViewMode('groups')}
+              >
+                Groups ({groups.length})
+              </button>
+            </div>
+          )}
           <span className={styles.networkBadge}>
             <span className={styles.networkDot} />
             Local Network
@@ -136,7 +160,7 @@ export function Dashboard() {
         </div>
       </header>
 
-      {showSearch && (
+      {showSearch && viewMode === 'devices' && (
         <SearchBar
           value={search}
           onChange={setSearch}
@@ -148,6 +172,12 @@ export function Dashboard() {
 
       {devices.length === 0 ? (
         <EmptyState />
+      ) : viewMode === 'groups' ? (
+        <section className={styles.grid} aria-label="Group list">
+          {groups.map(group => (
+            <GroupCard key={group.id} group={group} />
+          ))}
+        </section>
       ) : filtered.length === 0 ? (
         <NoResults onClear={() => { setSearch(''); setFilter('all') }} />
       ) : (

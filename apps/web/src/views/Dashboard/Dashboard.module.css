@@ -60,7 +60,40 @@
 .headerRight {
   display: flex;
   align-items: center;
+  gap: var(--sp-3);
   padding-top: var(--sp-2);
+}
+
+.modeToggle {
+  display: flex;
+  gap: 2px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: 2px;
+}
+
+.modeBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  border-radius: calc(var(--radius-m) - 2px);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms;
+}
+
+.modeBtn:hover {
+  color: var(--text-primary);
+}
+
+.modeBtnActive {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
 }
 
 .networkBadge {

@@ -3,6 +3,7 @@ import { AppLayout } from '../layouts/AppLayout.jsx'
 import { Dashboard } from '../views/Dashboard/Dashboard.jsx'
 import { Settings } from '../views/Settings/Settings.jsx'
 import { DeviceManager } from '../views/DeviceManager/DeviceManager.jsx'
+import { Groups } from '../views/Groups/Groups.jsx'
 
 function PlaceholderView({ title }) {
   return (
@@ -23,7 +24,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true,           element: <Dashboard /> },
       { path: 'spatial',       element: <PlaceholderView title="Spatial View" /> },
-      { path: 'groups',        element: <PlaceholderView title="Groups" /> },
+      { path: 'groups',        element: <Groups /> },
       { path: 'automation',    element: <PlaceholderView title="Automation" /> },
       { path: 'studio',        element: <PlaceholderView title="Studio" /> },
       { path: 'settings',      element: <Settings /> },
