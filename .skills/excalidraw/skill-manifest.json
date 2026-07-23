@@ -1,0 +1,14 @@
+{
+  "name": "code_scaffold_excalidraw_skill",
+  "version": "2",
+  "description": "Renders and embeds Excalidraw whiteboards",
+  "entryPoint": "./SKILL.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "requiredPermissions": [
+    "fs:read",
+    "fs:write",
+    "net:connect"
+  ]
+}

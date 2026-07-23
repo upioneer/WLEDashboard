@@ -1,0 +1,21 @@
+.env
+.env.*
+!.env.example
+.DS_Store
+node_modules/
+target/
+dist/
+data/
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+
+# Code Scaffold Project Details (Local Context)
+project_details/*.md
+!project_details/readme.md
+
+!project_details/changelog/
+!project_details/playbooks/
+!project_details/proof/

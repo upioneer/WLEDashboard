@@ -1,0 +1,14 @@
+{
+  "name": "code_scaffold_github_skill",
+  "version": "5",
+  "description": "GitHub push workflow with .env-based identity configuration; merges github.md into the skill",
+  "entryPoint": "./SKILL.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "requiredPermissions": [
+    "fs:read",
+    "fs:write",
+    "net:connect"
+  ]
+}

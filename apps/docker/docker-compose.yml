@@ -1,0 +1,27 @@
+services:
+  wledashboard:
+    build:
+      context: ..
+      dockerfile: apps/docker/Dockerfile
+    container_name: wledashboard
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - wledashboard_data:/data
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      HOST: 0.0.0.0
+      DATA_DIR: /data
+    network_mode: host   # Required for mDNS/Bonjour discovery on LAN
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  wledashboard_data:
+    driver: local

@@ -1,0 +1,224 @@
+.card {
+  position: relative;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  will-change: transform, box-shadow;
+  transition: border-color 300ms var(--ease-out-expo);
+  overflow: hidden;
+  cursor: default;
+}
+
+/* Subtle noise grain texture */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none;
+  opacity: 0.012;
+  z-index: 0;
+}
+
+/* All direct children stack above grain */
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cardOffline {
+  opacity: 0.6;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: 28px;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  flex: 1;
+}
+
+.name {
+  font: var(--type-h3);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.name:hover {
+  color: var(--text-primary);
+}
+
+.renameInput {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 var(--sp-2);
+  background-color: var(--surface-input);
+  border: 1px solid var(--accent-violet);
+  border-radius: var(--radius-s);
+  font: var(--type-h3);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+.version {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity 140ms, color 140ms, background-color 140ms;
+}
+
+.card:hover .menuBtn {
+  opacity: 1;
+}
+
+.menuBtn:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-overlay);
+}
+
+
+/* ── Status Dot ─────────────────────────────────────────────── */
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 300ms var(--ease-out-expo), box-shadow 300ms var(--ease-out-expo);
+}
+
+.online {
+  background-color: var(--accent-emerald);
+  box-shadow: 0 0 6px var(--accent-emerald);
+}
+
+.standby {
+  background-color: var(--text-tertiary);
+  box-shadow: none;
+}
+
+.offline {
+  background-color: var(--accent-rose);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ── Section ────────────────────────────────────────────────── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.sectionLabel {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+}
+
+/* ── Chips ──────────────────────────────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--sp-2);
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition:
+    background-color 120ms var(--ease-out-expo),
+    border-color 120ms var(--ease-out-expo),
+    color 120ms var(--ease-out-expo);
+}
+
+button.chip {
+  cursor: pointer;
+}
+
+button.chip:hover {
+  background-color: var(--surface-raised);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.ipChip {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  color: var(--text-tertiary);
+  margin-left: auto;
+}
+
+/* ── Offline overlay ────────────────────────────────────────── */
+.offlineOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: var(--sp-3);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.offlineOverlay span {
+  font: var(--type-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-rose);
+  opacity: 0.8;
+}

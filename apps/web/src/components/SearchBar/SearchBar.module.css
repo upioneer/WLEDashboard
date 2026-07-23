@@ -1,0 +1,101 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.inputRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--sp-3);
+  color: var(--text-tertiary);
+  display: flex;
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--sp-8) 0 var(--sp-8);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  font: var(--type-body);
+  color: var(--text-primary);
+  transition:
+    border-color 140ms var(--ease-out-expo),
+    box-shadow 140ms var(--ease-out-expo);
+}
+
+.input::placeholder { color: var(--text-tertiary); }
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+/* Remove browser default search input decorations */
+.input::-webkit-search-decoration,
+.input::-webkit-search-cancel-button { display: none; }
+
+.clearBtn {
+  position: absolute;
+  right: var(--sp-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  transition: color 120ms, background-color 120ms;
+}
+
+.clearBtn:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-raised);
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.chip {
+  height: 26px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  transition:
+    background-color 120ms var(--ease-out-expo),
+    border-color 120ms var(--ease-out-expo),
+    color 120ms var(--ease-out-expo);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.chip.chipActive {
+  background-color: var(--accent-violet-10);
+  border-color: hsl(262, 68%, 62%, 0.3);
+  color: var(--accent-violet);
+}
+
+.count {
+  margin-left: auto;
+  font: var(--type-small);
+  color: var(--text-tertiary);
+}

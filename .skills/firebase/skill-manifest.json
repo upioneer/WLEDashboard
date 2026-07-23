@@ -1,0 +1,14 @@
+{
+  "name": "code_scaffold_firebase_skill",
+  "version": "3",
+  "description": "Firebase authentication and database connectivity",
+  "entryPoint": "./SKILL.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "requiredPermissions": [
+    "fs:read",
+    "fs:write",
+    "net:connect"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "code_scaffold_scrollytelling_skill",
+  "version": "2",
+  "description": "Design architecture, workflows, and code implementations for scroll-triggered 3D model manipulation and interactive 'production explosion' views.",
+  "entryPoint": "./SKILL.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "requiredPermissions": [
+    "fs:read",
+    "fs:write",
+    "net:connect"
+  ]
+}

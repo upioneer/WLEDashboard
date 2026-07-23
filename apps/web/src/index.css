@@ -1,0 +1,234 @@
+/* ============================================================
+   WLEDashboard Design System
+   index.css — Global tokens, reset, typography, utilities
+   ============================================================ */
+
+/* ── Google Fonts ──────────────────────────────────────────── */
+/* Loaded via <link> in index.html for performance */
+
+/* ── CSS Custom Properties (Design Tokens) ─────────────────── */
+:root {
+  /* Surface palette */
+  --surface-void:    hsl(225, 18%, 5%);
+  --surface-base:    hsl(225, 16%, 8%);
+  --surface-raised:  hsl(225, 14%, 12%);
+  --surface-overlay: hsl(225, 12%, 16%);
+  --surface-input:   hsl(225, 14%, 10%);
+
+  /* Border */
+  --border-subtle:   hsl(220, 12%, 100%, 0.06);
+  --border-default:  hsl(220, 12%, 100%, 0.09);
+  --border-strong:   hsl(220, 12%, 100%, 0.14);
+
+  /* Text */
+  --text-primary:   hsl(220, 12%, 92%);
+  --text-secondary: hsl(220, 8%, 64%);
+  --text-tertiary:  hsl(220, 6%, 42%);
+  --text-inverse:   hsl(225, 18%, 5%);
+
+  /* Accents */
+  --accent-amber:   hsl(38, 92%, 58%);
+  --accent-violet:  hsl(262, 68%, 62%);
+  --accent-cyan:    hsl(188, 72%, 48%);
+  --accent-rose:    hsl(348, 72%, 58%);
+  --accent-emerald: hsl(158, 64%, 42%);
+
+  /* Accent translucents */
+  --accent-amber-10:   hsl(38, 92%, 58%, 0.10);
+  --accent-violet-10:  hsl(262, 68%, 62%, 0.10);
+  --accent-cyan-10:    hsl(188, 72%, 48%, 0.10);
+  --accent-rose-10:    hsl(348, 72%, 58%, 0.10);
+  --accent-emerald-10: hsl(158, 64%, 42%, 0.10);
+
+  /* Shadows (multi-layer, cool-shifted) */
+  --shadow-1:
+    0 1px 2px  hsl(225, 30%, 4%, 0.30),
+    0 1px 3px  hsl(225, 30%, 4%, 0.15);
+
+  --shadow-2:
+    0 2px 4px  hsl(225, 30%, 4%, 0.30),
+    0 4px 8px  hsl(225, 30%, 4%, 0.15),
+    0 1px 2px  hsl(225, 30%, 4%, 0.10);
+
+  --shadow-3:
+    0 4px 8px  hsl(225, 30%, 4%, 0.30),
+    0 8px 16px hsl(225, 30%, 4%, 0.15),
+    0 16px 32px hsl(225, 30%, 4%, 0.08);
+
+  --shadow-4:
+    0 8px 16px  hsl(225, 30%, 4%, 0.35),
+    0 16px 32px hsl(225, 30%, 4%, 0.20),
+    0 32px 64px hsl(225, 30%, 4%, 0.10);
+
+  /* Border radii */
+  --radius-s:    6px;
+  --radius-m:   10px;
+  --radius-l:   16px;
+  --radius-xl:  24px;
+  --radius-full: 9999px;
+
+  /* Spacing (4px base) */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* Typography */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+
+  --type-hero: 700 2.5rem/1.1 var(--font-display);
+  --type-h1:   700 1.75rem/1.2 var(--font-display);
+  --type-h2:   500 1.25rem/1.3 var(--font-display);
+  --type-h3:   600 1rem/1.4 var(--font-body);
+  --type-body: 400 0.875rem/1.5 var(--font-body);
+  --type-small: 500 0.75rem/1.4 var(--font-body);
+  --type-micro: 500 0.625rem/1.3 var(--font-body);
+
+  /* Transitions (for non-spring properties like color, opacity) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out:   cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  --topbar-height: 60px;
+  --bottom-nav-height: 64px;
+}
+
+/* ── Accessibility: Reduced Motion ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── CSS Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 2;
+}
+
+body {
+  background-color: var(--surface-void);
+  color: var(--text-primary);
+  font: var(--type-body);
+  font-family: var(--font-body);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+img, video, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul, ol {
+  list-style: none;
+}
+
+/* ── Typography Utilities ──────────────────────────────────── */
+.text-hero    { font: var(--type-hero); letter-spacing: -0.03em; }
+.text-h1      { font: var(--type-h1);   letter-spacing: -0.02em; }
+.text-h2      { font: var(--type-h2);   letter-spacing: -0.01em; }
+.text-h3      { font: var(--type-h3); }
+.text-body    { font: var(--type-body); }
+.text-small   { font: var(--type-small); letter-spacing: 0.01em; }
+.text-micro   { font: var(--type-micro); letter-spacing: 0.03em; }
+
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+
+/* ── Surface Texture (subtle noise grain) ──────────────────── */
+.surface-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none;
+  opacity: 0.015;
+}
+
+/* ── Focus Ring ────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-violet);
+  outline-offset: 3px;
+  border-radius: var(--radius-s);
+}
+
+/* ── Scrollbar Styling ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ── Layout Utilities ──────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

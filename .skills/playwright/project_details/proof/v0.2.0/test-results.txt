@@ -1,0 +1,59 @@
+≡ƒÄ¡ Playwright Skill - Universal Executor
+
+≡ƒôä Executing file: C:\Users\hgran\OneDrive\Documents\code\Projects\WLEDashboard\project_details\playbooks\test-v0.2.0.js
+≡ƒÜÇ Starting automation...
+
+
+ WLEDashboard v0.2.0 Functional Test
+
+[ API Health ]
+  PASS  API responds on :3001
+
+[ Device API ]
+  PASS  POST /api/devices creates device
+  PASS  GET /api/devices returns the device
+  PASS  PATCH /api/devices/:id updates name
+  PASS  POST /api/devices/reorder accepts id array
+  PASS  GET /api/settings returns object
+  PASS  PATCH /api/settings persists values
+  PASS  Rejects invalid device IP
+
+[ Dashboard UI ]
+  PASS  Dashboard renders without crash
+  PASS  Device card renders
+  PASS  Status dot present on card
+  PASS  Brightness slider renders
+  PASS  Toggle renders
+
+[ Context Menu ]
+  PASS  Right-click opens context menu
+  PASS  Context menu has Rename item
+  PASS  Context menu has Remove Device item
+  PASS  Escape closes context menu
+
+[ Inline Rename ]
+  PASS  Double-click name activates rename input
+  PASS  Escape cancels rename without saving
+
+[ Device Manager ]
+  PASS  Device Manager renders
+  PASS  Device row visible in list
+  PASS  Add Device button exists
+  PASS  Add Device form expands on click
+  PASS  Add Device form collapses on Cancel
+  PASS  Edit button opens inline edit fields
+  PASS  Cancel edit closes fields
+
+[ Settings ]
+  PASS  Settings renders
+  PASS  Poll interval input present
+  PASS  Save button present
+  PASS  Save dispatches success toast
+
+[ Cleanup ]
+  PASS  DELETE /api/devices/:id removes device
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+ Results: 31 passed, 0 failed
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+

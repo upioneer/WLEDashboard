@@ -1,0 +1,20 @@
+.shell {
+  display: flex;
+  min-height: 100dvh;
+  background-color: var(--surface-void);
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+.accentBar {
+  height: 1px;
+  width: 100%;
+  transition: background 800ms var(--ease-out-expo);
+  flex-shrink: 0;
+}

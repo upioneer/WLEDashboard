@@ -1,0 +1,97 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.value {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  font-feature-settings: 'tnum';
+}
+
+.track {
+  position: relative;
+  height: 4px;
+  border-radius: var(--radius-full);
+  transition: background 80ms linear;
+}
+
+.input {
+  position: absolute;
+  inset: -10px 0;
+  width: 100%;
+  height: 24px;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Custom range input — fully custom via a ::before overlay technique */
+.track::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  box-shadow: var(--thumb-glow, none), var(--shadow-1);
+  pointer-events: none;
+  transition: box-shadow 120ms var(--ease-out-expo);
+}
+
+/* Real thumb — invisible but functional */
+.input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Visible styled thumb */
+.track {
+  position: relative;
+  --thumb-pct: 0%;
+}
+
+/* We use a custom overlay thumb instead of the native one */
+.thumbOverlay {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  pointer-events: none;
+  will-change: left, box-shadow;
+  transition: box-shadow 120ms var(--ease-out-expo);
+  z-index: 2;
+}

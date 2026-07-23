@@ -1,0 +1,13 @@
+{
+  "name": "code_scaffold_privacy_policy_skill",
+  "version": "5",
+  "description": "Generates a customizable privacy policy tailored to the project (website/app) with optional Google Analytics integration.",
+  "entryPoint": "./SKILL.md",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "requiredPermissions": [
+    "fs:read",
+    "fs:write"
+  ]
+}

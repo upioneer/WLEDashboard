@@ -1,0 +1,335 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-6) var(--sp-8);
+  gap: var(--sp-6);
+  max-width: 900px;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.title {
+  font: var(--type-h1);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  margin-top: var(--sp-1);
+}
+
+.addBtn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: background-color 120ms var(--ease-out-expo), box-shadow 120ms var(--ease-out-expo);
+}
+
+.addBtn:hover {
+  background-color: hsl(38, 92%, 64%);
+  box-shadow: 0 0 16px hsl(38, 92%, 58%, 0.4);
+}
+
+/* ── Add Form ────────────────────────────────────────────────── */
+.addForm {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  animation: slideDown 240ms var(--ease-out-expo);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.addFormTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.addFormHint {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  margin-top: calc(-1 * var(--sp-2));
+}
+
+.addFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-4);
+}
+
+.addActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.addSubmitBtn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  transition: background-color 120ms;
+}
+
+.addSubmitBtn:hover:not(:disabled) {
+  background-color: hsl(38, 92%, 64%);
+}
+
+.addSubmitBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.required {
+  color: var(--accent-rose);
+  margin-left: 2px;
+}
+
+/* ── Device List ─────────────────────────────────────────────── */
+.list {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.emptyRow {
+  padding: var(--sp-8);
+  text-align: center;
+  font: var(--type-body);
+  color: var(--text-tertiary);
+}
+
+/* ── Device Row ──────────────────────────────────────────────── */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background-color 120ms;
+}
+
+.row:last-child { border-bottom: none; }
+
+.row:hover {
+  background-color: var(--surface-overlay);
+}
+
+.rowConfirm {
+  background-color: var(--accent-rose-10);
+  border-color: hsl(348, 72%, 58%, 0.2);
+}
+
+.rowEditing {
+  background-color: var(--surface-overlay);
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.rowStatus {
+  flex-shrink: 0;
+}
+
+.dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotOnline  { background-color: var(--accent-emerald); box-shadow: 0 0 6px var(--accent-emerald); }
+.dotOffline { background-color: var(--text-tertiary); }
+
+.rowInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.rowName {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+
+.metaChip {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 var(--sp-2);
+  background-color: var(--surface-overlay);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.mac {
+  font-family: 'Courier New', monospace;
+  font-size: 0.6rem;
+  color: var(--text-tertiary);
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.confirmMsg {
+  flex: 1;
+  font: var(--type-small);
+  color: var(--accent-rose);
+}
+
+/* ── Edit Fields ─────────────────────────────────────────────── */
+.editFields {
+  display: flex;
+  gap: var(--sp-3);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.editLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-width: 140px;
+}
+
+.editInput {
+  height: 30px;
+  padding: 0 var(--sp-2);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-primary);
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+/* ── Action Buttons ──────────────────────────────────────────── */
+.editBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  transition: background-color 120ms, color 120ms;
+}
+
+.editBtn:hover { background-color: var(--surface-raised); color: var(--text-primary); }
+
+.deleteBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+
+.deleteBtn:hover {
+  background-color: var(--accent-rose-10);
+  border-color: hsl(348, 72%, 58%, 0.25);
+  color: var(--accent-rose);
+}
+
+.saveBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  font-weight: 600;
+  transition: background-color 120ms;
+}
+
+.saveBtn:hover:not(:disabled) { background-color: hsl(38, 92%, 64%); }
+.saveBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.dangerBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-rose);
+  color: white;
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  font-weight: 600;
+  transition: background-color 120ms;
+}
+
+.dangerBtn:hover { background-color: hsl(348, 72%, 50%); }
+
+.ghostBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  transition: background-color 120ms, color 120ms;
+}
+
+.ghostBtn:hover { background-color: var(--surface-overlay); color: var(--text-primary); }
+
+@media (max-width: 767px) {
+  .page { padding: var(--sp-4); gap: var(--sp-4); }
+  .addFields { grid-template-columns: 1fr; }
+  .editFields { flex-direction: column; }
+  .rowActions { flex-wrap: wrap; }
+}

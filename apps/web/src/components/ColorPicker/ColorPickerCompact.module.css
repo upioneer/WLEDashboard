@@ -1,0 +1,76 @@
+.wrapper {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+}
+
+.swatch {
+  width: 28px;
+  height: 52px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  transition: background-color 80ms linear;
+}
+
+.sliders {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.hueTrack {
+  height: 12px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    to right,
+    hsl(0,100%,50%),
+    hsl(30,100%,50%),
+    hsl(60,100%,50%),
+    hsl(90,100%,50%),
+    hsl(120,100%,50%),
+    hsl(150,100%,50%),
+    hsl(180,100%,50%),
+    hsl(210,100%,50%),
+    hsl(240,100%,50%),
+    hsl(270,100%,50%),
+    hsl(300,100%,50%),
+    hsl(330,100%,50%),
+    hsl(360,100%,50%)
+  );
+  position: relative;
+}
+
+.satLitRow {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.satTrack,
+.litTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  position: relative;
+}
+
+/* Generic range input — sits on top of styled tracks */
+.rangeInput {
+  position: absolute;
+  inset: -8px 0;
+  width: 100%;
+  height: 28px;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+}
+
+.hueInput {
+  inset: -10px 0;
+  height: 32px;
+}

@@ -1,0 +1,199 @@
+.page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-6) var(--sp-8);
+  gap: var(--sp-8);
+  max-width: 900px;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.title {
+  font: var(--type-h1);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.saveBtn {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  transition: background-color 120ms var(--ease-out-expo), box-shadow 120ms var(--ease-out-expo);
+}
+
+.saveBtn:hover:not(:disabled) {
+  background-color: hsl(38, 92%, 64%);
+  box-shadow: 0 0 16px hsl(38, 92%, 58%, 0.4);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Sections ────────────────────────────────────────────────── */
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.section {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.sectionTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.sectionDesc {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  margin-top: calc(-1 * var(--sp-3));
+}
+
+/* ── Fields ──────────────────────────────────────────────────── */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.field {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-4) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.field:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.fieldMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.fieldLabel {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fieldHint {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+}
+
+.fieldControl {
+  flex-shrink: 0;
+}
+
+/* ── Number input ────────────────────────────────────────────── */
+.numberInput {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.numberInputField {
+  width: 100px;
+  height: 34px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+  text-align: right;
+  font-feature-settings: 'tnum';
+  transition: border-color 120ms var(--ease-out-expo), box-shadow 120ms var(--ease-out-expo);
+}
+
+.numberInputField:focus {
+  outline: none;
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
+}
+
+.unit {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  width: 28px;
+}
+
+/* ── About ───────────────────────────────────────────────────── */
+.aboutGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.aboutRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.aboutRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.aboutLabel {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.aboutValue {
+  font: var(--type-small);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ── Skeleton ────────────────────────────────────────────────── */
+.skeleton {
+  height: 200px;
+  border-radius: var(--radius-l);
+  background-color: var(--surface-raised);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+@media (max-width: 767px) {
+  .page { padding: var(--sp-4); }
+  .field { flex-direction: column; gap: var(--sp-3); }
+  .fieldControl { width: 100%; }
+  .numberInput { width: 100%; }
+  .numberInputField { flex: 1; }
+}

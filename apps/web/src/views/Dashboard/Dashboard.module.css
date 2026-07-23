@@ -1,0 +1,230 @@
+.dashboard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-6) var(--sp-8);
+  gap: var(--sp-8);
+  max-width: 1800px;
+  width: 100%;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.title {
+  font: var(--type-h1);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.statLabel {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  padding-top: var(--sp-2);
+}
+
+.networkBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.networkDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-emerald);
+  box-shadow: 0 0 6px var(--accent-emerald);
+  flex-shrink: 0;
+}
+
+/* ── Device Grid ────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+@media (min-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (min-width: 1800px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+/* ── Card entrance animation ────────────────────────────────── */
+.cardWrapper {
+  animation: cardEnter 400ms var(--ease-out-expo) both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Empty State ────────────────────────────────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--sp-16);
+  gap: var(--sp-4);
+  position: relative;
+}
+
+.emptyGlow {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(262, 68%, 62%, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.emptyTitle {
+  font: var(--type-h2);
+  color: var(--text-primary);
+  position: relative;
+}
+
+.emptyBody {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  max-width: 420px;
+  position: relative;
+}
+
+.emptyHint {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  position: relative;
+}
+
+/* ── Skeleton Loading ───────────────────────────────────────── */
+.skeletonTitle {
+  height: 32px;
+  width: 200px;
+  border-radius: var(--radius-m);
+  background-color: var(--surface-raised);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonCard {
+  height: 320px;
+  border-radius: var(--radius-l);
+  background-color: var(--surface-raised);
+  animation: shimmer 1.4s ease-in-out infinite;
+  animation-fill-mode: both;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* ── Error State ────────────────────────────────────────────── */
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-16);
+  text-align: center;
+}
+
+.errorTitle {
+  font: var(--type-h2);
+  color: var(--accent-rose);
+}
+
+.errorBody {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  max-width: 360px;
+}
+
+.retryBtn {
+  padding: var(--sp-3) var(--sp-6);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color 120ms var(--ease-out-expo),
+    border-color 120ms var(--ease-out-expo);
+}
+
+.retryBtn:hover {
+  background-color: var(--surface-overlay);
+  border-color: var(--border-strong);
+}
+
+/* ── Mobile: reduce padding ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .dashboard {
+    padding: var(--sp-4);
+    gap: var(--sp-5);
+  }
+}

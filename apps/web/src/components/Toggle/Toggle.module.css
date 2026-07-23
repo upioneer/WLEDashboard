@@ -1,0 +1,73 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.label {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.track {
+  position: relative;
+  width: 46px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  transition:
+    background-color 200ms var(--ease-out-expo),
+    border-color 200ms var(--ease-out-expo),
+    box-shadow 200ms var(--ease-out-expo);
+  flex-shrink: 0;
+}
+
+/* When the input inside is checked */
+.input:checked ~ .knob {
+  /* knob position driven by JS spring */
+}
+
+/* Track: checked state styling via parent class */
+.toggle:has(.input:checked) .track {
+  background-color: var(--accent-emerald);
+  border-color: transparent;
+  box-shadow: 0 0 12px hsl(158, 64%, 42%, 0.35);
+}
+
+.toggle:has(.input:not(:checked)) .track {
+  background-color: var(--surface-input);
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+  box-shadow: var(--shadow-1);
+  will-change: transform;
+  transition: background-color 200ms var(--ease-out-expo);
+}
+
+.toggle:has(.input:checked) .knob {
+  background-color: white;
+}
