@@ -146,6 +146,61 @@
   width: 28px;
 }
 
+.unitToggleGroup {
+  display: flex;
+  gap: var(--sp-2);
+  background-color: var(--surface-overlay);
+  padding: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+}
+
+.unitToggleBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background: none;
+  border: none;
+  border-radius: calc(var(--radius-m) - 2px);
+  font: var(--type-small);
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 120ms, background-color 120ms;
+}
+
+.unitToggleBtn:hover {
+  color: var(--text-primary);
+}
+
+.unitToggleActive {
+  background-color: var(--surface-raised);
+  color: var(--accent-violet);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+}
+
+.detectRow {
+  display: flex;
+  padding-top: var(--sp-2);
+}
+
+.detectBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-violet-10);
+  border: 1px solid var(--accent-violet);
+  border-radius: var(--radius-s);
+  color: var(--accent-violet);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-out-expo);
+}
+
+.detectBtn:hover {
+  background-color: hsl(262, 68%, 62%, 0.2);
+}
+
 /* ── About ───────────────────────────────────────────────────── */
 .aboutGrid {
   display: flex;
@@ -196,4 +251,81 @@
   .fieldControl { width: 100%; }
   .numberInput { width: 100%; }
   .numberInputField { flex: 1; }
+}
+
+/* ── Modal Overlay ───────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+}
+
+.promptModal {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-shadow: var(--shadow-3);
+}
+
+.modalTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.modalBody {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.promptOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.promptBtnPrimary {
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms var(--ease-out-expo);
+}
+
+.promptBtnPrimary:hover {
+  background-color: hsl(262, 68%, 68%);
+}
+
+.promptBtnSecondary {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  font: var(--type-small);
+  cursor: pointer;
+  transition: color 120ms;
+}
+
+.promptBtnSecondary:hover {
+  color: var(--text-primary);
 }

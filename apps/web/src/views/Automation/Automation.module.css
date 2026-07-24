@@ -44,6 +44,28 @@
   border-radius: var(--radius-m);
   font: var(--type-small);
   color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-out-expo), border-color 120ms, background-color 120ms, box-shadow 120ms;
+}
+
+.sunBadge:hover {
+  background-color: var(--surface-overlay);
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 16px -4px hsl(262, 68%, 62%, 0.35);
+  transform: translateY(-1px);
+}
+
+.sunBadgeHint {
+  font: var(--type-micro);
+  color: var(--accent-violet);
+  font-weight: 600;
+  opacity: 0.85;
+  transition: opacity 120ms;
+}
+
+.sunBadge:hover .sunBadgeHint {
+  opacity: 1;
 }
 
 .sunDivider {

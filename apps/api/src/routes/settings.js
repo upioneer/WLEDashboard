@@ -7,7 +7,7 @@ export async function settingsRoutes(fastify) {
     return Object.fromEntries(rows.map(r => [r.key, r.value]))
   })
 
-  const PatchSchema = z.record(z.string().min(1), z.string())
+  const PatchSchema = z.record(z.string().min(1), z.union([z.string(), z.number()]))
 
   fastify.patch('/settings', async (req, reply) => {
     const parsed = PatchSchema.safeParse(req.body)
@@ -16,7 +16,7 @@ export async function settingsRoutes(fastify) {
     const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)')
     db.transaction(() => {
       for (const [key, value] of Object.entries(parsed.data)) {
-        stmt.run(key, value)
+        stmt.run(key, String(value))
       }
     })()
     return { ok: true }

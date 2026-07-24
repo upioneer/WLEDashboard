@@ -14,6 +14,7 @@ import { settingsRoutes } from './routes/settings.js'
 import { groupRoutes } from './routes/groups.js'
 import { configRoutes } from './routes/config.js'
 import { automationRoutes } from './routes/automation.js'
+import { spatialRoutes } from './routes/spatial.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -68,7 +69,7 @@ if (IS_PROD) {
 
 fastify.get('/api/health', async () => ({
   status: 'ok',
-  version: '0.3.0',
+  version: '0.4.0',
   uptime: process.uptime(),
 }))
 
@@ -80,6 +81,7 @@ await fastify.register(async (api) => {
   await api.register(groupRoutes)
   await api.register(configRoutes)
   await api.register(automationRoutes)
+  await api.register(spatialRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────

@@ -222,3 +222,33 @@ button.chip:hover {
   color: var(--accent-rose);
   opacity: 0.8;
 }
+
+/* ── Identifying State ────────────────────────────────────────── */
+.cardIdentifying {
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 24px -4px hsl(38, 92%, 50%, 0.4) !important;
+}
+
+.identifyingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background-color: var(--accent-amber-10);
+  border: 1px solid var(--accent-amber);
+  border-radius: var(--radius-full);
+  font: var(--type-micro);
+  font-weight: 600;
+  color: var(--accent-amber);
+  animation: pulseAmber 1.2s infinite ease-in-out;
+  cursor: pointer;
+}
+
+.identifyingBadge:hover {
+  background-color: hsl(38, 92%, 50%, 0.25);
+}
+
+@keyframes pulseAmber {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(0.96); }
+}

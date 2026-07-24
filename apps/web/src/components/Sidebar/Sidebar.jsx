@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore.js'
+import { LogoMark } from '../Logo/LogoMark.jsx'
 import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
@@ -27,7 +28,7 @@ export function Sidebar() {
           <LogoMark />
         </span>
         {!collapsed && (
-          <span className={styles.wordmark}>WLED<strong>ash</strong></span>
+          <span className={styles.wordmark}>WLED<strong>ashboard</strong></span>
         )}
       </div>
 
@@ -78,19 +79,6 @@ export function Sidebar() {
 
 // ─── Inline SVG Icons ─────────────────────────────────────────────────────────
 // Using inline SVG to avoid any icon library dependency
-
-function LogoMark() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
-      <circle cx="11" cy="11" r="9" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
-      <circle cx="11" cy="11" r="4" fill="currentColor" />
-      <line x1="11" y1="2" x2="11" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="11" y1="17" x2="11" y2="20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="2" y1="11" x2="5" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="17" y1="11" x2="20" y2="11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function DashIcon() {
   return (

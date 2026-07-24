@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useAutomationStore } from '../../stores/automationStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
@@ -63,11 +64,17 @@ export function Automation() {
         </div>
 
         {sunTimes && (
-          <div className={styles.sunBadge} title="Calculated local astronomical sun times">
-            <span className={styles.sunItem}>🌅 Sunrise: <strong>{sunTimes.sunrise}</strong></span>
+          <Link
+            to="/settings"
+            className={styles.sunBadge}
+            title="Astronomical solar times based on your region. Click to configure location in Settings."
+          >
+            <span className={styles.sunItem}>Sunrise: <strong>{sunTimes.sunrise}</strong></span>
             <span className={styles.sunDivider}>•</span>
-            <span className={styles.sunItem}>🌇 Sunset: <strong>{sunTimes.sunset}</strong></span>
-          </div>
+            <span className={styles.sunItem}>Sunset: <strong>{sunTimes.sunset}</strong></span>
+            <span className={styles.sunDivider}>•</span>
+            <span className={styles.sunBadgeHint}>Update in Settings</span>
+          </Link>
         )}
       </header>
 

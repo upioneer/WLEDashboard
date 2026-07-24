@@ -96,13 +96,18 @@ export function DeviceCard({ device }) {
   }, [debouncedBrightness])
 
   // Color
-  const [localColor, setLocalColor] = useState(dominantColor ?? '#ffffff')
+  const [localColor, setLocalColor] = useState(dominantColor ?? '#ff8844')
+
+  useEffect(() => {
+    if (dominantColor) setLocalColor(dominantColor)
+  }, [dominantColor])
 
   const commitColor = useCallback((hex) => {
+    if (!hex || hex.length < 7) return
     const r = parseInt(hex.slice(1, 3), 16)
     const g = parseInt(hex.slice(3, 5), 16)
     const b = parseInt(hex.slice(5, 7), 16)
-    sendCommand(device.id, { seg: [{ col: [[r, g, b]] }] })
+    sendCommand(device.id, { seg: [{ id: 0, col: [[r, g, b]] }] })
   }, [device.id, sendCommand])
 
   const debouncedColor = useDebounce(commitColor, DEBOUNCE_MS)
@@ -130,18 +135,62 @@ export function DeviceCard({ device }) {
     }
   }, [device.id, device.name, removeDevice, addToast])
 
-  // Identify (flash strip)
-  const handleIdentify = useCallback(() => {
-    sendCommand(device.id, { bri: 255, on: true, seg: [{ fx: 0, col: [[255, 255, 255]] }] })
-    addToast({ message: `Identifying "${device.name}"...`, type: 'info', duration: 2000 })
-    // Restore after 3 seconds
-    setTimeout(() => {
+  // Identify (breathing pulse & full state snapshot restoration)
+  const [isIdentifying, setIsIdentifying] = useState(false)
+  const savedStateRef = useRef(null)
+  const identifyTimerRef = useRef(null)
+
+  const stopIdentify = useCallback(() => {
+    if (identifyTimerRef.current) {
+      clearTimeout(identifyTimerRef.current)
+      identifyTimerRef.current = null
+    }
+    setIsIdentifying(false)
+    if (savedStateRef.current) {
+      const saved = savedStateRef.current
       sendCommand(device.id, {
-        bri: pctToWledBri(localBri),
-        on: isOn,
+        on: saved.on ?? true,
+        bri: saved.bri ?? 255,
+        seg: saved.seg ?? [{ fx: 0 }],
       })
-    }, 3000)
-  }, [device.id, device.name, localBri, isOn, sendCommand, addToast])
+      savedStateRef.current = null
+    }
+  }, [device.id, sendCommand])
+
+  const handleIdentify = useCallback(() => {
+    if (isIdentifying) {
+      stopIdentify()
+      addToast({ message: `Stopped identifying "${device.name}"`, type: 'info', duration: 2000 })
+      return
+    }
+
+    // Save full WLED state snapshot before identifying
+    savedStateRef.current = device.liveState
+      ? JSON.parse(JSON.stringify(device.liveState))
+      : { on: isOn, bri: pctToWledBri(localBri) }
+
+    setIsIdentifying(true)
+
+    // Vibrant breathing gold pulse effect (fx: 2 = Breathe, vibrant amber/gold color)
+    sendCommand(device.id, {
+      on: true,
+      bri: 255,
+      seg: [{ fx: 2, col: [[255, 180, 0]], sx: 220, ix: 255 }],
+    })
+    addToast({ message: `Identifying "${device.name}" (breathing gold pulse)...`, type: 'info', duration: 4000 })
+
+    // Auto-restore after 5 seconds if not manually toggled off
+    identifyTimerRef.current = setTimeout(() => {
+      stopIdentify()
+    }, 5000)
+  }, [isIdentifying, stopIdentify, device.id, device.name, device.liveState, isOn, localBri, sendCommand, addToast])
+
+  // Cleanup identify timer on unmount
+  useEffect(() => {
+    return () => {
+      if (identifyTimerRef.current) clearTimeout(identifyTimerRef.current)
+    }
+  }, [])
 
   // Rename
   const startRename = useCallback(() => {
@@ -187,7 +236,7 @@ export function DeviceCard({ device }) {
       onClick: startRename,
     },
     {
-      label: 'Identify',
+      label: isIdentifying ? 'Stop Identify' : 'Identify',
       icon: <IdentifyIcon />,
       onClick: handleIdentify,
       disabled: !isOnline,
@@ -220,7 +269,7 @@ export function DeviceCard({ device }) {
   return (
     <>
       <article
-        className={[styles.card, !isOnline && styles.cardOffline].filter(Boolean).join(' ')}
+        className={[styles.card, !isOnline && styles.cardOffline, isIdentifying && styles.cardIdentifying].filter(Boolean).join(' ')}
         style={cardStyle}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -260,6 +309,15 @@ export function DeviceCard({ device }) {
             )}
           </div>
           <div className={styles.headerActions}>
+            {isIdentifying && (
+              <button
+                className={styles.identifyingBadge}
+                onClick={stopIdentify}
+                title="Click to stop identifying"
+              >
+                Breathing... ✕
+              </button>
+            )}
             <button
               className={styles.menuBtn}
               onClick={(e) => { e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY }) }}

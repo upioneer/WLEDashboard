@@ -38,6 +38,7 @@ function applyMigrations(db) {
   const migrations = [
     { version: 1, sql: migration_001 },
     { version: 2, sql: migration_002 },
+    { version: 3, sql: migration_003 },
   ]
 
   for (const m of migrations) {
@@ -154,14 +155,16 @@ const migration_001 = `
   );
 
   CREATE TABLE IF NOT EXISTS anchors (
-    id        TEXT PRIMARY KEY,
-    room_id   TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-    device_id TEXT REFERENCES devices(id) ON DELETE SET NULL,
-    name      TEXT NOT NULL,
-    type      TEXT NOT NULL,
-    offset_x  REAL NOT NULL DEFAULT 0,
-    offset_y  REAL NOT NULL DEFAULT 0,
-    offset_z  REAL NOT NULL DEFAULT 0
+    id         TEXT PRIMARY KEY,
+    room_id    TEXT NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+    device_id  TEXT REFERENCES devices(id) ON DELETE SET NULL,
+    name       TEXT NOT NULL,
+    type       TEXT NOT NULL,
+    offset_x   REAL NOT NULL DEFAULT 0,
+    offset_y   REAL NOT NULL DEFAULT 0,
+    offset_z   REAL NOT NULL DEFAULT 0,
+    rotation_y REAL NOT NULL DEFAULT 0,
+    length     REAL NOT NULL DEFAULT 3.5
   );
 
   CREATE TABLE IF NOT EXISTS settings (
@@ -204,5 +207,10 @@ const migration_002 = `
   ALTER TABLE routines ADD COLUMN description TEXT DEFAULT '';
   ALTER TABLE routines ADD COLUMN steps_json TEXT DEFAULT '[]';
   ALTER TABLE routines ADD COLUMN enabled INTEGER DEFAULT 1;
+`
+
+const migration_003 = `
+  ALTER TABLE anchors ADD COLUMN rotation_y REAL DEFAULT 0;
+  ALTER TABLE anchors ADD COLUMN length REAL DEFAULT 3.5;
 `
 

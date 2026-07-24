@@ -1,0 +1,614 @@
+.page {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - 60px);
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--surface-base);
+}
+
+.viewportWrapper {
+  flex: 1;
+  position: relative;
+  height: 100%;
+  background-color: #0b0d14;
+}
+
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Floating Control Panel Overlay ───────────────────────────── */
+.floatingPanel {
+  position: absolute;
+  top: var(--sp-6);
+  left: var(--sp-6);
+  width: 320px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  box-shadow: var(--shadow-4);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+  animation: fadeIn 180ms var(--ease-out-expo);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.floatingHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.floatingTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.floatingSub {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.closeBtn:hover { color: var(--text-primary); }
+
+.deviceControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.devName {
+  font: var(--type-small);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.unboundHint {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+}
+
+/* ── 3D Light Strip Badge Overlays ────────────────────────────── */
+.stripBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: rgba(10, 12, 18, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: transform 120ms, border-color 120ms;
+}
+
+.stripBadge:hover {
+  transform: scale(1.08);
+  border-color: var(--accent-violet);
+}
+
+.stripBadgeSelected {
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 12px hsl(262, 68%, 62%, 0.4);
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.dotActive { background-color: var(--accent-emerald); box-shadow: 0 0 6px var(--accent-emerald); }
+.dotOnline { background-color: var(--accent-amber); }
+.dotOffline { background-color: var(--text-tertiary); }
+
+.badgeName {
+  font: var(--type-micro);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.badgeState {
+  font: var(--type-micro);
+  color: var(--text-secondary);
+}
+
+.roomLabel {
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  background-color: rgba(18, 20, 29, 0.8);
+  padding: 2px 8px;
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.roomLabelSelected {
+  color: var(--accent-violet);
+  border-color: var(--accent-violet);
+}
+
+/* ── Side Hierarchy Panel ─────────────────────────────────────── */
+.sidePanel {
+  width: 340px;
+  background-color: var(--surface-raised);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.panelTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.addBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-violet-10);
+  color: var(--accent-violet);
+  border: 1px solid hsl(262, 68%, 62%, 0.3);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addBtn:hover { background-color: hsl(262, 68%, 62%, 0.2); }
+
+.tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.dwellingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.dwellingName {
+  font: var(--type-small);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.floorGroup {
+  padding-left: var(--sp-3);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.floorName {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.roomList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.roomBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.roomItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--surface-overlay);
+  border-radius: var(--radius-s);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 120ms, background-color 120ms;
+}
+
+.roomItem:hover {
+  background-color: var(--surface-input);
+}
+
+.roomItemActive {
+  border-color: var(--accent-violet);
+  background-color: var(--accent-violet-10);
+}
+
+.roomName {
+  font: var(--type-small);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.roomDim {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.anchorSection {
+  padding: var(--sp-2) var(--sp-3);
+  margin-left: var(--sp-3);
+  border-left: 2px solid var(--accent-violet);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.anchorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.miniAddBtn {
+  font: var(--type-micro);
+  color: var(--accent-violet);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.anchorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.anchorName {
+  font: var(--type-micro);
+  color: var(--text-primary);
+  flex: 1;
+  truncate: true;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deviceSelect, .moveRoomSelect {
+  height: 24px;
+  font: var(--type-micro);
+  background-color: var(--surface-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  max-width: 110px;
+}
+
+.moveRoomSelect {
+  max-width: 100px;
+  color: var(--accent-violet);
+  border-color: hsl(262, 68%, 62%, 0.3);
+}
+
+.alignAnchorBtn {
+  font: var(--type-micro);
+  color: var(--accent-amber);
+  background: var(--surface-input);
+  border: 1px solid hsl(38, 92%, 58%, 0.3);
+  border-radius: var(--radius-s);
+  padding: 1px var(--sp-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.alignAnchorBtn:hover {
+  background-color: hsl(38, 92%, 58%, 0.15);
+  border-color: var(--accent-amber);
+}
+
+.deleteAnchorBtn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.deleteAnchorBtn:hover { color: var(--accent-rose); }
+
+/* ── Preset Placement Buttons ────────────────────────────────── */
+.presetGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.presetTitle {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.presetButtons {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.presetBtn {
+  flex: 1;
+  height: 28px;
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 120ms, color 120ms, background-color 120ms;
+}
+
+.presetBtn:hover {
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+  background-color: var(--surface-input);
+}
+
+.rotationSlider {
+  width: 100%;
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+/* ── Unassigned Section ──────────────────────────────────────── */
+.unassignedSection {
+  background-color: var(--surface-overlay);
+  border: 1px solid hsl(38, 92%, 58%, 0.25);
+  border-radius: var(--radius-m);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.unassignedTitle {
+  font: var(--type-micro);
+  font-weight: 700;
+  color: var(--accent-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.unassignedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.unassignedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.unassignedName {
+  font: var(--type-small);
+  color: var(--text-primary);
+  truncate: true;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignSelect {
+  height: 24px;
+  font: var(--type-micro);
+  background-color: var(--surface-input);
+  color: var(--accent-amber);
+  border: 1px solid hsl(38, 92%, 58%, 0.4);
+  border-radius: var(--radius-s);
+  max-width: 120px;
+}
+
+.roomMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.miniEditRoomBtn {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  padding: 1px var(--sp-2);
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+
+.miniEditRoomBtn:hover {
+  color: var(--accent-violet);
+  border-color: var(--accent-violet);
+}
+
+.floatingHeaderBtns {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.editRoomBtn {
+  height: 26px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-primary);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms;
+}
+
+.editRoomBtn:hover {
+  border-color: var(--accent-violet);
+  color: var(--accent-violet);
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+
+.modalLabel {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.deleteBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background-color: hsl(350, 89%, 60%, 0.15);
+  border: 1px solid hsl(350, 89%, 60%, 0.4);
+  border-radius: var(--radius-s);
+  color: var(--accent-rose);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: auto;
+}
+
+.deleteBtn:hover {
+  background-color: hsl(350, 89%, 60%, 0.3);
+}
+
+/* ── Modal Overlay ───────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+}
+
+.modal {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.modalInput, .modalSelect {
+  width: 100%;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.cancelBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.saveBtn {
+  height: 34px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.skeletonCanvas {
+  width: 100%;
+  height: 100%;
+  background-color: #0b0d14;
+}
+
+.errorBox {
+  padding: var(--sp-12);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .page { flex-direction: column; }
+  .sidePanel { width: 100%; height: 300px; }
+}

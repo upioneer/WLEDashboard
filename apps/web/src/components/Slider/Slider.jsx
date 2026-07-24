@@ -53,6 +53,14 @@ export function Slider({
         </div>
       )}
       <div className={styles.track} style={trackStyle}>
+        <div
+          className={styles.thumbOverlay}
+          style={{
+            left: `${pct}%`,
+            backgroundColor: color && pct > 0 ? color : 'var(--text-primary)',
+            boxShadow: thumbGlow.boxShadow ?? 'var(--shadow-1)',
+          }}
+        />
         <input
           type="range"
           id={id}
@@ -67,7 +75,6 @@ export function Slider({
           aria-valuemin={min}
           aria-valuemax={max}
           aria-label={label}
-          style={{ '--thumb-glow': thumbGlow.boxShadow ?? 'none' }}
         />
       </div>
     </div>

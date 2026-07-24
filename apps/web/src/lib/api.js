@@ -74,6 +74,19 @@ export const automationApi = {
   getSunTimes: () => request('GET', '/automation/suntimes'),
 }
 
+// ─── Spatial ──────────────────────────────────────────────────────────────────
+export const spatialApi = {
+  getHierarchy: () => request('GET', '/spatial/hierarchy'),
+  createDwelling: (data) => request('POST', '/spatial/dwellings', data),
+  createFloor: (data) => request('POST', '/spatial/floors', data),
+  createRoom: (data) => request('POST', '/spatial/rooms', data),
+  updateRoom: (id, data) => request('PATCH', `/spatial/rooms/${id}`, data),
+  deleteRoom: (id) => request('DELETE', `/spatial/rooms/${id}`),
+  createAnchor: (data) => request('POST', '/spatial/anchors', data),
+  updateAnchor: (id, data) => request('PATCH', `/spatial/anchors/${id}`, data),
+  deleteAnchor: (id) => request('DELETE', `/spatial/anchors/${id}`),
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: () => request('GET', '/health'),

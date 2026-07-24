@@ -34,6 +34,8 @@ export function SearchBar({ value, onChange, filter = 'all', onFilter, resultCou
     { value: 'all',     label: 'All' },
     { value: 'online',  label: 'Online' },
     { value: 'offline', label: 'Offline' },
+    { value: 'on',      label: 'ON' },
+    { value: 'off',     label: 'OFF' },
   ]
 
   return (

@@ -90,6 +90,11 @@ export function Dashboard() {
     .map(id => devices.find(d => d.id === id))
     .filter(Boolean)
 
+  const onlineCount  = devices.filter(d => d.is_online === 1).length
+  const offlineCount = devices.filter(d => d.is_online === 0).length
+  const onCount      = devices.filter(d => d.liveState?.on && d.is_online === 1).length
+  const offCount     = devices.filter(d => (!d.liveState?.on || d.is_online === 0)).length
+
   const filtered = orderedDevices.filter(d => {
     const matchesSearch = !search ||
       d.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -97,12 +102,11 @@ export function Dashboard() {
     const matchesFilter =
       filter === 'all' ||
       (filter === 'online'  && d.is_online === 1) ||
-      (filter === 'offline' && d.is_online === 0)
+      (filter === 'offline' && d.is_online === 0) ||
+      (filter === 'on'      && d.liveState?.on && d.is_online === 1) ||
+      (filter === 'off'     && (!d.liveState?.on || d.is_online === 0))
     return matchesSearch && matchesFilter
   })
-
-  const onlineCount = devices.filter(d => d.is_online === 1).length
-  const activeCount = devices.filter(d => d.liveState?.on).length
 
   // dnd-kit sensors
   const sensors = useSensors(
@@ -128,11 +132,13 @@ export function Dashboard() {
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>Dashboard</h1>
-          <div className={styles.stats}>
-            <Stat label="Devices" value={devices.length} />
-            <Stat label="Online"  value={onlineCount} accent="emerald" />
-            <Stat label="Active"  value={activeCount}  accent="amber" />
-            {groups.length > 0 && <Stat label="Groups" value={groups.length} />}
+          <div className={styles.stats} role="group" aria-label="Device category filters">
+            <StatPill label="Devices" value={devices.length} active={filter === 'all'} onClick={() => setFilter('all')} />
+            <StatPill label="Online"  value={onlineCount} active={filter === 'online'} accent="emerald" onClick={() => setFilter('online')} />
+            <StatPill label="Offline" value={offlineCount} active={filter === 'offline'} accent="rose" onClick={() => setFilter('offline')} />
+            <StatPill label="ON"      value={onCount} active={filter === 'on'} accent="amber" onClick={() => setFilter('on')} />
+            <StatPill label="OFF"     value={offCount} active={filter === 'off'} accent="slate" onClick={() => setFilter('off')} />
+            {groups.length > 0 && <StatPill label="Groups" value={groups.length} active={false} onClick={() => setViewMode('groups')} />}
           </div>
         </div>
 
@@ -202,18 +208,25 @@ export function Dashboard() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Stat({ label, value, accent }) {
+function StatPill({ label, value, active, accent, onClick }) {
   const colorMap = {
     emerald: 'var(--accent-emerald)',
+    rose:    'var(--accent-rose)',
     amber:   'var(--accent-amber)',
+    slate:   'var(--text-tertiary)',
   }
   return (
-    <div className={styles.stat}>
+    <button
+      className={[styles.statPill, active && styles.statPillActive].filter(Boolean).join(' ')}
+      onClick={onClick}
+      aria-pressed={active}
+      title={`Filter by ${label}`}
+    >
       <span className={styles.statValue} style={accent ? { color: colorMap[accent] } : undefined}>
         {value}
       </span>
       <span className={styles.statLabel}>{label}</span>
-    </div>
+    </button>
   )
 }
 

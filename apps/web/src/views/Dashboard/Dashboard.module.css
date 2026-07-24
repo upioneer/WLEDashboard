@@ -32,18 +32,38 @@
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--sp-6);
+  gap: var(--sp-2);
+  flex-wrap: wrap;
 }
 
-.stat {
+.statPill {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 6px 14px;
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  user-select: none;
+  transition: transform 120ms var(--ease-out-expo), border-color 120ms, background-color 120ms, box-shadow 120ms;
+}
+
+.statPill:hover {
+  background-color: var(--surface-input);
+  border-color: var(--border-default);
+  transform: translateY(-1px);
+}
+
+.statPillActive {
+  background-color: var(--accent-violet-10);
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 16px -4px hsl(262, 68%, 62%, 0.35);
 }
 
 .statValue {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 700;
   line-height: 1;
   color: var(--text-primary);
@@ -52,9 +72,10 @@
 
 .statLabel {
   font: var(--type-micro);
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 .headerRight {

@@ -28,7 +28,11 @@ Easily build and customize lighting groups with custom color palettes, group typ
 
 Automate lighting based on fixed times or astronomical sunrise/sunset triggers (`suncalc`). Build multi-step routine timelines with custom delay intervals between step actions.
 
-![Automation & Schedules](project_details/changelog/v0.4.0/screenshots/01-automation-schedules.png)
+### 3D Spatial Viewport
+
+Experience your lighting in 3D space with Three.js / React Three Fiber. View procedural room geometries, wireframe wall bounds, and real-time emissive LED light strips that pulse and glow matching actual device color and brightness.
+
+![3D Spatial Viewport](project_details/changelog/v0.5.0/screenshots/01-spatial-3d-view.png)
 
 ---
 
@@ -36,6 +40,7 @@ Automate lighting based on fixed times or astronomical sunrise/sunset triggers (
 
 * **Local First Architecture**: SQLite storage with WAL journal mode. Zero cloud dependency, zero external account required, all data stays on your local network.
 * **Automatic Device Discovery**: mDNS network scanning (`_wled._tcp`) automatically discovers WLED controllers on your local network and populates MAC addresses, firmware versions, and LED counts.
+* **3D Spatial Viewport**: WebGL 3D canvas powered by Three.js & React Three Fiber. Render 3D floor plans, spatial light anchors, and real-time emissive light strip meshes.
 * **Spring Physics Motion**: Dynamic damped harmonic oscillator spring engine drives interactive UI controls, toggle switches, hover elevations, and card transitions.
 * **Group Management & Nesting**: Organize controllers into Zone, Scene, Sync, or Custom groups. Support for nested child groups and concurrent group command execution.
 * **Automation & Schedules Engine**: Astronomical sunrise/sunset calculations (`suncalc`), time-based schedules, step-by-step routine timelines, and a 30s background scheduler loop.

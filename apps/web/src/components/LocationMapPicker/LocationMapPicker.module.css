@@ -1,0 +1,32 @@
+.mapWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.leafletContainer {
+  width: 100%;
+  height: 240px;
+  border-radius: var(--radius-m);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+  box-shadow: var(--shadow-2);
+}
+
+.privacyNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: var(--type-micro);
+  color: var(--text-secondary);
+  padding: 0 var(--sp-1);
+}
+
+.privacyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-violet);
+  flex-shrink: 0;
+}

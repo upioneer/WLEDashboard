@@ -24,6 +24,15 @@ export const useAutomationStore = create((set, get) => ({
     }
   },
 
+  fetchSunTimes: async () => {
+    try {
+      const sunTimes = await automationApi.getSunTimes()
+      set({ sunTimes })
+    } catch (err) {
+      console.error('Failed to refresh sun times:', err)
+    }
+  },
+
   // Schedules CRUD
   addSchedule: async (data) => {
     const item = await automationApi.createSchedule(data)

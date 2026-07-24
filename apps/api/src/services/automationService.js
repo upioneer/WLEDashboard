@@ -213,11 +213,17 @@ export async function executeRoutineNow(routineId) {
   }
 }
 
-// ─── Astronomical / SunCalc Helper ───────────────────────────────────────────
+export function getSunTimes(lat, lng) {
+  const db = getDb()
+  const dbLat = lat ?? parseFloat(db.prepare('SELECT value FROM settings WHERE key = ?').get('latitude')?.value ?? '37.7749')
+  const dbLng = lng ?? parseFloat(db.prepare('SELECT value FROM settings WHERE key = ?').get('longitude')?.value ?? '-122.4194')
 
-export function getSunTimes(lat = 37.7749, lng = -122.4194) {
-  const times = SunCalc.getTimes(new Date(), lat, lng)
+  const finalLat = isNaN(dbLat) ? 37.7749 : dbLat
+  const finalLng = isNaN(dbLng) ? -122.4194 : dbLng
+
+  const times = SunCalc.getTimes(new Date(), finalLat, finalLng)
   const formatTime = (d) => {
+    if (!d || isNaN(d.getTime())) return '--:--'
     const hh = String(d.getHours()).padStart(2, '0')
     const mm = String(d.getMinutes()).padStart(2, '0')
     return `${hh}:${mm}`
@@ -228,6 +234,8 @@ export function getSunTimes(lat = 37.7749, lng = -122.4194) {
     sunset: formatTime(times.sunset),
     dusk: formatTime(times.dusk),
     dawn: formatTime(times.dawn),
+    latitude: finalLat,
+    longitude: finalLng,
   }
 }
 

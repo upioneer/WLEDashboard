@@ -39,21 +39,6 @@
   margin: 0;
 }
 
-/* Custom range input — fully custom via a ::before overlay technique */
-.track::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: var(--text-primary);
-  box-shadow: var(--thumb-glow, none), var(--shadow-1);
-  pointer-events: none;
-  transition: box-shadow 120ms var(--ease-out-expo);
-}
-
 /* Real thumb — invisible but functional */
 .input::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -63,7 +48,7 @@
   background: transparent;
   cursor: pointer;
   position: relative;
-  z-index: 2;
+  z-index: 5;
 }
 
 .input::-moz-range-thumb {
@@ -73,15 +58,10 @@
   border: none;
   background: transparent;
   cursor: pointer;
+  z-index: 5;
 }
 
-/* Visible styled thumb */
-.track {
-  position: relative;
-  --thumb-pct: 0%;
-}
-
-/* We use a custom overlay thumb instead of the native one */
+/* Visible animated thumb bulb */
 .thumbOverlay {
   position: absolute;
   top: 50%;
@@ -90,8 +70,13 @@
   height: 16px;
   border-radius: 50%;
   background-color: var(--text-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   pointer-events: none;
   will-change: left, box-shadow;
-  transition: box-shadow 120ms var(--ease-out-expo);
+  transition: transform 120ms var(--ease-out-expo), box-shadow 120ms var(--ease-out-expo);
   z-index: 2;
+}
+
+.wrapper:hover .thumbOverlay {
+  transform: translate(-50%, -50%) scale(1.15);
 }
