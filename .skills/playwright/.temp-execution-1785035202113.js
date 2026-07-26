@@ -6,8 +6,8 @@ const path = require('path')
 const fs = require('fs')
 
 const BASE_URL = 'http://localhost:5173'
-const SCREENSHOT_DIR = path.join(__dirname, '../changelog/v0.6.0/screenshots')
-const PROOF_DIR = path.join(__dirname, '../proof/v0.6.0')
+const SCREENSHOT_DIR = path.join(__dirname, '../../project_details/changelog/v0.6.0/screenshots')
+const PROOF_DIR = path.join(__dirname, '../../project_details/proof/v0.6.0')
 
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true })
 fs.mkdirSync(PROOF_DIR, { recursive: true })
