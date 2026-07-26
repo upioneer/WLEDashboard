@@ -6,6 +6,7 @@ import { DeviceManager } from '../views/DeviceManager/DeviceManager.jsx'
 import { Groups } from '../views/Groups/Groups.jsx'
 import { Automation } from '../views/Automation/Automation.jsx'
 import { SpatialView } from '../views/SpatialView/SpatialView.jsx'
+import StudioView from '../views/Studio/StudioView.jsx'
 
 function PlaceholderView({ title }) {
   return (
@@ -28,7 +29,7 @@ export const router = createBrowserRouter([
       { path: 'spatial',       element: <SpatialView /> },
       { path: 'groups',        element: <Groups /> },
       { path: 'automation',    element: <Automation /> },
-      { path: 'studio',        element: <PlaceholderView title="Studio" /> },
+      { path: 'studio',        element: <StudioView /> },
       { path: 'settings',      element: <Settings /> },
       { path: 'devices',       element: <DeviceManager /> },
     ],

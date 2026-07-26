@@ -1,0 +1,85 @@
+.canvasCard {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-4) var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  box-shadow: var(--shadow-2);
+}
+
+.canvasHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.statusGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-emerald);
+  box-shadow: 0 0 10px var(--accent-emerald);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.canvasTitle {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badgeGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.effectBadge {
+  padding: 2px var(--sp-3);
+  background-color: var(--accent-violet-10);
+  border: 1px solid hsl(262, 68%, 62%, 0.3);
+  border-radius: var(--radius-s);
+  color: var(--accent-violet);
+  font: var(--type-micro);
+  font-weight: 600;
+}
+
+.paramBadge {
+  padding: 2px var(--sp-2);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  font: var(--type-micro);
+}
+
+.canvasWrapper {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-2) 0;
+}
+
+.canvasElement {
+  width: 100%;
+  max-width: 860px;
+  height: 42px;
+  border-radius: var(--radius-m);
+}

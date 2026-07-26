@@ -1,0 +1,186 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.designerCard, .libraryCard {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.nameInput {
+  flex: 1;
+  min-width: 240px;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.saveBtn {
+  height: 38px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gradientPreviewWrapper {
+  width: 100%;
+  padding: var(--sp-2);
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-m);
+}
+
+.gradientBar {
+  width: 100%;
+  height: 48px;
+  border-radius: var(--radius-s);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.stopsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.addStopBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-violet-10);
+  border: 1px solid var(--accent-violet);
+  border-radius: var(--radius-s);
+  color: var(--accent-violet);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stopsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--sp-3);
+}
+
+.stopCard {
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  position: relative;
+}
+
+.stopNum {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.colorPicker {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+
+.hexCode {
+  font: var(--type-micro);
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.removeStopBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.removeStopBtn:hover { color: var(--accent-rose); }
+
+/* ── Custom Palette Library ──────────────────────────────────── */
+.cardTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.paletteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+
+.paletteItemCard {
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.paletteMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.paletteItemName {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.deleteBtn {
+  font: var(--type-micro);
+  color: var(--accent-rose);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.miniGradientBar {
+  width: 100%;
+  height: 24px;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+
+.miniGradientBar:hover { opacity: 0.85; }

@@ -34,6 +34,12 @@ Experience your lighting in 3D space with Three.js / React Three Fiber. View pro
 
 ![3D Spatial Viewport](project_details/changelog/v0.5.0/screenshots/01-spatial-3d-view.png)
 
+### Effect Studio & Timeline Animator
+
+Browse WLED built-in effect catalogs, build custom multi-track keyframe animation timelines, design multi-stop color gradients, and simulate light patterns on a live 60-pixel LED strip canvas.
+
+![Effect Studio](project_details/changelog/v0.6.0/screenshots/01-studio-preset-browser.png)
+
 ---
 
 ## Core Features

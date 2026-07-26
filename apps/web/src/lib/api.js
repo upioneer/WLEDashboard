@@ -87,6 +87,19 @@ export const spatialApi = {
   deleteAnchor: (id) => request('DELETE', `/spatial/anchors/${id}`),
 }
 
+// ─── Studio ───────────────────────────────────────────────────────────────────
+export const studioApi = {
+  getEffects: () => request('GET', '/studio/effects'),
+  getPaletteCatalog: () => request('GET', '/studio/palettes/catalog'),
+  listAnimations: () => request('GET', '/studio/animations'),
+  createAnimation: (data) => request('POST', '/studio/animations', data),
+  updateAnimation: (id, data) => request('PATCH', `/studio/animations/${id}`, data),
+  deleteAnimation: (id) => request('DELETE', `/studio/animations/${id}`),
+  listPalettes: () => request('GET', '/studio/palettes'),
+  createPalette: (data) => request('POST', '/studio/palettes', data),
+  deletePalette: (id) => request('DELETE', `/studio/palettes/${id}`),
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: () => request('GET', '/health'),

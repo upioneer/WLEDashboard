@@ -1,0 +1,295 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.toolbarCard, .timelineCard, .savedCard {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.nameInput {
+  flex: 1;
+  min-width: 220px;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.durationGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.label {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.durationInput {
+  width: 90px;
+  height: 38px;
+  padding: 0 var(--sp-2);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+}
+
+.saveBtn {
+  height: 38px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-amber);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.playBtn {
+  height: 34px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.playBtnActive {
+  background-color: var(--accent-amber);
+}
+
+.stopBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  font: var(--type-small);
+  cursor: pointer;
+}
+
+.playheadTime {
+  font: var(--type-body);
+  color: var(--text-primary);
+  margin-right: auto;
+}
+
+.addKfBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-emerald-10);
+  border: 1px solid var(--accent-emerald);
+  border-radius: var(--radius-s);
+  color: var(--accent-emerald);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Timeline Track ──────────────────────────────────────────── */
+.trackHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.hint {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.trackRuler {
+  position: relative;
+  width: 100%;
+  height: 64px;
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-m);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.playheadMarker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--accent-amber);
+  box-shadow: 0 0 10px var(--accent-amber);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.keyframeNode {
+  position: absolute;
+  top: 10px;
+  width: 16px;
+  height: 28px;
+  border-radius: 4px;
+  border: 2px solid var(--text-primary);
+  transform: translateX(-50%);
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.kfTime {
+  position: absolute;
+  bottom: -18px;
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ── Keyframe List ───────────────────────────────────────────── */
+.kfList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.listTitle {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.kfRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+}
+
+.kfMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.kfTimeText {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.kfDetail {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.deleteKfBtn {
+  font: var(--type-micro);
+  color: var(--accent-rose);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.deleteKfBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Saved Animations ────────────────────────────────────────── */
+.animGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--sp-4);
+}
+
+.animCard {
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.animName {
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.animSub {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.cardBtns {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.loadBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--accent-violet-10);
+  border: 1px solid var(--accent-violet);
+  border-radius: var(--radius-s);
+  color: var(--accent-violet);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteAnimBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  font: var(--type-micro);
+  cursor: pointer;
+}

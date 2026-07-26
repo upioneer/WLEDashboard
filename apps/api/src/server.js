@@ -15,6 +15,7 @@ import { groupRoutes } from './routes/groups.js'
 import { configRoutes } from './routes/config.js'
 import { automationRoutes } from './routes/automation.js'
 import { spatialRoutes } from './routes/spatial.js'
+import { studioRoutes } from './routes/studio.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ await fastify.register(async (api) => {
   await api.register(configRoutes)
   await api.register(automationRoutes)
   await api.register(spatialRoutes)
+  await api.register(studioRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────
