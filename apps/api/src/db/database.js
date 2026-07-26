@@ -39,6 +39,7 @@ function applyMigrations(db) {
     { version: 1, sql: migration_001 },
     { version: 2, sql: migration_002 },
     { version: 3, sql: migration_003 },
+    { version: 4, sql: migration_004 },
   ]
 
   for (const m of migrations) {
@@ -212,5 +213,29 @@ const migration_002 = `
 const migration_003 = `
   ALTER TABLE anchors ADD COLUMN rotation_y REAL DEFAULT 0;
   ALTER TABLE anchors ADD COLUMN length REAL DEFAULT 3.5;
+`
+
+const migration_004 = `
+  CREATE TABLE IF NOT EXISTS matrices (
+    id         TEXT PRIMARY KEY,
+    device_id  TEXT REFERENCES devices(id) ON DELETE SET NULL,
+    name       TEXT NOT NULL,
+    width      INTEGER NOT NULL DEFAULT 16,
+    height     INTEGER NOT NULL DEFAULT 16,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS matrix_drawings (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    width       INTEGER NOT NULL,
+    height      INTEGER NOT NULL,
+    pixels_json TEXT NOT NULL,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  INSERT OR IGNORE INTO settings (key, value) VALUES
+    ('mqtt_enabled', '0'),
+    ('mqtt_broker_url', 'mqtt://localhost:1883');
 `
 

@@ -16,6 +16,10 @@ import { configRoutes } from './routes/config.js'
 import { automationRoutes } from './routes/automation.js'
 import { spatialRoutes } from './routes/spatial.js'
 import { studioRoutes } from './routes/studio.js'
+import { mqttRoutes } from './routes/mqtt.js'
+import { audioRoutes } from './routes/audio.js'
+import { matrixRoutes } from './routes/matrix.js'
+import { initMqttService } from './services/mqttService.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
@@ -70,7 +74,7 @@ if (IS_PROD) {
 
 fastify.get('/api/health', async () => ({
   status: 'ok',
-  version: '0.4.0',
+  version: '0.7.0',
   uptime: process.uptime(),
 }))
 
@@ -84,6 +88,9 @@ await fastify.register(async (api) => {
   await api.register(automationRoutes)
   await api.register(spatialRoutes)
   await api.register(studioRoutes)
+  await api.register(mqttRoutes)
+  await api.register(audioRoutes)
+  await api.register(matrixRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────
@@ -114,6 +121,9 @@ async function start() {
 
   // Start mDNS discovery
   startDiscovery()
+
+  // Initialize MQTT Home Assistant bridge
+  initMqttService()
 
   // Start automation scheduler
   startAutomationScheduler()

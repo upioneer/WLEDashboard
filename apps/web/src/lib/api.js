@@ -100,6 +100,28 @@ export const studioApi = {
   deletePalette: (id) => request('DELETE', `/studio/palettes/${id}`),
 }
 
+// ─── MQTT ─────────────────────────────────────────────────────────────────────
+export const mqttApi = {
+  getStatus: () => request('GET', '/mqtt/status'),
+  configure: (data) => request('POST', '/mqtt/configure', data),
+  publishDiscovery: () => request('POST', '/mqtt/discover'),
+}
+
+// ─── Audio ────────────────────────────────────────────────────────────────────
+export const audioApi = {
+  streamDdp: (data) => request('POST', '/audio/stream-ddp', data),
+}
+
+// ─── Matrix ───────────────────────────────────────────────────────────────────
+export const matrixApi = {
+  listConfigs: () => request('GET', '/matrix/configs'),
+  createConfig: (data) => request('POST', '/matrix/configs', data),
+  deleteConfig: (id) => request('DELETE', `/matrix/configs/${id}`),
+  listDrawings: () => request('GET', '/matrix/drawings'),
+  saveDrawing: (data) => request('POST', '/matrix/drawings', data),
+  deleteDrawing: (id) => request('DELETE', `/matrix/drawings/${id}`),
+}
+
 // ─── Health ───────────────────────────────────────────────────────────────────
 export const healthApi = {
   check: () => request('GET', '/health'),

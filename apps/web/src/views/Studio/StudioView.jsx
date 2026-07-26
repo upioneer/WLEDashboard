@@ -4,6 +4,8 @@ import { PixelStripCanvas } from '../../components/PixelStripCanvas/PixelStripCa
 import { PresetBrowser } from './PresetBrowser.jsx'
 import { TimelineEditor } from './TimelineEditor.jsx'
 import { PaletteDesigner } from './PaletteDesigner.jsx'
+import { AudioVisualizer } from '../../components/AudioVisualizer/AudioVisualizer.jsx'
+import { MatrixEditor } from './MatrixEditor.jsx'
 import styles from './StudioView.module.css'
 
 export default function StudioView() {
@@ -28,7 +30,7 @@ export default function StudioView() {
           <div>
             <h1 className={styles.title}>Effect Studio</h1>
             <p className={styles.subtitle}>
-              Browse WLED presets, build multi-track keyframe timelines, and design custom color palettes.
+              Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, and design 2D matrix artwork.
             </p>
           </div>
         </header>
@@ -56,6 +58,18 @@ export default function StudioView() {
           >
             Palette Creator
           </button>
+          <button
+            className={[styles.tabBtn, activeTab === 'audio' && styles.tabBtnActive].filter(Boolean).join(' ')}
+            onClick={() => setActiveTab('audio')}
+          >
+            Audio Visualizer
+          </button>
+          <button
+            className={[styles.tabBtn, activeTab === 'matrix' && styles.tabBtnActive].filter(Boolean).join(' ')}
+            onClick={() => setActiveTab('matrix')}
+          >
+            2D Matrix Canvas
+          </button>
         </div>
 
         {/* Active Tab Panel */}
@@ -63,6 +77,8 @@ export default function StudioView() {
           {activeTab === 'presets' && <PresetBrowser />}
           {activeTab === 'timeline' && <TimelineEditor />}
           {activeTab === 'palette' && <PaletteDesigner />}
+          {activeTab === 'audio' && <AudioVisualizer />}
+          {activeTab === 'matrix' && <MatrixEditor />}
         </div>
       </div>
     </main>

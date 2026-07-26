@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { settingsApi } from '../../lib/api.js'
+import { settingsApi, mqttApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import styles from './Settings.module.css'
@@ -13,6 +13,8 @@ const DEFAULTS = {
   longitude: '-122.4194',
   unit_system: 'imperial',
   unit_prompt_shown: 'false',
+  mqtt_enabled: '0',
+  mqtt_broker_url: 'mqtt://localhost:1883',
 }
 
 export function Settings() {
@@ -172,6 +174,66 @@ export function Settings() {
                 unit="ms"
               />
             </SettingField>
+          </div>
+        </section>
+
+        {/* Home Assistant & MQTT Integration */}
+        <section className={styles.section} aria-labelledby="mqtt-heading">
+          <h2 id="mqtt-heading" className={styles.sectionTitle}>Home Assistant & MQTT Integration</h2>
+          <p className={styles.sectionDesc}>
+            Enable MQTT to automatically publish WLED devices, groups, and spatial scenes to Home Assistant via MQTT Auto-Discovery.
+          </p>
+          <div className={styles.fields}>
+            <SettingField
+              label="Enable Home Assistant MQTT Bridge"
+              hint="Publishes devices and listens for HA control commands"
+              id="mqtt_enabled"
+            >
+              <select
+                id="mqtt_enabled"
+                value={settings.mqtt_enabled}
+                onChange={e => handleChange('mqtt_enabled', e.target.value)}
+                className={styles.selectInput}
+              >
+                <option value="0">Disabled</option>
+                <option value="1">Enabled</option>
+              </select>
+            </SettingField>
+
+            <SettingField
+              label="MQTT Broker URL"
+              hint="Broker connection string (e.g. mqtt://localhost:1883)"
+              id="mqtt_broker_url"
+            >
+              <input
+                type="text"
+                id="mqtt_broker_url"
+                value={settings.mqtt_broker_url}
+                onChange={e => handleChange('mqtt_broker_url', e.target.value)}
+                className={styles.textInput}
+              />
+            </SettingField>
+
+            <div className={styles.mqttActionRow}>
+              <button
+                type="button"
+                className={styles.secondaryBtn}
+                onClick={async () => {
+                  try {
+                    await mqttApi.configure({
+                      enabled: settings.mqtt_enabled === '1',
+                      broker_url: settings.mqtt_broker_url,
+                    })
+                    await mqttApi.publishDiscovery()
+                    addToast({ message: 'Published Home Assistant MQTT Auto-Discovery payloads', type: 'success' })
+                  } catch {
+                    addToast({ message: 'Failed to configure MQTT bridge', type: 'error' })
+                  }
+                }}
+              >
+                Publish HA Discovery Payload
+              </button>
+            </div>
           </div>
         </section>
 

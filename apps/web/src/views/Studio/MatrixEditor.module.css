@@ -1,0 +1,148 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+.editorCard {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.nameInput {
+  flex: 1;
+  min-width: 220px;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.sizeGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.label {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.sizeSelect {
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+}
+
+.saveBtn {
+  height: 38px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toolsBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.paletteSwatches {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-s);
+  border: 2px solid var(--border-subtle);
+  cursor: pointer;
+  transition: transform 120ms;
+}
+
+.swatch:hover { transform: scale(1.1); }
+
+.swatchActive {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 10px var(--accent-violet);
+}
+
+.colorPicker {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.actionBtns {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.toolBtn {
+  height: 30px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* ── 2D Matrix Grid Canvas ───────────────────────────────────── */
+.matrixGrid {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  padding: 8px;
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-m);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
+}
+
+.pixelCell {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 80ms;
+}
+
+.pixelCell:hover { opacity: 0.8; }

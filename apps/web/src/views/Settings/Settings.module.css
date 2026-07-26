@@ -113,7 +113,40 @@
   flex-shrink: 0;
 }
 
-/* ── Number input ────────────────────────────────────────────── */
+/* ── Number & Text input ────────────────────────────────────── */
+.selectInput, .textInput {
+  height: 36px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-body);
+  color: var(--text-primary);
+  min-width: 220px;
+}
+
+.secondaryBtn {
+  height: 34px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-violet-10);
+  border: 1px solid var(--accent-violet);
+  border-radius: var(--radius-s);
+  color: var(--accent-violet);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms;
+}
+
+.secondaryBtn:hover {
+  background-color: var(--surface-input);
+}
+
+.mqttActionRow {
+  display: flex;
+  padding-top: var(--sp-3);
+}
+
 .numberInput {
   display: flex;
   align-items: center;
