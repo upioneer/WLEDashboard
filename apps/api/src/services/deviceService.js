@@ -127,13 +127,23 @@ export async function sendDeviceCommand(device, payload) {
   }
 }
 
-// ─── Polling Engine ───────────────────────────────────────────────────────────
+import { connectWledWebSocket, sendWledWebSocketCommand, disconnectWledWebSocket } from './wledWsService.js'
+
+// ─── Polling & Live Streaming Engine ──────────────────────────────────────────
 
 export function startPolling(device) {
   if (pollTimers.has(device.id)) return
 
   const db = getDb()
   let enriched = false  // only write info fields back once per session
+
+  // Connect direct WebSocket stream if available
+  connectWledWebSocket(device, (deviceId, newState) => {
+    const cached = stateCache.get(deviceId) || {}
+    const combined = { ...cached, ...newState, _ts: Date.now() }
+    stateCache.set(deviceId, combined)
+    notify(deviceId, combined)
+  })
 
   async function poll() {
     const result = await fetchDeviceState(device)

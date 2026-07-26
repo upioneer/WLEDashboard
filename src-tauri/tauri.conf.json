@@ -1,0 +1,68 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../apps/web/dist"
+  },
+  "package": {
+    "productName": "WLEDashboard",
+    "version": "0.7.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "http": {
+        "all": true,
+        "request": true,
+        "scope": ["http://localhost:3001/*", "http://*/*"]
+      },
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "ControlUtility",
+      "copyright": "Copyright 2026 upioneer",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "com.wledashboard.app",
+      "longDescription": "High performance local-first control surface for WLED devices with 3D Spatial View and Effect Studio.",
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "10.13"
+      },
+      "resources": [],
+      "shortDescription": "WLED Dashboard Control Surface",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 900,
+        "resizable": true,
+        "title": "WLEDashboard",
+        "width": 1400
+      }
+    ]
+  }
+}
