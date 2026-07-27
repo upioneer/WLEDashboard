@@ -1,29 +1,33 @@
 # WLEDashboard v0.9.0 Changelog
 
-## Phase 9: Release Candidate / Beta Milestone & Spatial View Polish
+## Phase 9: Release Candidate / Beta Milestone & Hardware Control Polish
 
 Release Date: July 26, 2026
 
 ### Overview
 
-WLEDashboard v0.9.0 marks the official Release Candidate (Beta) milestone ahead of 1.0.0 General Availability. This release consolidates all 8 feature phases and introduces crucial UI layout tuning, 3D Canvas element positioning fixes, and pointer event interactivity polish on the 3D Spatial View.
+WLEDashboard v0.9.0 marks the official Release Candidate (Beta) milestone ahead of 1.0.0 General Availability. This release consolidates all pre-GA hardware brightness calibrations, single-event toggle stability fixes, color picker WLED solid mode updates, dynamic segment bar indicators, 3D Spatial View controls, and Device Manager spatial form alignments.
 
 ---
 
 ### Key Improvements & Fixes
 
-* **Modal Overlay Layering & Drei Html Fix**: Raised `.modalOverlay` z-index to `100000` and scoped R3F Drei `<Html>` components to `zIndexRange={[10, 0]}`, preventing 3D room labels and light badges from clipping into modal dialogs.
-* **Interactive Floating Room Card**: Fixed parameter handling in `useDeviceStore.sendCommand` and added pointer event stopPropagation to `.floatingPanel` so power toggles and brightness sliders are 100% interactive and conflict-free with 3D OrbitControls camera drags.
-* **3D Navigation Controls Legend**: Added a sleek visual 3D controls shortcut badge to the Spatial View viewport (camera rotate, pan/translate, zoom, room selection).
-* **Elongated Edit Room Button & Panel Widening**: Widened floating panel to 440px, styled `Edit Room` button on a single non-wrapping line, and added ellipsis truncation for long room metadata text.
-* **Full Platform Consolidation**: Pre-release consolidation of Home Assistant MQTT Bridge, Real-Time Audio DDP Visualizer, 2D Matrix Canvas, 3D Spatial Hierarchy, Routine Automations, Group Clustering, and WLED 0.14+ WebSocket state streaming.
+* **Hardware-Calibrated WLED Brightness Floor (`colors.js`)**: Fact-based 5% linear threshold mapping (`raw WLED bri = 13`). Setting 1% on the UI now immediately illuminates physical LEDs at their lowest visible hardware threshold across 5V–24V PWM and addressable LED strips.
+* **Power Toggle Single-Event Isolation (`Toggle.jsx`)**: Converted toggle container to an accessible `<div role="switch">` with event propagation guards, eliminating HTML `<label>` synthetic double-firing bugs and preventing toggles from snapping back ON.
+* **Color Picker Solid Mode & Deep Segment Merging (`DeviceCard.jsx` & `deviceStore.js`)**: Updated color picker to explicitly dispatch `"fx": 0` (*Solid Mode*) and `"lor": 0` (*Live Override Reset*). Implemented deep segment array merging (`mergeLiveState`) in Zustand `deviceStore`, preventing card effect chips from flickering to "no effect".
+* **Dynamic Segment Bar Standby & Glowing Color Sync (`SegmentBar.jsx`)**: Updated top segment bar on device cards to display active segment colors when powered on, and automatically dim to standby mode when powered off.
+* **Spatial View 3D Legend & Modal Z-Index Polish (`SpatialView.jsx` & `SpatialCanvas.jsx`)**: Added visual 3D Navigation Controls shortcut legend to the Spatial View canvas, widened the floating room panel (440px), formatted the `Edit Room` button on a single line, and elevated modal overlay z-index to `100000` to prevent Three.js label clipping.
+* **Device Manager Form Alignment (`DeviceManager.jsx` & `DeviceManager.module.css`)**: Re-proportioned the "Register Device Manually" card form grid (`1.2fr 0.9fr 1.3fr`), narrowing the IP address input, allocating 40% more space to the LED count input, and adding top/bottom margins and a dedicated 38px `Add Device` button footer row.
 
 ---
 
 ### Screenshots
 
-* **Spatial View 3D Legend & Interactive Card**:
+* **Spatial View 3D Legend & Interactive Panel**:
   ![Spatial View 3D Legend](screenshots/01-spatial-3d-legend-panel.png)
 
-* **Spatial View Align 3D Light Modal**:
+* **Spatial View 3D Light Alignment Modal**:
   ![Align 3D Light Modal](screenshots/02-spatial-align-modal.png)
+
+* **Device Manager Manual Registration Form**:
+  ![Device Manager Form](screenshots/03-device-manager-form.png)

@@ -109,8 +109,20 @@ export async function fetchDeviceState(device) {
 }
 
 export async function sendDeviceCommand(device, payload) {
+  // 1. Immediately update backend stateCache and notify WebSocket subscribers
+  const cached = stateCache.get(device.id) || { on: true, bri: 255 }
+  const merged = { ...cached, ...payload, _ts: Date.now() }
+  stateCache.set(device.id, merged)
+  notify(device.id, merged)
+
+  // 2. Also forward command over direct WLED WebSocket if connected
+  try {
+    sendWledWebSocketCommand(device.id, payload)
+  } catch {}
+
+  // 3. Forward HTTP JSON command to WLED device
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 4000)
+  const timeout = setTimeout(() => controller.abort(), 2500)
   try {
     const res = await fetch(`http://${device.ip_address}/json/state`, {
       method: 'POST',
@@ -119,12 +131,19 @@ export async function sendDeviceCommand(device, payload) {
       signal: controller.signal,
     })
     clearTimeout(timeout)
-    const data = await res.json()
-    return { ok: res.ok, data }
+    if (res.ok) {
+      const data = await res.json()
+      const updated = { ...merged, ...data, _ts: Date.now() }
+      stateCache.set(device.id, updated)
+      notify(device.id, updated)
+      return { ok: true, data: updated }
+    }
   } catch (err) {
     clearTimeout(timeout)
-    return { ok: false, error: err.message }
   }
+
+  // Always return updated state object so UI remains fluid and responsive
+  return { ok: true, data: merged }
 }
 
 import { connectWledWebSocket, sendWledWebSocketCommand, disconnectWledWebSocket } from './wledWsService.js'

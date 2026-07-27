@@ -18,20 +18,17 @@ async function captureScreenshots() {
   const page = await context.newPage()
 
   try {
-    // 01 Spatial View - 3D Legend & Interactive Floating Panel Card
+    // 01 Dashboard View - Device Cards with Calibrated Brightness & Toggles
+    await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(1500)
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, '01-dashboard-calibrated-controls.png') })
+    console.log('Captured: 01-dashboard-calibrated-controls')
+
+    // 02 Spatial View - 3D Legend & Interactive Floating Panel Card
     await page.goto(`${BASE_URL}/spatial`, { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(1500)
-    await page.screenshot({ path: path.join(SCREENSHOT_DIR, '01-spatial-3d-legend-panel.png') })
-    console.log('Captured: 01-spatial-3d-legend-panel')
-
-    // 02 Spatial View - Align 3D Light Modal
-    const alignBtn = page.locator('button:has-text("Align 3D")').first()
-    if (await alignBtn.isVisible()) {
-      await alignBtn.click()
-      await page.waitForTimeout(500)
-      await page.screenshot({ path: path.join(SCREENSHOT_DIR, '02-spatial-align-modal.png') })
-      console.log('Captured: 02-spatial-align-modal')
-    }
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, '02-spatial-3d-legend-panel.png') })
+    console.log('Captured: 02-spatial-3d-legend-panel')
 
     console.log('All v0.9.0 screenshots captured successfully!')
   } catch (err) {

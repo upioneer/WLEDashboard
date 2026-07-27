@@ -214,10 +214,10 @@ function AddDeviceForm({ onAdd }) {
         WLED devices are discovered automatically via mDNS. Use this form to add a device by IP if auto-discovery is not available.
       </p>
       <div className={styles.addFields}>
-        <label className={styles.editLabel}>
+        <label className={styles.addLabel}>
           Name <span className={styles.required}>*</span>
           <input
-            className={styles.editInput}
+            className={styles.addInput}
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g. Living Room Strip"
@@ -226,10 +226,10 @@ function AddDeviceForm({ onAdd }) {
             autoFocus
           />
         </label>
-        <label className={styles.editLabel}>
+        <label className={styles.addLabel}>
           IP Address <span className={styles.required}>*</span>
           <input
-            className={styles.editInput}
+            className={styles.addInput}
             value={ip}
             onChange={e => setIp(e.target.value)}
             placeholder="192.168.1.x"
@@ -237,14 +237,14 @@ function AddDeviceForm({ onAdd }) {
             required
           />
         </label>
-        <label className={styles.editLabel}>
+        <label className={styles.addLabel}>
           LED Count
           <input
-            className={styles.editInput}
+            className={styles.addInput}
             type="number"
             value={leds}
             onChange={e => setLeds(e.target.value)}
-            placeholder="e.g. 144 (auto-detected on first contact)"
+            placeholder="e.g. 144 (auto-detected on contact)"
             min={1}
             max={9999}
           />

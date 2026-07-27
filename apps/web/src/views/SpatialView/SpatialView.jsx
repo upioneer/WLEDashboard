@@ -296,15 +296,28 @@ export function SpatialView() {
                         <Toggle
                           id={`spatial-toggle-${dev.id}`}
                           checked={isOn}
-                          onChange={on => sendCommand(dev.id, { on })}
+                          onChange={on => {
+                            const currentBri = dev.liveState?.bri ?? 0
+                            if (on && (currentBri <= 0 || currentBri < 13)) {
+                              sendCommand(dev.id, { on: true, bri: 128, lor: 0, seg: [{ id: 0, bri: 128 }] })
+                            } else {
+                              sendCommand(dev.id, { on, lor: 0 })
+                            }
+                          }}
                         />
                       </div>
 
                       <Slider
                         id={`spatial-bri-${dev.id}`}
                         value={briPct}
-                        onChange={pct => sendCommand(dev.id, { bri: pctToWledBri(pct), on: pct > 0 })}
-                        onCommit={pct => sendCommand(dev.id, { bri: pctToWledBri(pct), on: pct > 0 })}
+                        onChange={pct => {
+                          const wledBri = pctToWledBri(pct)
+                          sendCommand(dev.id, { bri: wledBri, on: pct > 0, lor: 0, seg: [{ id: 0, bri: wledBri }] })
+                        }}
+                        onCommit={pct => {
+                          const wledBri = pctToWledBri(pct)
+                          sendCommand(dev.id, { bri: wledBri, on: pct > 0, lor: 0, seg: [{ id: 0, bri: wledBri }] })
+                        }}
                         color={dominantColor}
                         label="Brightness"
                       />

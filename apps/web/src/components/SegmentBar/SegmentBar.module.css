@@ -1,15 +1,36 @@
 .bar {
   width: 100%;
-  height: 5px;
+  height: 6px;
   border-radius: var(--radius-full);
   display: flex;
   overflow: hidden;
   gap: 2px;
+  background-color: var(--surface-overlay);
+  transition: opacity 200ms var(--ease-out-expo);
+}
+
+.barOff {
+  opacity: 0.3;
+  filter: grayscale(0.8);
+}
+
+.segmentSingle {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: background-color 200ms var(--ease-out-expo), box-shadow 200ms var(--ease-out-expo);
 }
 
 .segment {
   flex-shrink: 0;
   height: 100%;
   border-radius: 2px;
-  transition: background-color 200ms var(--ease-out-expo);
+  transition: background-color 200ms var(--ease-out-expo), box-shadow 200ms var(--ease-out-expo);
+}
+
+.segmentOff {
+  flex-shrink: 0;
+  height: 100%;
+  border-radius: 2px;
+  opacity: 0.5;
 }

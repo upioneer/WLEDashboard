@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import styles from './Slider.module.css'
 
 /**
@@ -24,7 +24,17 @@ export function Slider({
   label,
   id,
 }) {
-  const pct = Math.round(((value - min) / (max - min)) * 100)
+  const [internalVal, setInternalVal] = useState(value)
+  const isDraggingRef = useRef(false)
+
+  useEffect(() => {
+    if (!isDraggingRef.current) {
+      setInternalVal(value)
+    }
+  }, [value])
+
+  const displayVal = isDraggingRef.current ? internalVal : value
+  const pct = Math.round(((displayVal - min) / (max - min)) * 100)
 
   const trackStyle = {
     background: color
@@ -36,15 +46,19 @@ export function Slider({
     ? { boxShadow: `0 0 ${6 + pct * 0.12}px 2px ${color}66` }
     : {}
 
-  const handleChange = useCallback((e) => {
+  const handleChange = (e) => {
     const val = Number(e.target.value)
+    isDraggingRef.current = true
+    setInternalVal(val)
     onChange?.(val)
-  }, [onChange])
+  }
 
-  const handlePointerUp = useCallback((e) => {
+  const handlePointerUp = (e) => {
     const val = Number(e.target.value)
+    isDraggingRef.current = false
+    setInternalVal(val)
     onCommit?.(val)
-  }, [onCommit])
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -69,11 +83,11 @@ export function Slider({
           min={min}
           max={max}
           step={step}
-          value={value}
+          value={displayVal}
           onChange={handleChange}
           onPointerUp={handlePointerUp}
           className={styles.input}
-          aria-valuenow={value}
+          aria-valuenow={displayVal}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-label={label}

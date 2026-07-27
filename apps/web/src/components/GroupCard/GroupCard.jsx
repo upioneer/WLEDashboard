@@ -61,11 +61,23 @@ export function GroupCard({ group, onEdit }) {
 
   const commitBrightness = useCallback((pct) => {
     isDragging.current = false
-    sendGroupCommand(group.id, { bri: pctToWledBri(pct), on: pct > 0 })
+    const wledBri = pctToWledBri(pct)
+    sendGroupCommand(group.id, {
+      bri: wledBri,
+      on: pct > 0,
+      lor: 0,
+      seg: [{ id: 0, bri: wledBri }],
+    })
   }, [group.id, sendGroupCommand])
 
   const debouncedBrightness = useDebounce((pct) => {
-    sendGroupCommand(group.id, { bri: pctToWledBri(pct), on: pct > 0 })
+    const wledBri = pctToWledBri(pct)
+    sendGroupCommand(group.id, {
+      bri: wledBri,
+      on: pct > 0,
+      lor: 0,
+      seg: [{ id: 0, bri: wledBri }],
+    })
   }, DEBOUNCE_MS)
 
   const handleBriChange = useCallback((pct) => {

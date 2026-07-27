@@ -88,10 +88,24 @@ export function extractAllSegmentColors(liveState) {
 // ─── Brightness Normalization ─────────────────────────────────────────────────
 // WLED brightness: 0-255. Normalized: 0-1. Display: 0-100%
 
-export function wledBriToNorm(bri)  { return (bri ?? 0) / 255 }
+// Physical hardware floor: Factual hardware threshold where light output turns on is 5% linear (raw WLED bri = 13).
+const WLED_MIN_RAW_BRI = 13
+const WLED_MAX_RAW_BRI = 255
+
+export function wledBriToNorm(bri) { return (bri ?? 0) / 255 }
 export function normToWledBri(norm) { return Math.round(norm * 255) }
-export function wledBriToPct(bri)   { return Math.round((bri ?? 0) / 255 * 100) }
-export function pctToWledBri(pct)   { return Math.round(pct / 100 * 255) }
+
+export function wledBriToPct(bri) {
+  if (!bri || bri <= 0) return 0
+  if (bri < WLED_MIN_RAW_BRI) return 1
+  return Math.round(1 + ((bri - WLED_MIN_RAW_BRI) / (WLED_MAX_RAW_BRI - WLED_MIN_RAW_BRI)) * 99)
+}
+
+export function pctToWledBri(pct) {
+  if (!pct || pct <= 0) return 0
+  if (pct >= 100) return WLED_MAX_RAW_BRI
+  return Math.round(WLED_MIN_RAW_BRI + ((pct - 1) / 99) * (WLED_MAX_RAW_BRI - WLED_MIN_RAW_BRI))
+}
 
 // ─── Glow Calculation ─────────────────────────────────────────────────────────
 // Maps brightness (0-255) to a CSS box-shadow glow string

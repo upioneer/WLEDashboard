@@ -64,8 +64,12 @@ export function DeviceCard({ device }) {
 
   // Power
   const handlePowerToggle = useCallback((on) => {
-    sendCommand(device.id, { on })
-  }, [device.id, sendCommand])
+    if (on && (bri <= 0 || bri < 13)) {
+      sendCommand(device.id, { on: true, bri: 128, lor: 0, seg: [{ id: 0, bri: 128 }] })
+    } else {
+      sendCommand(device.id, { on, lor: 0 })
+    }
+  }, [device.id, bri, sendCommand])
 
   // Brightness
   const [localBri, setLocalBri] = useState(briPct)
@@ -81,11 +85,23 @@ export function DeviceCard({ device }) {
 
   const commitBrightness = useCallback((pct) => {
     isDragging.current = false
-    sendCommand(device.id, { bri: pctToWledBri(pct), on: pct > 0 })
+    const wledBri = pctToWledBri(pct)
+    sendCommand(device.id, {
+      bri: wledBri,
+      on: pct > 0,
+      lor: 0,
+      seg: [{ id: 0, bri: wledBri }],
+    })
   }, [device.id, sendCommand])
 
   const debouncedBrightness = useDebounce((pct) => {
-    sendCommand(device.id, { bri: pctToWledBri(pct), on: pct > 0 })
+    const wledBri = pctToWledBri(pct)
+    sendCommand(device.id, {
+      bri: wledBri,
+      on: pct > 0,
+      lor: 0,
+      seg: [{ id: 0, bri: wledBri }],
+    })
   }, DEBOUNCE_MS)
 
   const handleBriChange = useCallback((pct) => {
@@ -107,7 +123,11 @@ export function DeviceCard({ device }) {
     const r = parseInt(hex.slice(1, 3), 16)
     const g = parseInt(hex.slice(3, 5), 16)
     const b = parseInt(hex.slice(5, 7), 16)
-    sendCommand(device.id, { seg: [{ id: 0, col: [[r, g, b]] }] })
+    sendCommand(device.id, {
+      on: true,
+      lor: 0,
+      seg: [{ id: 0, fx: 0, col: [[r, g, b], [0, 0, 0], [0, 0, 0]] }],
+    })
   }, [device.id, sendCommand])
 
   const debouncedColor = useDebounce(commitColor, DEBOUNCE_MS)
@@ -336,7 +356,7 @@ export function DeviceCard({ device }) {
         </div>
 
         {/* Segment color bar */}
-        <SegmentBar segments={segments} />
+        <SegmentBar segments={segments} isOn={isOn} fallbackColor={localColor} />
 
         {/* Brightness */}
         <div className={styles.section}>

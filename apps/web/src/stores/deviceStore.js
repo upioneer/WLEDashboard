@@ -87,10 +87,22 @@ export const useDeviceStore = create((set, get) => ({
 
     const prevState = device.liveState
 
+    // Deep merge liveState including array segment preservation
+    const mergeLiveState = (existing = {}, patch = {}) => {
+      const merged = { ...existing, ...patch }
+      if (Array.isArray(patch.seg) && Array.isArray(existing.seg)) {
+        merged.seg = existing.seg.map((existingSeg, idx) => {
+          const patchSeg = patch.seg.find(s => (s.id !== undefined ? s.id === existingSeg.id : idx === 0))
+          return patchSeg ? { ...existingSeg, ...patchSeg } : existingSeg
+        })
+      }
+      return merged
+    }
+
     // Optimistic: merge payload into liveState
     set(s => ({
       devices: s.devices.map(d => d.id === deviceId
-        ? { ...d, liveState: { ...d.liveState, ...payload } }
+        ? { ...d, liveState: mergeLiveState(d.liveState, payload) }
         : d
       )
     }))
@@ -100,7 +112,7 @@ export const useDeviceStore = create((set, get) => ({
       // Merge actual response
       set(s => ({
         devices: s.devices.map(d => d.id === deviceId
-          ? { ...d, liveState: { ...d.liveState, ...result } }
+          ? { ...d, liveState: mergeLiveState(d.liveState, result) }
           : d
         )
       }))
