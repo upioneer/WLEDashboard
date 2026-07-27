@@ -254,9 +254,13 @@ export function SpatialView() {
 
         {/* Floating Controls Overlay */}
         {selectedRoom && (
-          <div className={styles.floatingPanel}>
+          <div
+            className={styles.floatingPanel}
+            onPointerDown={e => e.stopPropagation()}
+            onMouseDown={e => e.stopPropagation()}
+          >
             <div className={styles.floatingHeader}>
-              <div>
+              <div className={styles.floatingHeaderMeta}>
                 <h3 className={styles.floatingTitle}>{selectedRoom.name}</h3>
                 <span className={styles.floatingSub}>
                   {selectedRoom.dwellingName} • {selectedRoom.floorName} ({formatDimension(selectedRoom.width, unitSystem)} × {formatDimension(selectedRoom.depth, unitSystem)})
@@ -270,35 +274,70 @@ export function SpatialView() {
                 >
                   Edit Room
                 </button>
-                <button className={styles.closeBtn} onClick={() => selectRoom(null)}>✕</button>
+                <button className={styles.closeBtn} onClick={() => selectRoom(null)} title="Close room overlay">✕</button>
               </div>
             </div>
 
-            {boundDevice ? (
-              <div className={styles.deviceControls}>
-                <div className={styles.controlRow}>
-                  <span className={styles.devName}>{boundDevice.name}</span>
-                  <Toggle
-                    id={`spatial-toggle-${boundDevice.id}`}
-                    checked={boundDevice.liveState?.on && boundDevice.is_online === 1}
-                    onChange={on => sendCommand(boundDevice, { on })}
-                    disabled={!boundDevice.is_online}
-                  />
-                </div>
+            {/* Render interactive controls for bound WLED instances */}
+            {((selectedRoom.anchors || []).filter(a => a.device_id).map(a => devices.find(d => d.id === a.device_id)).filter(Boolean)).length > 0 ? (
+              <div className={styles.deviceControlsList}>
+                {((selectedRoom.anchors || []).filter(a => a.device_id).map(a => devices.find(d => d.id === a.device_id)).filter(Boolean)).map(dev => {
+                  const isOn = dev.liveState?.on !== undefined ? Boolean(dev.liveState.on) : true
+                  const briPct = wledBriToPct(dev.liveState?.bri ?? 255)
+                  const dominantColor = extractDominantColor(dev.liveState)
 
-                <Slider
-                  id={`spatial-bri-${boundDevice.id}`}
-                  value={wledBriToPct(boundDevice.liveState?.bri ?? 255)}
-                  onCommit={pct => sendCommand(boundDevice, { bri: pctToWledBri(pct), on: pct > 0 })}
-                  color={extractDominantColor(boundDevice.liveState)}
-                  label="Brightness"
-                />
+                  return (
+                    <div key={dev.id} className={styles.deviceControlItem}>
+                      <div className={styles.controlRow}>
+                        <div className={styles.devNameGroup}>
+                          <span className={[styles.statusDot, dev.is_online ? styles.dotOnline : styles.dotOffline].join(' ')} />
+                          <span className={styles.devName}>{dev.name}</span>
+                        </div>
+                        <Toggle
+                          id={`spatial-toggle-${dev.id}`}
+                          checked={isOn}
+                          onChange={on => sendCommand(dev.id, { on })}
+                        />
+                      </div>
+
+                      <Slider
+                        id={`spatial-bri-${dev.id}`}
+                        value={briPct}
+                        onChange={pct => sendCommand(dev.id, { bri: pctToWledBri(pct), on: pct > 0 })}
+                        onCommit={pct => sendCommand(dev.id, { bri: pctToWledBri(pct), on: pct > 0 })}
+                        color={dominantColor}
+                        label="Brightness"
+                      />
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               <p className={styles.unboundHint}>No WLED device bound to this 3D room light anchor.</p>
             )}
           </div>
         )}
+
+        {/* 3D Navigation Controls Legend Overlay */}
+        <div className={styles.navLegend}>
+          <div className={styles.legendTitle}>3D Navigation Controls</div>
+          <div className={styles.legendRow}>
+            <span className={styles.legendKey}>Rotate 3D Scene</span>
+            <span className={styles.legendAction}>Left Click + Drag</span>
+          </div>
+          <div className={styles.legendRow}>
+            <span className={styles.legendKey}>Pan Camera</span>
+            <span className={styles.legendAction}>Right Click + Drag</span>
+          </div>
+          <div className={styles.legendRow}>
+            <span className={styles.legendKey}>Zoom View</span>
+            <span className={styles.legendAction}>Scroll / Pinch</span>
+          </div>
+          <div className={styles.legendRow}>
+            <span className={styles.legendKey}>Select Room</span>
+            <span className={styles.legendAction}>Click 3D Room Floor</span>
+          </div>
+        </div>
       </div>
 
       {/* Side Editor Panel */}

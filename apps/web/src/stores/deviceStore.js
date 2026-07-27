@@ -80,7 +80,8 @@ export const useDeviceStore = create((set, get) => ({
   },
 
   // Optimistic command: update local state, fire API, rollback on failure
-  sendCommand: async (deviceId, payload) => {
+  sendCommand: async (deviceOrId, payload) => {
+    const deviceId = typeof deviceOrId === 'object' && deviceOrId !== null ? deviceOrId.id : deviceOrId
     const device = get().devices.find(d => d.id === deviceId)
     if (!device) return
 

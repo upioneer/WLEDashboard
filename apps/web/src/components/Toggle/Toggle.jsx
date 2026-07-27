@@ -16,19 +16,24 @@ export function Toggle({ checked = false, onChange, disabled = false, id, label 
     setKnobX(checked ? KNOB_TRAVEL : 0)
   }
 
-  const handleChange = useCallback((e) => {
+  const handleToggleClick = useCallback((e) => {
+    e.stopPropagation()
     if (disabled) return
-    onChange?.(e.target.checked)
-  }, [disabled, onChange])
+    onChange?.(!checked)
+  }, [disabled, checked, onChange])
 
   return (
-    <label className={[styles.toggle, disabled && styles.disabled].filter(Boolean).join(' ')}>
+    <label
+      htmlFor={id}
+      className={[styles.toggle, disabled && styles.disabled].filter(Boolean).join(' ')}
+      onClick={handleToggleClick}
+    >
       {label && <span className={styles.label}>{label}</span>}
       <span className={styles.track} aria-checked={checked} role="switch">
         <input
           type="checkbox"
           checked={checked}
-          onChange={handleChange}
+          onChange={() => {}}
           disabled={disabled}
           id={id}
           className={styles.input}

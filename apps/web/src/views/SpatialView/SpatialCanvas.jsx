@@ -79,7 +79,7 @@ function LightStripMesh({ anchor, room, isSelected, onClick }) {
       )}
 
       {/* 3D Label & Quick Control Badge */}
-      <Html position={[0, 0.3, 0]} center distanceFactor={12}>
+      <Html position={[0, 0.3, 0]} center distanceFactor={12} zIndexRange={[10, 0]}>
         <div
           className={[
             styles.stripBadge,
@@ -129,7 +129,7 @@ function RoomBox({ room, isSelected, onSelect }) {
       </lineSegments>
 
       {/* Room Name Badge */}
-      <Html position={[0, 0.1, depth / 2 - 0.4]} center distanceFactor={15}>
+      <Html position={[0, 0.1, depth / 2 - 0.4]} center distanceFactor={15} zIndexRange={[10, 0]}>
         <div className={[styles.roomLabel, isSelected && styles.roomLabelSelected].filter(Boolean).join(' ')}>
           {room.name}
         </div>

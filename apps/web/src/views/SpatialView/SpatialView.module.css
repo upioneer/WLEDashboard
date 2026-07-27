@@ -25,7 +25,8 @@
   position: absolute;
   top: var(--sp-6);
   left: var(--sp-6);
-  width: 320px;
+  width: 440px;
+  max-width: calc(100vw - 420px);
   background-color: var(--surface-raised);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-l);
@@ -35,7 +36,7 @@
   flex-direction: column;
   gap: var(--sp-4);
   backdrop-filter: blur(12px);
-  z-index: 10;
+  z-index: 100;
   animation: fadeIn 180ms var(--ease-out-expo);
 }
 
@@ -46,18 +47,62 @@
 
 .floatingHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.floatingHeaderMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .floatingTitle {
   font: var(--type-h3);
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .floatingSub {
   font: var(--type-micro);
   color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.floatingHeaderBtns {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.editRoomBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 90px;
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--accent-violet);
+  background-color: var(--accent-violet-10);
+  border: 1px solid hsl(262, 68%, 62%, 0.3);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.editRoomBtn:hover {
+  background-color: var(--surface-input);
+  border-color: var(--accent-violet);
 }
 
 .closeBtn {
@@ -65,17 +110,24 @@
   border: none;
   color: var(--text-tertiary);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  padding: 0 var(--sp-1);
 }
 
 .closeBtn:hover { color: var(--text-primary); }
 
-.deviceControls {
+.deviceControlsList {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--sp-4);
   padding-top: var(--sp-3);
   border-top: 1px solid var(--border-subtle);
+}
+
+.deviceControlItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
 }
 
 .controlRow {
@@ -83,6 +135,21 @@
   align-items: center;
   justify-content: space-between;
 }
+
+.devNameGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotOnline { background-color: var(--accent-emerald); }
+.dotOffline { background-color: var(--text-tertiary); }
 
 .devName {
   font: var(--type-small);
@@ -92,6 +159,48 @@
 
 .unboundHint {
   font: var(--type-small);
+  color: var(--text-tertiary);
+}
+
+/* ── 3D Navigation Controls Legend ────────────────────────────── */
+.navLegend {
+  position: absolute;
+  bottom: var(--sp-5);
+  left: var(--sp-5);
+  background-color: rgba(10, 12, 18, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.legendTitle {
+  font: var(--type-micro);
+  font-weight: 700;
+  color: var(--accent-violet);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  font: var(--type-micro);
+}
+
+.legendKey {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.legendAction {
   color: var(--text-tertiary);
 }
 
@@ -537,7 +646,7 @@
   inset: 0;
   background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
-  z-index: 9900;
+  z-index: 100000;
   display: flex;
   align-items: center;
   justify-content: center;

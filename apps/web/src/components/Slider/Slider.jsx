@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import styles from './Slider.module.css'
 
 /**
@@ -37,12 +37,14 @@ export function Slider({
     : {}
 
   const handleChange = useCallback((e) => {
-    onChange?.(Number(e.target.value))
+    const val = Number(e.target.value)
+    onChange?.(val)
   }, [onChange])
 
-  const handlePointerUp = useCallback(() => {
-    onCommit?.(value)
-  }, [onCommit, value])
+  const handlePointerUp = useCallback((e) => {
+    const val = Number(e.target.value)
+    onCommit?.(val)
+  }, [onCommit])
 
   return (
     <div className={styles.wrapper}>
