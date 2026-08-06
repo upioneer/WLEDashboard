@@ -28,6 +28,18 @@ export const useSpatialStore = create((set, get) => ({
   selectRoom: (roomId) => set({ selectedRoomId: roomId, selectedAnchorId: null }),
   selectAnchor: (anchorId) => set({ selectedAnchorId: anchorId }),
 
+  createDwelling: async (data) => {
+    const dwelling = await spatialApi.createDwelling(data)
+    await get().fetchHierarchy()
+    return dwelling
+  },
+
+  createFloor: async (data) => {
+    const floor = await spatialApi.createFloor(data)
+    await get().fetchHierarchy()
+    return floor
+  },
+
   addRoom: async (data) => {
     const room = await spatialApi.createRoom(data)
     await get().fetchHierarchy()

@@ -721,3 +721,131 @@
   .page { flex-direction: column; }
   .sidePanel { width: 100%; height: 300px; }
 }
+
+/* ── Wizard Overlay ─────────────────────────────────────────── */
+.wizardOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-void);
+  z-index: 100;
+  padding: var(--sp-6);
+}
+
+.wizardModal {
+  position: relative;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-8);
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--shadow-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  animation: modalEnter 400ms var(--ease-out-expo) both;
+}
+
+.wizardGlow {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at top right, hsl(262 68% 62% / 0.15), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wizardTitle {
+  font: var(--type-h2);
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+
+.wizardSub {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+  margin-top: calc(var(--sp-2) * -1);
+}
+
+.wizardForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  position: relative;
+  z-index: 1;
+}
+
+.wizardLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.wizardFloors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.wizardFloorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.wizardRoomsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-1);
+}
+
+.wizardRoomToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font: var(--type-body);
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.wizardRoomToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+.wizardSubmitBtn {
+  margin-top: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-m);
+  font: var(--type-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms, transform 200ms var(--ease-out-expo);
+  box-shadow: 0 4px 12px -2px hsl(262 68% 62% / 0.4);
+}
+
+.wizardSubmitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.wizardSubmitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}

@@ -10,6 +10,135 @@ import { Toggle } from '../../components/Toggle/Toggle.jsx'
 import { extractDominantColor, wledBriToPct, pctToWledBri } from '../../lib/colors.js'
 import styles from './SpatialView.module.css'
 
+function SpatialSetupWizard({ onComplete }) {
+  const { createDwelling, createFloor, addRoom } = useSpatialStore()
+  const addToast = useUIStore(s => s.addToast)
+
+  const [dwellingName, setDwellingName] = useState('Main House')
+  const [floors, setFloors] = useState([{ name: 'Ground Floor', elevation: 0 }])
+  const [rooms, setRooms] = useState([
+    { name: 'Living Room', selected: true },
+    { name: 'Kitchen', selected: true },
+    { name: 'Bedroom', selected: true },
+    { name: 'Bathroom', selected: false },
+    { name: 'Garage', selected: false },
+  ])
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const handleGenerate = async (e) => {
+    e.preventDefault()
+    setIsGenerating(true)
+    try {
+      const dwelling = await createDwelling({ name: dwellingName })
+      
+      for (const floor of floors) {
+        const createdFloor = await createFloor({
+          dwelling_id: dwelling.id,
+          name: floor.name,
+          elevation: floor.elevation,
+        })
+
+        // Generate selected rooms on the ground floor (or first floor)
+        if (floor.name === floors[0].name) {
+          let offsetX = 0
+          for (const room of rooms.filter(r => r.selected)) {
+            await addRoom({
+              floor_id: createdFloor.id,
+              name: room.name,
+              width: 5.0,
+              depth: 4.0,
+              position_x: offsetX,
+              position_y: 0,
+            })
+            offsetX += 5.5
+          }
+        }
+      }
+      addToast({ message: 'Spatial layout generated!', type: 'success' })
+      onComplete()
+    } catch (err) {
+      addToast({ message: 'Failed to generate layout', type: 'error' })
+      setIsGenerating(false)
+    }
+  }
+
+  return (
+    <div className={styles.wizardOverlay}>
+      <div className={styles.wizardModal}>
+        <div className={styles.wizardGlow} aria-hidden />
+        <h2 className={styles.wizardTitle}>3D Spatial Layout Setup</h2>
+        <p className={styles.wizardSub}>Generate your initial property layout to place WLED lights in 3D space.</p>
+        
+        <form className={styles.wizardForm} onSubmit={handleGenerate}>
+          <label className={styles.wizardLabel}>
+            Property Name
+            <input 
+              className={styles.modalInput} 
+              value={dwellingName} 
+              onChange={e => setDwellingName(e.target.value)} 
+              required 
+            />
+          </label>
+
+          <label className={styles.wizardLabel}>
+            Floors
+            <div className={styles.wizardFloors}>
+              {floors.map((f, i) => (
+                <div key={i} className={styles.wizardFloorRow}>
+                  <input
+                    className={styles.modalInput}
+                    value={f.name}
+                    onChange={e => {
+                      const nf = [...floors]
+                      nf[i].name = e.target.value
+                      setFloors(nf)
+                    }}
+                    required
+                  />
+                  {i > 0 && (
+                    <button type="button" className={styles.deleteAnchorBtn} onClick={() => setFloors(floors.filter((_, idx) => idx !== i))}>✕</button>
+                  )}
+                </div>
+              ))}
+              <button 
+                type="button" 
+                className={styles.addBtn} 
+                onClick={() => setFloors([...floors, { name: `Floor ${floors.length + 1}`, elevation: floors.length * 3 }])}
+              >
+                + Add Floor
+              </button>
+            </div>
+          </label>
+
+          <label className={styles.wizardLabel}>
+            Generate Basic Rooms
+            <div className={styles.wizardRoomsGrid}>
+              {rooms.map((room, i) => (
+                <label key={room.name} className={styles.wizardRoomToggle}>
+                  <input
+                    type="checkbox"
+                    checked={room.selected}
+                    onChange={e => {
+                      const nr = [...rooms]
+                      nr[i].selected = e.target.checked
+                      setRooms(nr)
+                    }}
+                  />
+                  {room.name}
+                </label>
+              ))}
+            </div>
+          </label>
+
+          <button type="submit" className={styles.wizardSubmitBtn} disabled={isGenerating}>
+            {isGenerating ? 'Generating...' : 'Build Layout'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 export function SpatialView() {
   const {
     hierarchy, selectedRoomId, selectedAnchorId, loading, error,
@@ -245,6 +374,14 @@ export function SpatialView() {
 
   if (loading) return <SpatialSkeleton />
   if (error)   return <SpatialError message={error} onRetry={fetchHierarchy} />
+
+  if (hierarchy.length === 0) {
+    return (
+      <main className={styles.page} id="main-content">
+        <SpatialSetupWizard onComplete={fetchHierarchy} />
+      </main>
+    )
+  }
 
   return (
     <main className={styles.page} id="main-content">

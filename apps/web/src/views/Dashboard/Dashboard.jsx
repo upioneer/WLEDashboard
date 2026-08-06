@@ -20,7 +20,30 @@ import { DeviceCard } from '../../components/DeviceCard/DeviceCard.jsx'
 import { GroupCard } from '../../components/GroupCard/GroupCard.jsx'
 import { SearchBar } from '../../components/SearchBar/SearchBar.jsx'
 import { extractDominantColor, blendColors } from '../../lib/colors.js'
+import { useWindowVirtualizer } from '@tanstack/react-virtual'
 import styles from './Dashboard.module.css'
+
+// ─── Custom Hooks ─────────────────────────────────────────────────────────────
+
+function useColumnCount(ref) {
+  const [columns, setColumns] = useState(1)
+  useEffect(() => {
+    if (!ref.current) return
+    const observer = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const width = entry.contentRect.width
+        const vw = window.innerWidth
+        const gap = 20
+        const minWidth = vw >= 1200 && vw < 1800 ? 320 : 300
+        let cols = Math.floor((width + gap) / (minWidth + gap))
+        setColumns(Math.max(1, cols))
+      }
+    })
+    observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+  return columns
+}
 
 // ─── Sortable wrapper ─────────────────────────────────────────────────────────
 
@@ -59,6 +82,8 @@ export function Dashboard() {
   const [filter, setFilter]       = useState('all')
   const [viewMode, setViewMode]   = useState('devices') // 'devices' | 'groups'
   const [localOrder, setLocalOrder] = useState([])
+  const containerRef = useRef(null)
+  const columns = useColumnCount(containerRef)
 
   useEffect(() => {
     fetchDevices()
@@ -112,6 +137,13 @@ export function Dashboard() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
+
+  const rowCount = Math.ceil(filtered.length / columns)
+  const virtualizer = useWindowVirtualizer({
+    count: rowCount,
+    estimateSize: () => 340, // 320px card + 20px gap
+    overscan: 2,
+  })
 
   const handleDragEnd = useCallback(({ active, over }) => {
     if (!over || active.id === over.id) return
@@ -189,15 +221,42 @@ export function Dashboard() {
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={localOrder} strategy={rectSortingStrategy}>
-            <section className={styles.grid} aria-label="Device list">
-              {filtered.map((device, i) => (
-                <div
-                  key={device.id}
-                  style={{ animationDelay: `${i * 30}ms` }}
-                >
-                  <SortableCard device={device} />
-                </div>
-              ))}
+            <section
+              ref={containerRef}
+              aria-label="Device list"
+              style={{
+                position: 'relative',
+                height: `${virtualizer.getTotalSize()}px`,
+                width: '100%',
+              }}
+            >
+              {virtualizer.getVirtualItems().map(virtualRow => {
+                const startIndex = virtualRow.index * columns
+                const rowDevices = filtered.slice(startIndex, startIndex + columns)
+
+                return (
+                  <div
+                    key={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: `${virtualRow.size - 20}px`,
+                      transform: `translateY(${virtualRow.start}px)`,
+                      display: 'grid',
+                      gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                      gap: '20px',
+                    }}
+                  >
+                    {rowDevices.map((device, i) => (
+                      <div key={device.id} style={{ animationDelay: `${(startIndex + i) * 30}ms` }}>
+                        <SortableCard device={device} />
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
             </section>
           </SortableContext>
         </DndContext>
