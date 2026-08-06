@@ -54,6 +54,17 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className={styles.footer}>
+        <a
+          href="https://github.com/upioneer/WLEDashboard/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.navItem}
+          title="Provide Feedback / Report Issue"
+        >
+          <span className={styles.navIcon} aria-hidden><FeedbackIcon /></span>
+          {!collapsed && <span className={styles.navLabel}>Feedback</span>}
+        </a>
+
         <NavLink
           to="/settings"
           className={({ isActive }) =>
@@ -153,6 +164,16 @@ function CollapseIcon({ collapsed }) {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
       style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform 200ms var(--ease-out-expo)' }}>
       <polyline points="10,3 5,8 10,13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function FeedbackIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M9 16c-1.5 0-3-.5-4.2-1.3L1 16l1.3-3.8C1.5 11 1 9.5 1 8c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <circle cx="9" cy="11.5" r="1" fill="currentColor" />
+      <line x1="9" y1="5" x2="9" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

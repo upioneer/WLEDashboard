@@ -81,24 +81,50 @@ export function AudioVisualizer() {
       const barWidth = (width / bufferLength) * 1.5
       let x = 0
       const ddpPixels = []
-
+      
+      // Calculate DDP Pixels independently
       for (let i = 0; i < bufferLength; i++) {
         const val = dataArray[i]
-        const barHeight = (val / 255) * height
-
-        // Color gradient from cyan to violet to magenta
-        const hue = (i / bufferLength) * 280 + 180
-        const color = `hsl(${hue}, 90%, 60%)`
-
-        ctx.fillStyle = color
-        ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight)
-        x += barWidth
-
-        // Generate DDP RGB tuple
         const r = Math.min(255, val * 1.2)
         const g = Math.min(255, Math.abs(128 - val) * 2)
         const b = Math.min(255, (255 - val) * 0.8)
         ddpPixels.push([Math.round(r), Math.round(g), Math.round(b)])
+      }
+
+      // Draw based on mode
+      if (mode === 'waveform') {
+        ctx.beginPath()
+        ctx.strokeStyle = '#00ffcc'
+        ctx.lineWidth = 3
+        for (let i = 0; i < bufferLength; i++) {
+          const val = dataArray[i]
+          const y = height - (val / 255) * height
+          if (i === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+          x += barWidth
+        }
+        ctx.stroke()
+      } else if (mode === 'pulse') {
+        let bassSum = 0
+        const bassBins = Math.min(10, bufferLength)
+        for (let i = 0; i < bassBins; i++) bassSum += dataArray[i]
+        const avgBass = bassSum / bassBins
+        
+        const radius = (avgBass / 255) * (height / 1.5)
+        ctx.beginPath()
+        ctx.arc(width / 2, height / 2, radius, 0, 2 * Math.PI)
+        ctx.fillStyle = `hsl(${220 + (avgBass / 255) * 100}, 90%, 60%)`
+        ctx.fill()
+      } else {
+        // Default to 'bars'
+        for (let i = 0; i < bufferLength; i++) {
+          const val = dataArray[i]
+          const barHeight = (val / 255) * height
+          const hue = (i / bufferLength) * 280 + 180
+          ctx.fillStyle = `hsl(${hue}, 90%, 60%)`
+          ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight)
+          x += barWidth
+        }
       }
 
       // Stream DDP frame if target selected at max 30 FPS

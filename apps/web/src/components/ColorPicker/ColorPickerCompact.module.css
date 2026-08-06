@@ -2,34 +2,45 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-4);
 }
 
 .row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--sp-3);
 }
 
 .swatchLabel {
+  display: flex;
+  align-items: center;
   position: relative;
   cursor: pointer;
   flex-shrink: 0;
+  width: 100%;
 }
 
 .swatch {
-  width: 28px;
-  height: 52px;
-  border-radius: var(--radius-s);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   border: 1px solid var(--border-subtle);
   flex-shrink: 0;
-  transition: background-color 80ms linear, transform 120ms var(--ease-out-expo);
+  transition: transform 120ms var(--ease-out-expo);
   box-shadow: var(--shadow-1);
 }
 
 .swatchLabel:hover .swatch {
   transform: scale(1.05);
   border-color: var(--border-default);
+}
+
+.pickerHint {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-left: var(--sp-3);
+  user-select: none;
 }
 
 .nativeColorInput {
@@ -40,75 +51,16 @@
   pointer-events: none;
 }
 
-.sliders {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-}
-
-.hueTrack {
-  height: 12px;
-  border-radius: var(--radius-full);
-  background: linear-gradient(
-    to right,
-    hsl(0,100%,50%),
-    hsl(30,100%,50%),
-    hsl(60,100%,50%),
-    hsl(90,100%,50%),
-    hsl(120,100%,50%),
-    hsl(150,100%,50%),
-    hsl(180,100%,50%),
-    hsl(210,100%,50%),
-    hsl(240,100%,50%),
-    hsl(270,100%,50%),
-    hsl(300,100%,50%),
-    hsl(330,100%,50%),
-    hsl(360,100%,50%)
-  );
-  position: relative;
-}
-
-.satLitRow {
-  display: flex;
-  gap: var(--sp-2);
-}
-
-.satTrack,
-.litTrack {
-  flex: 1;
-  height: 8px;
-  border-radius: var(--radius-full);
-  position: relative;
-}
-
-/* Generic range input — sits on top of styled tracks */
-.rangeInput {
-  position: absolute;
-  inset: -8px 0;
-  width: 100%;
-  height: 28px;
-  opacity: 0;
-  cursor: pointer;
-  margin: 0;
-}
-
-.hueInput {
-  inset: -10px 0;
-  height: 32px;
-}
-
 /* ── Preset Color Swatches ───────────────────────────────────── */
 .presetsRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-top: var(--sp-1);
+  gap: 8px;
 }
 
 .presetSwatch {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   border: 1px solid var(--border-subtle);
   cursor: pointer;

@@ -25,6 +25,8 @@ const UpdateDeviceSchema = z.object({
   name: z.string().min(1).max(64).trim().optional(),
   ip_address: z.string().ip({ version: 'v4' }).optional(),
   sort_order: z.number().int().min(0).optional(),
+  led_density: z.number().positive().optional(),
+  led_count: z.number().int().positive().optional(),
 })
 
 const ReorderSchema = z.object({
@@ -102,5 +104,38 @@ export async function deviceRoutes(fastify) {
     const state = getCachedState(req.params.id)
     if (!state) return reply.code(503).send({ error: 'No state available yet' })
     return state
+  })
+
+  // POST /api/devices/:id/firmware - proxy OTA firmware update to WLED
+  fastify.post('/devices/:id/firmware', async (req, reply) => {
+    const device = getDevice(req.params.id)
+    if (!device) return reply.code(404).send({ error: 'Device not found' })
+
+    const data = await req.file()
+    if (!data) return reply.code(400).send({ error: 'No file uploaded' })
+
+    try {
+      const buffer = await data.toBuffer()
+      const blob = new Blob([buffer])
+      
+      const formData = new FormData()
+      // WLED expects the file field to be named 'file' or 'update' depending on the fork, 
+      // but standard WLED expects 'file' for /update endpoint.
+      formData.append('file', blob, data.filename || 'update.bin')
+
+      const response = await fetch(`http://${device.ip_address}/update`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`WLED rejected update: ${response.statusText}`)
+      }
+
+      return { ok: true, message: 'Firmware update successful. Device is rebooting.' }
+    } catch (err) {
+      req.log.error(err)
+      return reply.code(502).send({ error: err.message || 'Failed to upload firmware to WLED' })
+    }
   })
 }

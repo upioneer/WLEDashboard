@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import websocket from '@fastify/websocket'
 import rateLimit from '@fastify/rate-limit'
 import staticFiles from '@fastify/static'
+import multipart from '@fastify/multipart'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -54,6 +55,12 @@ await fastify.register(rateLimit, {
 })
 
 await fastify.register(websocket)
+
+await fastify.register(multipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit for .bin firmware files
+  }
+})
 
 // ─── Static Frontend (production only) ───────────────────────────────────────
 

@@ -125,14 +125,21 @@
 .collapseBtn {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
+  padding-right: var(--sp-1);
   width: 100%;
   height: 36px;
   border-radius: var(--radius-m);
   color: var(--text-tertiary);
   transition:
     background-color 140ms var(--ease-out-expo),
-    color 140ms var(--ease-out-expo);
+    color 140ms var(--ease-out-expo),
+    justify-content 140ms var(--ease-out-expo);
+}
+
+.sidebar.collapsed .collapseBtn {
+  justify-content: center;
+  padding-right: 0;
 }
 
 .collapseBtn:hover {

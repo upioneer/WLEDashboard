@@ -117,6 +117,25 @@
   box-shadow: var(--shadow-1);
 }
 
+.sortSelect {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: 4px var(--sp-3);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  height: 32px;
+  transition: border-color 120ms;
+}
+
+.sortSelect:hover,
+.sortSelect:focus {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
 .networkBadge {
   display: flex;
   align-items: center;
@@ -141,20 +160,20 @@
 /* ── Device Grid ────────────────────────────────────────────── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: var(--sp-5);
   align-items: start;
 }
 
 @media (min-width: 1200px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   }
 }
 
 @media (min-width: 1800px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   }
 }
 
@@ -172,6 +191,22 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.roomTag {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background-color: var(--accent-violet-10);
+  border: 1px solid var(--accent-violet);
+  color: var(--accent-violet);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font: var(--type-micro);
+  font-weight: 600;
+  z-index: 5;
+  box-shadow: var(--shadow-1);
+  pointer-events: none;
 }
 
 /* ── Empty State ────────────────────────────────────────────── */

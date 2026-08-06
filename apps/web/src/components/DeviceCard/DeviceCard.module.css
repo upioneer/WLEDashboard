@@ -162,9 +162,11 @@
 /* ── Chips ──────────────────────────────────────────────────── */
 .chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: var(--sp-2);
   margin-top: var(--sp-1);
+  overflow: hidden;
 }
 
 .chip {
@@ -179,6 +181,7 @@
   color: var(--text-secondary);
   letter-spacing: 0.02em;
   white-space: nowrap;
+  flex-shrink: 0;
   transition:
     background-color 120ms var(--ease-out-expo),
     border-color 120ms var(--ease-out-expo),
@@ -196,9 +199,6 @@ button.chip:hover {
 }
 
 .ipChip {
-  font-family: 'Courier New', monospace;
-  font-size: 0.6rem;
-  color: var(--text-tertiary);
   margin-left: auto;
 }
 
@@ -251,4 +251,76 @@ button.chip:hover {
 @keyframes pulseAmber {
   0%, 100% { opacity: 1; transform: scale(1); }
   50%      { opacity: 0.7; transform: scale(0.96); }
+}
+
+/* Quick Action Chips & Modal */
+.actionChip {
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.actionChip:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.chipModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chipModal {
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  min-width: 250px;
+}
+
+.chipModal h4 {
+  margin: 0;
+  font: var(--type-ui);
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.chipInput {
+  flex: 1;
+  background: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 0.5rem;
+  font: var(--type-ui);
+  outline: none;
+}
+
+.chipInput option {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+.chipInput:focus {
+  border-color: var(--accent-violet);
+}
+
+.chipSaveBtn {
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chipSaveBtn:hover {
+  background: var(--surface-overlay);
+  border-color: var(--border-strong);
 }

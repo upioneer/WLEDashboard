@@ -8,6 +8,7 @@ export const useSpatialStore = create((set, get) => ({
   selectedAnchorId: null,
   loading: true,
   error: null,
+  snapToGrid: true,
 
   // ── Actions ─────────────────────────────────────────────────────────────────
   fetchHierarchy: async () => {
@@ -27,6 +28,7 @@ export const useSpatialStore = create((set, get) => ({
 
   selectRoom: (roomId) => set({ selectedRoomId: roomId, selectedAnchorId: null }),
   selectAnchor: (anchorId) => set({ selectedAnchorId: anchorId }),
+  setSnapToGrid: (val) => set({ snapToGrid: val }),
 
   createDwelling: async (data) => {
     const dwelling = await spatialApi.createDwelling(data)

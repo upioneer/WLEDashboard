@@ -269,7 +269,7 @@
 
 /* ── Side Hierarchy Panel ─────────────────────────────────────── */
 .sidePanel {
-  width: 340px;
+  width: 420px;
   background-color: var(--surface-raised);
   border-left: 1px solid var(--border-subtle);
   display: flex;
@@ -281,7 +281,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-5) var(--sp-6);
+  padding: var(--sp-6) var(--sp-6) var(--sp-5);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -307,16 +307,16 @@
 .tree {
   flex: 1;
   overflow-y: auto;
-  padding: var(--sp-4);
+  padding: var(--sp-6) var(--sp-5);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-6);
 }
 
 .dwellingGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
 }
 
 .dwellingName {
@@ -328,11 +328,12 @@
 }
 
 .floorGroup {
-  padding-left: var(--sp-3);
+  padding-left: var(--sp-4);
   border-left: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
+  margin-top: var(--sp-1);
 }
 
 .floorName {
@@ -357,9 +358,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
   background-color: var(--surface-overlay);
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-m);
   border: 1px solid transparent;
   cursor: pointer;
   transition: border-color 120ms, background-color 120ms;
@@ -386,12 +387,12 @@
 }
 
 .anchorSection {
-  padding: var(--sp-2) var(--sp-3);
-  margin-left: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  margin-left: var(--sp-4);
   border-left: 2px solid var(--accent-violet);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
 }
 
 .anchorHeader {

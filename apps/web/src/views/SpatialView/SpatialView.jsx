@@ -141,9 +141,9 @@ function SpatialSetupWizard({ onComplete }) {
 
 export function SpatialView() {
   const {
-    hierarchy, selectedRoomId, selectedAnchorId, loading, error,
+    hierarchy, selectedRoomId, selectedAnchorId, loading, error, snapToGrid,
     fetchHierarchy, selectRoom, selectAnchor, addRoom, updateRoom, removeRoom,
-    addAnchor, updateAnchor, removeAnchor,
+    addAnchor, updateAnchor, removeAnchor, setSnapToGrid
   } = useSpatialStore()
 
   const devices       = useDeviceStore(s => s.devices)
@@ -289,9 +289,9 @@ export function SpatialView() {
       setNewAnchorName('')
       setNewAnchorDevId('')
       setIsAddingAnchor(false)
-      addToast({ message: 'Light anchor added to 3D room', type: 'success' })
+      addToast({ message: 'Light fixture added to 3D room', type: 'success' })
     } catch {
-      addToast({ message: 'Failed to add anchor', type: 'error' })
+      addToast({ message: 'Failed to add light fixture', type: 'error' })
     }
   }, [selectedRoomId, newAnchorName, newAnchorDevId, addAnchor, addToast])
 
@@ -304,8 +304,12 @@ export function SpatialView() {
       display_offset_z: metersToDisplay(anchor.offset_z || 0, unitSystem),
       display_length: metersToDisplay(anchor.length || 3.5, unitSystem),
       rotation_y: anchor.rotation_y || 0,
+      type: anchor.type || 'line_horizontal',
+      device_id: anchor.device_id || '',
+      room_id: anchor.room_id || selectedRoomId,
+      led_density: anchor.led_density || 30,
     })
-  }, [unitSystem])
+  }, [unitSystem, selectedRoomId])
 
   const handleSaveAnchorEdit = useCallback(async (e) => {
     e.preventDefault()
@@ -314,7 +318,13 @@ export function SpatialView() {
     const realOffsetX = displayToMeters(editingAnchor.display_offset_x, unitSystem)
     const realOffsetY = displayToMeters(editingAnchor.display_offset_y, unitSystem)
     const realOffsetZ = displayToMeters(editingAnchor.display_offset_z, unitSystem)
-    const realLength  = displayToMeters(editingAnchor.display_length, unitSystem)
+    
+    // Auto-calculate length if device is bound
+    let realLength = displayToMeters(editingAnchor.display_length, unitSystem)
+    const boundDevice = devices.find(d => d.id === editingAnchor.device_id)
+    if (boundDevice?.liveState?.info?.leds?.count && editingAnchor.led_density) {
+      realLength = boundDevice.liveState.info.leds.count / editingAnchor.led_density
+    }
 
     try {
       await updateAnchor(editingAnchor.id, {
@@ -324,6 +334,10 @@ export function SpatialView() {
         offset_z: realOffsetZ,
         length: realLength,
         rotation_y: Number(editingAnchor.rotation_y || 0),
+        type: editingAnchor.type || 'line_horizontal',
+        device_id: editingAnchor.device_id || null,
+        room_id: editingAnchor.room_id || selectedRoomId,
+        led_density: Number(editingAnchor.led_density) || 30,
       })
       setEditingAnchor(null)
       addToast({ message: 'Light position & 3D alignment updated', type: 'success' })
@@ -492,9 +506,20 @@ export function SpatialView() {
 
       {/* Side Editor Panel */}
       <aside className={styles.sidePanel}>
-        <div className={styles.panelHeader}>
+        <div className={styles.panelHeader} style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
           <h2 className={styles.panelTitle}>Spatial Hierarchy</h2>
-          <button className={styles.addBtn} onClick={() => setIsAddingRoom(true)}>+ Add Room</button>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={snapToGrid} 
+                onChange={e => setSnapToGrid(e.target.checked)} 
+                style={{ cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+              />
+              Snap Grid
+            </label>
+            <button className={styles.addBtn} onClick={() => setIsAddingRoom(true)}>+ Add Room</button>
+          </div>
         </div>
 
         <div className={styles.tree}>
@@ -560,59 +585,40 @@ export function SpatialView() {
                             </button>
                           </div>
 
-                          {/* Light Anchors list inside selected room */}
+                          {/* Light Fixtures list inside selected room */}
                           {isSelected && (
                             <div className={styles.anchorSection}>
                               <div className={styles.anchorHeader}>
-                                <span>3D Light Anchors</span>
-                                <button className={styles.miniAddBtn} onClick={() => setIsAddingAnchor(true)}>+ Anchor</button>
+                                <span>3D Light Fixtures</span>
+                                <button className={styles.miniAddBtn} onClick={() => setIsAddingAnchor(true)}>+ Fixture</button>
                               </div>
 
                               {(room.anchors || []).map(anchor => (
-                                <div key={anchor.id} className={styles.anchorRow}>
-                                  <span className={styles.anchorName}>{anchor.name}</span>
-
-                                  {/* Device binding dropdown */}
-                                  <select
-                                    value={anchor.device_id || ''}
-                                    onChange={e => handleBindDevice(anchor.id, e.target.value)}
-                                    className={styles.deviceSelect}
-                                    title="Bound WLED device"
-                                  >
-                                    <option value="">Unbound</option>
-                                    {devices.map(d => (
-                                      <option key={d.id} value={d.id}>
-                                        {d.name}
-                                      </option>
-                                    ))}
-                                  </select>
-
-                                  {/* Move to another room dropdown */}
-                                  <select
-                                    value={room.id}
-                                    onChange={e => handleMoveAnchorToRoom(anchor, e.target.value)}
-                                    className={styles.moveRoomSelect}
-                                    title="Move device/anchor to another room"
-                                  >
-                                    {allRooms.map(r => (
-                                      <option key={r.id} value={r.id}>
-                                        {r.id === room.id ? 'This Room' : `Move: ${r.name}`}
-                                      </option>
-                                    ))}
-                                  </select>
+                                <div 
+                                  key={anchor.id} 
+                                  className={styles.anchorRow} 
+                                  onClick={() => handleStartEditAnchor(anchor)}
+                                  style={{ cursor: 'pointer', padding: '0.75rem 1rem' }}
+                                >
+                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: '0.25rem' }}>
+                                    <span className={styles.anchorName}>{anchor.name}</span>
+                                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                      {anchor.device_id ? devices.find(d => d.id === anchor.device_id)?.name || 'Unknown Device' : 'Unbound'}
+                                    </span>
+                                  </div>
 
                                   <button
-                                    className={styles.alignAnchorBtn}
-                                    onClick={() => handleStartEditAnchor(anchor)}
-                                    title="Position, height elevation, & 3D rotation alignment"
+                                    className={styles.miniEditRoomBtn}
+                                    onClick={(e) => { e.stopPropagation(); handleStartEditAnchor(anchor) }}
+                                    title="Edit fixture settings, device binding, and room placement"
                                   >
-                                    Align 3D
+                                    Edit
                                   </button>
 
                                   <button
                                     className={styles.deleteAnchorBtn}
-                                    onClick={() => removeAnchor(anchor.id)}
-                                    title="Delete anchor"
+                                    onClick={(e) => { e.stopPropagation(); removeAnchor(anchor.id) }}
+                                    title="Delete fixture"
                                   >
                                     ✕
                                   </button>
@@ -738,11 +744,11 @@ export function SpatialView() {
         </div>
       )}
 
-      {/* Add Anchor Modal */}
+      {/* Add Fixture Modal */}
       {isAddingAnchor && (
         <div className={styles.modalOverlay} onClick={() => setIsAddingAnchor(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
-            <h3>Add 3D Light Anchor</h3>
+            <h3>Add 3D Light Fixture</h3>
             <form onSubmit={handleCreateAnchor}>
               <input
                 type="text"
@@ -767,7 +773,7 @@ export function SpatialView() {
 
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.cancelBtn} onClick={() => setIsAddingAnchor(false)}>Cancel</button>
-                <button type="submit" className={styles.saveBtn}>Add Anchor</button>
+                <button type="submit" className={styles.saveBtn}>Add Fixture</button>
               </div>
             </form>
           </div>
@@ -781,7 +787,7 @@ export function SpatialView() {
             <h3>3D Light Positioning & Alignment</h3>
             <form onSubmit={handleSaveAnchorEdit}>
               <label className={styles.modalLabel}>
-                Anchor Name
+                Fixture Name
                 <input
                   type="text"
                   value={editingAnchor.name}
@@ -789,6 +795,55 @@ export function SpatialView() {
                   className={styles.modalInput}
                   required
                 />
+              </label>
+
+              <div className={styles.modalGrid}>
+                <label className={styles.modalLabel}>
+                  Bind WLED Device
+                  <select
+                    value={editingAnchor.device_id || ''}
+                    onChange={e => setEditingAnchor({ ...editingAnchor, device_id: e.target.value || null })}
+                    className={styles.modalSelect}
+                  >
+                    <option value="">Unbound</option>
+                    {devices.map(d => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className={styles.modalLabel}>
+                  Room Assignment
+                  <select
+                    value={editingAnchor.room_id || selectedRoomId}
+                    onChange={e => setEditingAnchor({ ...editingAnchor, room_id: e.target.value })}
+                    className={styles.modalSelect}
+                  >
+                    {allRooms.map(r => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <label className={styles.modalLabel}>
+                Shape
+                <select
+                  value={editingAnchor.type}
+                  onChange={e => setEditingAnchor({ ...editingAnchor, type: e.target.value })}
+                  className={styles.modalSelect}
+                >
+                  <option value="line_horizontal">Horizontal Line</option>
+                  <option value="line_vertical">Vertical Line</option>
+                  <option value="circle">Circle / Ring</option>
+                  <option value="rectangle_horizontal">Horizontal Rectangle</option>
+                  <option value="rectangle_vertical">Vertical Rectangle</option>
+                  <option value="square">Square</option>
+                </select>
               </label>
 
               {/* Quick Height Placement Presets */}
@@ -843,16 +898,50 @@ export function SpatialView() {
                   />
                 </label>
                 <label className={styles.modalLabel}>
-                  Strip Length ({unitSystem === 'imperial' ? 'ft' : 'm'})
+                  LED Density (LEDs/m)
+                  <select
+                    value={editingAnchor.led_density}
+                    onChange={e => {
+                      const newDensity = Number(e.target.value)
+                      let newDisplayLength = editingAnchor.display_length
+                      // Auto update display length in UI if a device is bound
+                      const dev = devices.find(d => d.id === editingAnchor.device_id)
+                      if (dev?.liveState?.info?.leds?.count) {
+                        const meters = dev.liveState.info.leds.count / newDensity
+                        newDisplayLength = metersToDisplay(meters, unitSystem).toFixed(2)
+                      }
+                      setEditingAnchor({ ...editingAnchor, led_density: newDensity, display_length: newDisplayLength })
+                    }}
+                    className={styles.modalSelect}
+                  >
+                    <option value="30">30 LEDs/m</option>
+                    <option value="60">60 LEDs/m</option>
+                    <option value="96">96 LEDs/m</option>
+                    <option value="144">144 LEDs/m</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className={styles.modalGrid}>
+                <label className={styles.modalLabel}>
+                  Physical Length ({unitSystem === 'imperial' ? 'ft' : 'm'})
                   <input
                     type="number"
                     step="0.1"
                     value={editingAnchor.display_length}
                     onChange={e => setEditingAnchor({ ...editingAnchor, display_length: e.target.value })}
                     className={styles.modalInput}
+                    disabled={!!(editingAnchor.device_id && devices.find(d => d.id === editingAnchor.device_id)?.liveState?.info?.leds?.count)}
+                    title={editingAnchor.device_id ? "Length is auto-calculated based on device LED count and density." : ""}
                   />
                 </label>
               </div>
+              
+              {displayToMeters(editingAnchor.display_length, unitSystem) > Math.max(selectedRoom?.width || 4, selectedRoom?.depth || 4) && (
+                <div style={{ color: 'var(--accent-amber)', fontSize: '0.85rem', marginBottom: 'var(--sp-2)' }}>
+                  ⚠️ Warning: Light length exceeds room dimensions. Visually, the light will be strictly clamped to the room bounds. Please adjust length, shape, or room dimensions.
+                </div>
+              )}
 
               <div className={styles.modalGrid}>
                 <label className={styles.modalLabel}>

@@ -6,17 +6,31 @@ import { devicesApi } from '../lib/api.js'
  * live state. Handles optimistic updates with rollback on API failure.
  */
 export const useDeviceStore = create((set, get) => ({
-  // ── State ───────────────────────────────────────────────────────────────────
+  // ─── State ───────────────────────────────────────────────────────────────────
   devices: [],
   loading: true,
   error: null,
+  latestFirmwareVersion: null,
 
-  // ── Actions ─────────────────────────────────────────────────────────────────
+  // ─── Actions ─────────────────────────────────────────────────────────────────
+
+  fetchLatestFirmware: async () => {
+    try {
+      const res = await fetch('https://api.github.com/repos/Aircoookie/WLED/releases/latest')
+      if (res.ok) {
+        const data = await res.json()
+        set({ latestFirmwareVersion: data.tag_name.replace('v', '') })
+      }
+    } catch (err) {
+      console.warn('Failed to fetch latest WLED firmware from GitHub', err)
+    }
+  },
 
   fetchDevices: async () => {
     try {
       const devices = await devicesApi.list()
       set({ devices, loading: false, error: null })
+      get().fetchLatestFirmware() // Fetch firmware in background on initial load
     } catch (err) {
       set({ loading: false, error: err.message })
     }
@@ -55,6 +69,10 @@ export const useDeviceStore = create((set, get) => ({
       set({ devices: prev })
       throw new Error('Failed to remove device')
     }
+  },
+
+  uploadFirmware: async (id, formData) => {
+    return await devicesApi.uploadFirmware(id, formData)
   },
 
   reorderDevices: async (orderedIds) => {

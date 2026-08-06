@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -16,6 +16,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
+import { useSpatialStore } from '../../stores/spatialStore.js'
 import { DeviceCard } from '../../components/DeviceCard/DeviceCard.jsx'
 import { GroupCard } from '../../components/GroupCard/GroupCard.jsx'
 import { SearchBar } from '../../components/SearchBar/SearchBar.jsx'
@@ -25,10 +26,12 @@ import styles from './Dashboard.module.css'
 
 // ─── Custom Hooks ─────────────────────────────────────────────────────────────
 
-function useColumnCount(ref) {
+function useColumnCount() {
   const [columns, setColumns] = useState(1)
+  const [node, setNode] = useState(null)
+  
   useEffect(() => {
-    if (!ref.current) return
+    if (!node) return
     const observer = new ResizeObserver(entries => {
       for (let entry of entries) {
         const width = entry.contentRect.width
@@ -39,17 +42,18 @@ function useColumnCount(ref) {
         setColumns(Math.max(1, cols))
       }
     })
-    observer.observe(ref.current)
+    observer.observe(node)
     return () => observer.disconnect()
-  }, [])
-  return columns
+  }, [node])
+  
+  return [columns, setNode]
 }
 
 // ─── Sortable wrapper ─────────────────────────────────────────────────────────
 
-function SortableCard({ device }) {
+function SortableCard({ device, disabled }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: device.id })
+    useSortable({ id: device.id, disabled })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -76,19 +80,21 @@ function SortableCard({ device }) {
 export function Dashboard() {
   const { devices, loading, error, fetchDevices, reorderDevices } = useDeviceStore()
   const { groups, fetchGroups } = useGroupStore()
+  const { hierarchy, fetchHierarchy } = useSpatialStore()
   const setHeaderAccentColor = useUIStore(s => s.setHeaderAccentColor)
 
   const [search, setSearch]       = useState('')
   const [filter, setFilter]       = useState('all')
   const [viewMode, setViewMode]   = useState('devices') // 'devices' | 'groups'
+  const [sortMode, setSortMode]   = useState('manual') // 'manual', 'az', 'za', 'date', 'room'
   const [localOrder, setLocalOrder] = useState([])
-  const containerRef = useRef(null)
-  const columns = useColumnCount(containerRef)
+  const [columns, setContainerRef] = useColumnCount()
 
   useEffect(() => {
     fetchDevices()
     fetchGroups()
-  }, [fetchDevices, fetchGroups])
+    fetchHierarchy()
+  }, [fetchDevices, fetchGroups, fetchHierarchy])
 
   // Keep local order in sync with store (e.g. after initial load or external add)
   useEffect(() => {
@@ -110,17 +116,50 @@ export function Dashboard() {
     setHeaderAccentColor(blendColors(activeColors))
   }, [devices, setHeaderAccentColor])
 
+  // Map devices to rooms for grouping
+  const deviceRoomMap = useMemo(() => {
+    const map = {}
+    hierarchy.forEach(d => {
+      d.floors?.forEach(f => {
+        f.rooms?.forEach(r => {
+          r.anchors?.forEach(a => {
+            if (a.device_id) map[a.device_id] = r.name
+          })
+        })
+      })
+    })
+    return map
+  }, [hierarchy])
+
   // Filtered + ordered device list
   const orderedDevices = localOrder
     .map(id => devices.find(d => d.id === id))
     .filter(Boolean)
+
+  let sortedDevices = [...orderedDevices]
+  if (sortMode === 'az') {
+    sortedDevices.sort((a, b) => a.name.localeCompare(b.name))
+  } else if (sortMode === 'za') {
+    sortedDevices.sort((a, b) => b.name.localeCompare(a.name))
+  } else if (sortMode === 'date') {
+    sortedDevices.sort((a, b) => b.sort_order - a.sort_order) // Newest first
+  } else if (sortMode === 'room') {
+    sortedDevices.sort((a, b) => {
+      const rA = deviceRoomMap[a.id] || 'Unassigned'
+      const rB = deviceRoomMap[b.id] || 'Unassigned'
+      if (rA === rB) return a.name.localeCompare(b.name)
+      if (rA === 'Unassigned') return 1
+      if (rB === 'Unassigned') return -1
+      return rA.localeCompare(rB)
+    })
+  }
 
   const onlineCount  = devices.filter(d => d.is_online === 1).length
   const offlineCount = devices.filter(d => d.is_online === 0).length
   const onCount      = devices.filter(d => d.liveState?.on && d.is_online === 1).length
   const offCount     = devices.filter(d => (!d.liveState?.on || d.is_online === 0)).length
 
-  const filtered = orderedDevices.filter(d => {
+  const filtered = sortedDevices.filter(d => {
     const matchesSearch = !search ||
       d.name.toLowerCase().includes(search.toLowerCase()) ||
       d.ip_address.includes(search)
@@ -138,6 +177,8 @@ export function Dashboard() {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
 
+  const isManualSort = sortMode === 'manual'
+
   const rowCount = Math.ceil(filtered.length / columns)
   const virtualizer = useWindowVirtualizer({
     count: rowCount,
@@ -146,13 +187,14 @@ export function Dashboard() {
   })
 
   const handleDragEnd = useCallback(({ active, over }) => {
+    if (!isManualSort) return
     if (!over || active.id === over.id) return
     const oldIndex = localOrder.indexOf(active.id)
     const newIndex = localOrder.indexOf(over.id)
     const next = arrayMove(localOrder, oldIndex, newIndex)
     setLocalOrder(next)
     reorderDevices(next)
-  }, [localOrder, reorderDevices])
+  }, [localOrder, reorderDevices, isManualSort])
 
   const showSearch = devices.length > 4
 
@@ -166,15 +208,30 @@ export function Dashboard() {
           <h1 className={styles.title}>Dashboard</h1>
           <div className={styles.stats} role="group" aria-label="Device category filters">
             <StatPill label="Devices" value={devices.length} active={filter === 'all'} onClick={() => setFilter('all')} />
-            <StatPill label="Online"  value={onlineCount} active={filter === 'online'} accent="emerald" onClick={() => setFilter('online')} />
-            <StatPill label="Offline" value={offlineCount} active={filter === 'offline'} accent="rose" onClick={() => setFilter('offline')} />
-            <StatPill label="ON"      value={onCount} active={filter === 'on'} accent="amber" onClick={() => setFilter('on')} />
-            <StatPill label="OFF"     value={offCount} active={filter === 'off'} accent="slate" onClick={() => setFilter('off')} />
+            <StatPill label="Online"  value={onlineCount} active={filter === 'online'} onClick={() => setFilter('online')} />
+            <StatPill label="Offline" value={offlineCount} active={filter === 'offline'} onClick={() => setFilter('offline')} />
+            <StatPill label="ON"      value={onCount} active={filter === 'on'} onClick={() => setFilter('on')} />
+            <StatPill label="OFF"     value={offCount} active={filter === 'off'} onClick={() => setFilter('off')} />
             {groups.length > 0 && <StatPill label="Groups" value={groups.length} active={false} onClick={() => setViewMode('groups')} />}
           </div>
         </div>
 
         <div className={styles.headerRight}>
+          {viewMode === 'devices' && (
+            <select
+              value={sortMode}
+              onChange={e => setSortMode(e.target.value)}
+              className={styles.sortSelect}
+              title="Sort Devices"
+            >
+              <option value="manual">Manual Sort (Drag & Drop)</option>
+              <option value="room">Group by Room</option>
+              <option value="az">Alphabetical (A-Z)</option>
+              <option value="za">Alphabetical (Z-A)</option>
+              <option value="date">Date Added</option>
+            </select>
+          )}
+
           {groups.length > 0 && (
             <div className={styles.modeToggle} role="group" aria-label="Dashboard view mode">
               <button
@@ -220,9 +277,9 @@ export function Dashboard() {
         <NoResults onClear={() => { setSearch(''); setFilter('all') }} />
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={localOrder} strategy={rectSortingStrategy}>
+          <SortableContext items={filtered.map(d => d.id)} strategy={rectSortingStrategy}>
             <section
-              ref={containerRef}
+              ref={setContainerRef}
               aria-label="Device list"
               style={{
                 position: 'relative',
@@ -251,7 +308,10 @@ export function Dashboard() {
                   >
                     {rowDevices.map((device, i) => (
                       <div key={device.id} style={{ animationDelay: `${(startIndex + i) * 30}ms` }}>
-                        <SortableCard device={device} />
+                        <SortableCard device={device} disabled={!isManualSort} />
+                        {sortMode === 'room' && deviceRoomMap[device.id] && (
+                          <div className={styles.roomTag}>{deviceRoomMap[device.id]}</div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -267,13 +327,7 @@ export function Dashboard() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatPill({ label, value, active, accent, onClick }) {
-  const colorMap = {
-    emerald: 'var(--accent-emerald)',
-    rose:    'var(--accent-rose)',
-    amber:   'var(--accent-amber)',
-    slate:   'var(--text-tertiary)',
-  }
+function StatPill({ label, value, active, onClick }) {
   return (
     <button
       className={[styles.statPill, active && styles.statPillActive].filter(Boolean).join(' ')}
@@ -281,9 +335,7 @@ function StatPill({ label, value, active, accent, onClick }) {
       aria-pressed={active}
       title={`Filter by ${label}`}
     >
-      <span className={styles.statValue} style={accent ? { color: colorMap[accent] } : undefined}>
-        {value}
-      </span>
+      <span className={styles.statValue}>{value}</span>
       <span className={styles.statLabel}>{label}</span>
     </button>
   )

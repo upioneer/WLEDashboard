@@ -13,7 +13,6 @@ import {
 import { Toggle } from '../Toggle/Toggle.jsx'
 import { Slider } from '../Slider/Slider.jsx'
 import { ColorPickerCompact } from '../ColorPicker/ColorPickerCompact.jsx'
-import { SegmentBar } from '../SegmentBar/SegmentBar.jsx'
 import { ContextMenu } from '../ContextMenu/ContextMenu.jsx'
 import styles from './DeviceCard.module.css'
 
@@ -31,15 +30,24 @@ export function DeviceCard({ device }) {
   const sendCommand  = useDeviceStore(s => s.sendCommand)
   const removeDevice = useDeviceStore(s => s.removeDevice)
   const updateDevice = useDeviceStore(s => s.updateDevice)
+  const uploadFirmware = useDeviceStore(s => s.uploadFirmware)
+  const latestFirmwareVersion = useDeviceStore(s => s.latestFirmwareVersion)
   const addToast     = useUIStore(s => s.addToast)
 
   const [contextMenu, setContextMenu] = useState(null)  // { x, y }
   const [renaming, setRenaming]       = useState(false)
+  const [isUpdatingFirmware, setIsUpdatingFirmware] = useState(false)
   const [renameVal, setRenameVal]     = useState(device.name)
   const renameRef = useRef(null)
 
+  const [editingChip, setEditingChip] = useState(null) // 'effect', 'led_count', 'led_density'
+  const [chipEditVal, setChipEditVal] = useState('')
+
   const liveState     = device.liveState ?? {}
   const isOnline      = device.is_online === 1
+  const isFirmwareOutdated = device.firmware_ver && latestFirmwareVersion && device.firmware_ver !== latestFirmwareVersion
+
+  const fileInputRef = useRef(null)
   const isOn          = liveState.on ?? false
   const bri           = liveState.bri ?? 0
   const briPct        = wledBriToPct(bri)
@@ -222,14 +230,50 @@ export function DeviceCard({ device }) {
   const commitRename = useCallback(async () => {
     setRenaming(false)
     const trimmed = renameVal.trim()
-    if (!trimmed || trimmed === device.name) return
+    if (!trimmed || trimmed === device.name) {
+      setRenameVal(device.name)
+      return
+    }
     try {
       await updateDevice(device.id, { name: trimmed })
       addToast({ message: 'Device renamed', type: 'success' })
     } catch {
+      setRenameVal(device.name)
       addToast({ message: 'Failed to rename device', type: 'error' })
     }
   }, [renameVal, device.id, device.name, updateDevice, addToast])
+
+  // Quick Action Chips
+  const startChipEdit = (chip, initialVal) => {
+    setEditingChip(chip)
+    setChipEditVal(initialVal)
+  }
+
+  const commitChipEdit = async (e) => {
+    e.preventDefault()
+    const chip = editingChip
+    setEditingChip(null)
+    
+    if (!chipEditVal.trim()) return
+    
+    try {
+      if (chip === 'led_count') {
+        await updateDevice(device.id, { led_count: parseInt(chipEditVal, 10) })
+        addToast({ message: 'LED count updated', type: 'success' })
+      } else if (chip === 'led_density') {
+        await updateDevice(device.id, { led_density: parseInt(chipEditVal, 10) })
+        addToast({ message: 'LED density updated', type: 'success' })
+      } else if (chip === 'effect') {
+        const fxIndex = parseInt(chipEditVal, 10)
+        if (!isNaN(fxIndex)) {
+          await sendCommand(device.id, { seg: [{ id: 0, fx: fxIndex }] })
+          addToast({ message: `Effect updated to ${fxIndex}`, type: 'success' })
+        }
+      }
+    } catch (err) {
+      addToast({ message: `Failed to update ${chip}: ${err.message}`, type: 'error' })
+    }
+  }
 
   // Document-level Escape handler while rename is active
   // (input onKeyDown alone is unreliable if focus races with the setTimeout)
@@ -249,6 +293,32 @@ export function DeviceCard({ device }) {
     addToast({ message: `Copied ${device.ip_address}`, type: 'info', duration: 2000 })
   }, [device.ip_address, addToast])
 
+  // Firmware Update
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsUpdatingFirmware(true)
+      addToast({ message: `Uploading firmware to ${device.name}, please wait...`, type: 'info' })
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      const result = await uploadFirmware(device.id, formData)
+      
+      addToast({ message: result?.message || `${device.name} firmware updated successfully! Device is rebooting.`, type: 'success', duration: 8000 })
+    } catch (err) {
+      addToast({ message: `Firmware upload failed for ${device.name}: ${err.message}`, type: 'error' })
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      setIsUpdatingFirmware(false)
+    }
+  }
+
+  const handleUpdateFirmware = useCallback(() => {
+    fileInputRef.current?.click()
+  }, [])
+
   const contextItems = [
     {
       label: 'Rename',
@@ -265,6 +335,11 @@ export function DeviceCard({ device }) {
       label: 'Copy IP',
       icon: <CopyIcon />,
       onClick: handleCopyIP,
+    },
+    {
+      label: isFirmwareOutdated ? 'Update Firmware (New!)' : 'Update Firmware',
+      icon: <UpdateIcon />,
+      onClick: handleUpdateFirmware,
     },
     { separator: true },
     {
@@ -325,7 +400,9 @@ export function DeviceCard({ device }) {
               </span>
             )}
             {device.firmware_ver && (
-              <span className={styles.version}>v{device.firmware_ver}</span>
+              <span className={styles.version} style={isFirmwareOutdated ? { color: 'var(--accent-amber)', fontWeight: 600 } : undefined}>
+                v{device.firmware_ver} {isFirmwareOutdated ? '⚠️' : ''}
+              </span>
             )}
           </div>
           <div className={styles.headerActions}>
@@ -355,9 +432,6 @@ export function DeviceCard({ device }) {
           </div>
         </div>
 
-        {/* Segment color bar */}
-        <SegmentBar segments={segments} isOn={isOn} fallbackColor={localColor} />
-
         {/* Brightness */}
         <div className={styles.section}>
           <Slider
@@ -382,10 +456,30 @@ export function DeviceCard({ device }) {
 
         {/* Meta chips */}
         <div className={styles.chips}>
-          <span className={styles.chip}>{effectName}</span>
-          {device.led_count && (
-            <span className={styles.chip}>{device.led_count} LEDs</span>
-          )}
+          <button 
+            className={[styles.chip, styles.actionChip].join(' ')} 
+            onClick={() => startChipEdit('effect', effectIndex ?? 0)}
+            title="Edit Effect ID"
+          >
+            {effectName}
+          </button>
+          
+          <button 
+            className={[styles.chip, styles.actionChip].join(' ')} 
+            onClick={() => startChipEdit('led_count', device.led_count || liveState?.info?.leds?.count || '')}
+            title="Edit LED Count"
+          >
+            {device.led_count || liveState?.info?.leds?.count || '?'} LEDs
+          </button>
+
+          <button 
+            className={[styles.chip, styles.actionChip].join(' ')} 
+            onClick={() => startChipEdit('led_density', device.led_density || 60)}
+            title="Edit LED Density (LEDs/m)"
+          >
+            {device.led_density || 60}/m
+          </button>
+
           <button
             className={[styles.chip, styles.ipChip].join(' ')}
             onClick={handleCopyIP}
@@ -396,9 +490,19 @@ export function DeviceCard({ device }) {
         </div>
 
         {/* Offline overlay */}
-        {!isOnline && (
+        {!isOnline && !isUpdatingFirmware && (
           <div className={styles.offlineOverlay} aria-hidden>
             <span>Unreachable</span>
+          </div>
+        )}
+
+        {/* Updating overlay */}
+        {isUpdatingFirmware && (
+          <div className={styles.offlineOverlay} aria-hidden style={{ backdropFilter: 'blur(4px)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+              <SpinnerIcon />
+              <span style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}>Updating Firmware...</span>
+            </div>
           </div>
         )}
       </article>
@@ -413,6 +517,50 @@ export function DeviceCard({ device }) {
         />,
         document.body
       )}
+
+      {/* Quick Edit Chip Modal */}
+      {editingChip && createPortal(
+        <div className={styles.chipModalOverlay} onClick={() => setEditingChip(null)}>
+          <div className={styles.chipModal} onClick={e => e.stopPropagation()}>
+            <h4>Edit {editingChip.replace('_', ' ')}</h4>
+            <form onSubmit={commitChipEdit} style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+              {editingChip === 'led_density' ? (
+                <select
+                  autoFocus
+                  className={styles.chipInput}
+                  value={chipEditVal}
+                  onChange={e => setChipEditVal(e.target.value)}
+                >
+                  <option value="30">30 LEDs/m</option>
+                  <option value="60">60 LEDs/m</option>
+                  <option value="96">96 LEDs/m</option>
+                  <option value="144">144 LEDs/m</option>
+                </select>
+              ) : (
+                <input
+                  type="number"
+                  autoFocus
+                  className={styles.chipInput}
+                  value={chipEditVal}
+                  onChange={e => setChipEditVal(e.target.value)}
+                  placeholder={editingChip === 'effect' ? 'Effect ID (0-117)' : ''}
+                />
+              )}
+              <button type="submit" className={styles.chipSaveBtn}>Save</button>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Hidden File Input for Firmware Upload */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        style={{ display: 'none' }} 
+        accept=".bin" 
+        onChange={handleFileChange} 
+      />
     </>
   )
 }
@@ -425,6 +573,34 @@ function DotsIcon() {
       <circle cx="4" cy="8" r="1.5" fill="currentColor" />
       <circle cx="8" cy="8" r="1.5" fill="currentColor" />
       <circle cx="12" cy="8" r="1.5" fill="currentColor" />
+    </svg>
+  )
+}
+
+function UpdateIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="17 8 12 3 7 8"></polyline>
+      <line x1="12" y1="3" x2="12" y2="15"></line>
+    </svg>
+  )
+}
+
+function SpinnerIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+      <line x1="12" y1="2" x2="12" y2="6"></line>
+      <line x1="12" y1="18" x2="12" y2="22"></line>
+      <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+      <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+      <line x1="2" y1="12" x2="6" y2="12"></line>
+      <line x1="18" y1="12" x2="22" y2="12"></line>
+      <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+      <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+      <style>
+        {`@keyframes spin { 100% { transform: rotate(360deg); } }`}
+      </style>
     </svg>
   )
 }

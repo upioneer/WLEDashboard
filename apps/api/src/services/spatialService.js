@@ -140,13 +140,13 @@ export function deleteRoom(id) {
 
 // ─── Anchors (Spatial Light Bindings) ─────────────────────────────────────────
 
-export function createAnchor({ room_id, device_id = null, name, type = 'strip_linear', offset_x = 0, offset_y = 1.0, offset_z = 0, rotation_y = 0, length = 3.5 }) {
+export function createAnchor({ room_id, device_id = null, name, type = 'strip_linear', offset_x = 0, offset_y = 1.0, offset_z = 0, rotation_y = 0, length = 3.5, led_density = 30 }) {
   const db = getDb()
   const id = uuidv4()
   db.prepare(`
-    INSERT INTO anchors (id, room_id, device_id, name, type, offset_x, offset_y, offset_z, rotation_y, length)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(id, room_id, device_id, name, type, offset_x, offset_y, offset_z, rotation_y, length)
+    INSERT INTO anchors (id, room_id, device_id, name, type, offset_x, offset_y, offset_z, rotation_y, length, led_density)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, room_id, device_id, name, type, offset_x, offset_y, offset_z, rotation_y, length, led_density)
   return db.prepare('SELECT * FROM anchors WHERE id = ?').get(id)
 }
 
@@ -162,7 +162,8 @@ export function updateAnchor(id, data) {
       offset_y   = COALESCE(?, offset_y),
       offset_z   = COALESCE(?, offset_z),
       rotation_y = COALESCE(?, rotation_y),
-      length     = COALESCE(?, length)
+      length     = COALESCE(?, length),
+      led_density= COALESCE(?, led_density)
     WHERE id = ?
   `).run(
     data.room_id ?? null,
@@ -174,6 +175,7 @@ export function updateAnchor(id, data) {
     data.offset_z ?? null,
     data.rotation_y ?? null,
     data.length ?? null,
+    data.led_density ?? null,
     id
   )
   return db.prepare('SELECT * FROM anchors WHERE id = ?').get(id)

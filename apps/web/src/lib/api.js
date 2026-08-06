@@ -7,10 +7,11 @@
 const BASE = '/api'
 
 async function request(method, path, body) {
+  const isFormData = body instanceof FormData
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers: isFormData ? undefined : (body ? { 'Content-Type': 'application/json' } : undefined),
+    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
   })
 
   if (!res.ok) {
@@ -32,6 +33,7 @@ export const devicesApi = {
   reorder: (ids) => request('POST', '/devices/reorder', { ids }),
   command: (id, payload) => request('POST', `/devices/${id}/command`, payload),
   state: (id) => request('GET', `/devices/${id}/state`),
+  uploadFirmware: (id, formData) => request('POST', `/devices/${id}/firmware`, formData),
 }
 
 // ─── Settings ─────────────────────────────────────────────────────────────────

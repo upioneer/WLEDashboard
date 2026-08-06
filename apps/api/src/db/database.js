@@ -40,6 +40,8 @@ function applyMigrations(db) {
     { version: 2, sql: migration_002 },
     { version: 3, sql: migration_003 },
     { version: 4, sql: migration_004 },
+    { version: 5, sql: migration_005 },
+    { version: 6, sql: migration_006 },
   ]
 
   for (const m of migrations) {
@@ -237,5 +239,13 @@ const migration_004 = `
   INSERT OR IGNORE INTO settings (key, value) VALUES
     ('mqtt_enabled', '0'),
     ('mqtt_broker_url', 'mqtt://localhost:1883');
+`
+
+const migration_005 = `
+  ALTER TABLE anchors ADD COLUMN led_density INTEGER DEFAULT 60;
+`
+
+const migration_006 = `
+  ALTER TABLE devices ADD COLUMN led_density INTEGER DEFAULT 60;
 `
 

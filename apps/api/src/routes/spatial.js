@@ -34,24 +34,26 @@ const CreateAnchorSchema = z.object({
   room_id: z.string(),
   device_id: z.string().nullable().optional(),
   name: z.string().min(1).max(64).trim(),
-  type: z.enum(['strip_linear', 'strip_perimeter', 'spot_downlight', 'ambient_glow']).optional().default('strip_linear'),
+  type: z.string().optional().default('line_horizontal'),
   offset_x: z.number().optional().default(0),
   offset_y: z.number().optional().default(1.0),
   offset_z: z.number().optional().default(0),
   rotation_y: z.number().optional().default(0),
   length: z.number().positive().optional().default(3.5),
+  led_density: z.number().positive().optional().default(30),
 })
 
 const UpdateAnchorSchema = z.object({
   room_id: z.string().optional(),
   device_id: z.string().nullable().optional(),
   name: z.string().min(1).max(64).trim().optional(),
-  type: z.enum(['strip_linear', 'strip_perimeter', 'spot_downlight', 'ambient_glow']).optional(),
+  type: z.string().optional(),
   offset_x: z.number().optional(),
   offset_y: z.number().optional(),
   offset_z: z.number().optional(),
   rotation_y: z.number().optional(),
   length: z.number().positive().optional(),
+  led_density: z.number().positive().optional(),
 })
 
 // ─── Route Registration ───────────────────────────────────────────────────────
