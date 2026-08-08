@@ -40,6 +40,12 @@ Browse WLED built-in effect catalogs, build custom multi-track keyframe animatio
 
 ![Effect Studio](project_details/changelog/v0.6.0/screenshots/01-studio-preset-browser.png)
 
+### Spotify Media Integration
+
+Fully integrated Spotify Web API player. See real-time album art, track progress, and playback controls natively in your dashboard. Synchronize dynamic WLED lighting effects to your currently playing audio.
+
+![Spotify Media Player](project_details/changelog/v0.12.0/screenshots/04-dashboard-media.png)
+
 ---
 
 ## Core Features
