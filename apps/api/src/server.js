@@ -20,6 +20,7 @@ import { studioRoutes } from './routes/studio.js'
 import { mqttRoutes } from './routes/mqtt.js'
 import { audioRoutes } from './routes/audio.js'
 import { matrixRoutes } from './routes/matrix.js'
+import { mcpRoutes } from './routes/mcp.js'
 import { initMqttService } from './services/mqttService.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 
@@ -98,6 +99,7 @@ await fastify.register(async (api) => {
   await api.register(mqttRoutes)
   await api.register(audioRoutes)
   await api.register(matrixRoutes)
+  await api.register(mcpRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────

@@ -1,6 +1,6 @@
 {
   "name": "@wledashboard/api",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "description": "WLEDashboard backend: Fastify API, mDNS discovery, WLED proxy, SQLite persistence",
@@ -17,6 +17,7 @@
     "@fastify/rate-limit": "^9.1.0",
     "@fastify/static": "^7.0.4",
     "@fastify/websocket": "^10.0.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "better-sqlite3": "^11.3.0",
     "bonjour-service": "^1.2.1",
     "fastify": "^4.28.1",
