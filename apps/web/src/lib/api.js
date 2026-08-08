@@ -128,3 +128,9 @@ export const matrixApi = {
 export const healthApi = {
   check: () => request('GET', '/health'),
 }
+
+// ─── Spotify ──────────────────────────────────────────────────────────────────
+export const spotifyApi = {
+  getStatus: () => request('GET', '/spotify/status'),
+  disconnect: () => request('DELETE', '/spotify/disconnect'),
+}

@@ -62,7 +62,7 @@ export function createDevice({ name, ip_address, mac_address, firmware_ver, led_
 
 export function updateDevice(id, fields) {
   const db = getDb()
-  const allowed = ['name', 'ip_address', 'sort_order', 'led_density', 'led_count']
+  const allowed = ['name', 'ip_address', 'sort_order', 'led_density', 'led_count', 'spotify_sync_enabled', 'weather_sync_enabled']
   const sets = Object.keys(fields)
     .filter(k => allowed.includes(k))
     .map(k => `${k} = ?`)

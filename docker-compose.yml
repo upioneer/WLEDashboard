@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  wledashboard:
+    build: .
+    image: ghcr.io/YOUR_GITHUB_USERNAME/wledashboard:latest
+    container_name: wledashboard
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+    volumes:
+      - wledashboard_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  wledashboard_data:

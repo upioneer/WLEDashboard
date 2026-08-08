@@ -179,7 +179,7 @@
 
 /* ── Card entrance animation ────────────────────────────────── */
 .cardWrapper {
-  animation: cardEnter 400ms var(--ease-out-expo) both;
+  animation: cardEnter 400ms var(--ease-out-expo) backwards;
 }
 
 @keyframes cardEnter {
@@ -317,3 +317,94 @@
     gap: var(--sp-5);
   }
 }
+
+/* ── Extra Views ────────────────────────────────────────────── */
+.compactContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  overflow: hidden;
+}
+
+.compactHeaderRow {
+  display: flex;
+  align-items: center;
+  padding: var(--sp-3) var(--sp-5);
+  background-color: var(--surface-overlay);
+  border-bottom: 1px solid var(--border-subtle);
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  gap: var(--sp-4);
+}
+
+.compactHeaderCol {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: color 120ms;
+}
+
+.compactHeaderCol:hover {
+  color: var(--text-primary);
+}
+
+.sortIndicator {
+  margin-left: 4px;
+  font-size: 0.85em;
+  color: var(--accent-violet);
+  display: inline-block;
+  min-width: 12px;
+}
+
+.compactRow {
+  display: flex;
+  align-items: center;
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  font: var(--type-body);
+  color: var(--text-primary);
+  gap: var(--sp-4);
+  transition: background-color 120ms;
+}
+
+.compactRow:last-child {
+  border-bottom: none;
+}
+
+.compactRow:hover {
+  background-color: var(--surface-input);
+}
+
+.compactName {
+  font-weight: 500;
+}
+
+.compactIp {
+  color: var(--text-secondary);
+  font: var(--type-small);
+  font-family: var(--font-mono);
+}
+
+.roomsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-10);
+}
+
+.roomSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.roomTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--sp-2);
+}
+

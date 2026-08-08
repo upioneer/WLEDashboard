@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { settingsApi, mqttApi } from '../../lib/api.js'
+import { settingsApi, mqttApi, spotifyApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import styles from './Settings.module.css'
@@ -11,6 +11,7 @@ const DEFAULTS = {
   mdns_scan_interval_ms: '30000',
   latitude: '37.7749',
   longitude: '-122.4194',
+  openweathermap_api_key: '',
   unit_system: 'imperial',
   unit_prompt_shown: 'false',
   mqtt_enabled: '0',
@@ -23,10 +24,15 @@ export function Settings() {
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [showUnitPromptModal, setShowUnitPromptModal] = useState(false)
+  const [spotifyConnected, setSpotifyConnected] = useState(false)
 
   useEffect(() => {
-    settingsApi.get().then(s => {
+    Promise.all([
+      settingsApi.get(),
+      spotifyApi.getStatus().catch(() => ({ connected: false }))
+    ]).then(([s, spot]) => {
       setSettings({ ...DEFAULTS, ...s })
+      setSpotifyConnected(spot.connected)
       setLoading(false)
     }).catch(() => {
       setLoading(false)
@@ -177,6 +183,69 @@ export function Settings() {
           </div>
         </section>
 
+        {/* Media Sync */}
+        <section className={styles.section} aria-labelledby="media-heading">
+          <h2 id="media-heading" className={styles.sectionTitle}>Media Sync</h2>
+          <p className={styles.sectionDesc}>
+            Connect your Spotify account to automatically extract album art colors and sync them to your WLED devices.
+          </p>
+          <div className={styles.fields}>
+            <div className={styles.mqttActionRow}>
+              {spotifyConnected ? (
+                <>
+                  <span style={{ color: 'var(--color-success, #10b981)', marginRight: '1rem', fontWeight: 600 }}>Spotify Connected ✓</span>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    onClick={async () => {
+                      try {
+                        await spotifyApi.disconnect()
+                        setSpotifyConnected(false)
+                        addToast({ message: 'Spotify disconnected', type: 'success' })
+                      } catch {
+                        addToast({ message: 'Failed to disconnect', type: 'error' })
+                      }
+                    }}
+                  >
+                    Disconnect
+                  </button>
+                </>
+              ) : (
+                <a
+                  href={`http://${window.location.hostname}:3001/api/spotify/login`}
+                  className={styles.secondaryBtn}
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  Connect to Spotify
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Weather Sync */}
+        <section className={styles.section} aria-labelledby="weather-heading">
+          <h2 id="weather-heading" className={styles.sectionTitle}>Weather Sync</h2>
+          <p className={styles.sectionDesc}>
+            Connect OpenWeatherMap to automatically reflect live weather conditions via WLED effects on your ambient lights. (e.g., pulsing blue for rain). Requires an API key from <a href="https://home.openweathermap.org/api_keys" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>OpenWeatherMap</a>.
+          </p>
+          <div className={styles.fields}>
+            <SettingField
+              label="OpenWeatherMap API Key"
+              hint="Paste your free API key here to enable weather polling."
+              id="openweathermap_api_key"
+            >
+              <TextInput
+                id="openweathermap_api_key"
+                value={settings.openweathermap_api_key || ''}
+                onChange={v => handleChange('openweathermap_api_key', v)}
+                placeholder="00000000000000000000000000000000"
+              />
+            </SettingField>
+          </div>
+        </section>
+
+
         {/* Home Assistant & MQTT Integration */}
         <section className={styles.section} aria-labelledby="mqtt-heading">
           <h2 id="mqtt-heading" className={styles.sectionTitle}>Home Assistant & MQTT Integration</h2>
@@ -310,7 +379,8 @@ export function Settings() {
         <section className={styles.section} aria-labelledby="about-heading">
           <h2 id="about-heading" className={styles.sectionTitle}>About</h2>
           <div className={styles.aboutGrid}>
-            <AboutRow label="Version" value="0.4.0" />
+            <AboutRow label="Website" value={<a href="https://wledashboard.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-cyan)' }}>wledashboard.com</a>} />
+            <AboutRow label="Version" value={`v${__APP_VERSION__}`} />
             <AboutRow label="Storage" value="Local SQLite (local-first, no cloud)" />
             <AboutRow label="License" value="All Rights Reserved (Copyright (c) 2026 Jasen Henry)" />
           </div>

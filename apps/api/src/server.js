@@ -7,6 +7,8 @@ import multipart from '@fastify/multipart'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 import { getDb } from './db/database.js'
 import { startAllPolling, subscribe } from './services/deviceService.js'
 import { startDiscovery, stopDiscovery } from './services/discoveryService.js'
@@ -21,8 +23,11 @@ import { mqttRoutes } from './routes/mqtt.js'
 import { audioRoutes } from './routes/audio.js'
 import { matrixRoutes } from './routes/matrix.js'
 import { mcpRoutes } from './routes/mcp.js'
+import { spotifyRoutes } from './routes/spotify.js'
 import { initMqttService } from './services/mqttService.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
+import { startSpotifyPoller, subscribeToSpotify, getCurrentSpotifyState } from './services/spotifyService.js'
+import { startWeatherPoller } from './services/weatherService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -100,6 +105,7 @@ await fastify.register(async (api) => {
   await api.register(audioRoutes)
   await api.register(matrixRoutes)
   await api.register(mcpRoutes)
+  await api.register(spotifyRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────
@@ -107,15 +113,25 @@ await fastify.register(async (api) => {
 fastify.get('/ws', { websocket: true }, (socket) => {
   console.log('[ws] Client connected')
 
-  const unsubscribe = subscribe((deviceId, state) => {
+  const currentSpotify = getCurrentSpotifyState()
+  socket.send(JSON.stringify({ type: 'spotify_update', state: currentSpotify }))
+
+  const unsubscribeDevices = subscribe((deviceId, state) => {
     if (socket.readyState === socket.OPEN) {
       socket.send(JSON.stringify({ type: 'state_update', deviceId, state }))
     }
   })
 
+  const unsubscribeSpotify = subscribeToSpotify((state) => {
+    if (socket.readyState === socket.OPEN) {
+      socket.send(JSON.stringify({ type: 'spotify_update', state }))
+    }
+  })
+
   socket.on('close', () => {
     console.log('[ws] Client disconnected')
-    unsubscribe()
+    unsubscribeDevices()
+    unsubscribeSpotify()
   })
 })
 
@@ -136,6 +152,12 @@ async function start() {
 
   // Start automation scheduler
   startAutomationScheduler()
+
+  // Start Spotify poller
+  startSpotifyPoller()
+  
+  // Start Weather poller
+  startWeatherPoller()
 
   try {
     await fastify.listen({ port: PORT, host: HOST })

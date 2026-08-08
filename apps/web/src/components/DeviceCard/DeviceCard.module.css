@@ -114,6 +114,28 @@
   background-color: var(--surface-overlay);
 }
 
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  cursor: grab;
+  flex-shrink: 0;
+  transition: background-color 140ms, color 140ms;
+}
+
+.dragHandle:hover {
+  color: var(--text-primary);
+  background-color: var(--surface-overlay);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
 
 /* ── Status Dot ─────────────────────────────────────────────── */
 .statusDot {
@@ -208,19 +230,26 @@ button.chip:hover {
   inset: 0;
   border-radius: inherit;
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  padding: var(--sp-3);
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
   pointer-events: none;
   z-index: 10;
 }
 
-.offlineOverlay span {
-  font: var(--type-micro);
-  letter-spacing: 0.08em;
+.offlineOverlay > span {
+  background: var(--surface-overlay);
+  border: 1px solid var(--accent-rose);
+  font: var(--type-small);
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--accent-rose);
-  opacity: 0.8;
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-3);
+  opacity: 1;
 }
 
 /* ── Identifying State ────────────────────────────────────────── */

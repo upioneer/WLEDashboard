@@ -193,6 +193,57 @@ export function GroupCard({ group, onEdit }) {
           {activeDevices.length > 0 && (
             <span className={styles.activeBadge}>{activeDevices.length} Active</span>
           )}
+          <button
+            style={{
+              marginLeft: 'auto',
+              background: group.spotify_sync_enabled ? 'var(--color-success, #10b981)' : 'transparent',
+              color: group.spotify_sync_enabled ? '#000' : 'var(--text-secondary)',
+              border: group.spotify_sync_enabled ? 'none' : '1px solid var(--border-subtle)',
+              borderRadius: '12px',
+              padding: '2px 10px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onClick={async () => {
+              try {
+                await useGroupStore.getState().updateGroup(group.id, { spotify_sync_enabled: group.spotify_sync_enabled ? 0 : 1 })
+                addToast({ message: `Spotify Sync ${group.spotify_sync_enabled ? 'Disabled' : 'Enabled'}`, type: 'success' })
+              } catch (err) {
+                addToast({ message: 'Failed to update Spotify sync', type: 'error' })
+              }
+            }}
+            title="Toggle Spotify Media Sync"
+          >
+            🎵 Sync {group.spotify_sync_enabled ? 'On' : 'Off'}
+          </button>
+          
+          <button
+            style={{
+              marginLeft: '0.5rem',
+              background: group.weather_sync_enabled ? 'var(--accent-cyan)' : 'transparent',
+              color: group.weather_sync_enabled ? '#000' : 'var(--text-secondary)',
+              border: group.weather_sync_enabled ? 'none' : '1px solid var(--border-subtle)',
+              borderRadius: '12px',
+              padding: '2px 10px',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onClick={async () => {
+              try {
+                await useGroupStore.getState().updateGroup(group.id, { weather_sync_enabled: group.weather_sync_enabled ? 0 : 1 })
+                addToast({ message: `Weather Sync ${group.weather_sync_enabled ? 'Disabled' : 'Enabled'}`, type: 'success' })
+              } catch (err) {
+                addToast({ message: 'Failed to update Weather sync', type: 'error' })
+              }
+            }}
+            title="Toggle Weather Sync"
+          >
+            🌤️ Weather {group.weather_sync_enabled ? 'On' : 'Off'}
+          </button>
         </div>
 
         {/* Brightness */}

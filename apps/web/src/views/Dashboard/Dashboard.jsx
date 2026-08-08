@@ -5,6 +5,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -20,46 +21,40 @@ import { useSpatialStore } from '../../stores/spatialStore.js'
 import { DeviceCard } from '../../components/DeviceCard/DeviceCard.jsx'
 import { GroupCard } from '../../components/GroupCard/GroupCard.jsx'
 import { SearchBar } from '../../components/SearchBar/SearchBar.jsx'
-import { extractDominantColor, blendColors } from '../../lib/colors.js'
-import { useWindowVirtualizer } from '@tanstack/react-virtual'
+import { extractDominantColor, blendColors, wledBriToPct, pctToWledBri } from '../../lib/colors.js'
+import { Toggle } from '../../components/Toggle/Toggle.jsx'
 import styles from './Dashboard.module.css'
 
-// ─── Custom Hooks ─────────────────────────────────────────────────────────────
 
-function useColumnCount() {
-  const [columns, setColumns] = useState(1)
-  const [node, setNode] = useState(null)
-  
-  useEffect(() => {
-    if (!node) return
-    const observer = new ResizeObserver(entries => {
-      for (let entry of entries) {
-        const width = entry.contentRect.width
-        const vw = window.innerWidth
-        const gap = 20
-        const minWidth = vw >= 1200 && vw < 1800 ? 320 : 300
-        let cols = Math.floor((width + gap) / (minWidth + gap))
-        setColumns(Math.max(1, cols))
-      }
-    })
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [node])
-  
-  return [columns, setNode]
-}
 
-// ─── Sortable wrapper ─────────────────────────────────────────────────────────
-
-function SortableCard({ device, disabled }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+function SortableCard({ device, disabled, room, animationDelay }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: device.id, disabled })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 1 : undefined,
+    animationDelay,
+    position: 'relative'
+  }
+
+  if (isDragging) {
+    return (
+      <div 
+        ref={setNodeRef}
+        style={{ 
+          ...style, 
+          border: '2px dashed var(--accent-violet)', 
+          borderRadius: 'var(--radius-l)', 
+          backgroundColor: 'var(--accent-violet-10)', 
+          height: '100%',
+          minHeight: '300px',
+          opacity: 0.7
+        }}
+        className={styles.cardWrapper}
+      />
+    )
   }
 
   return (
@@ -67,10 +62,17 @@ function SortableCard({ device, disabled }) {
       ref={setNodeRef}
       style={style}
       className={styles.cardWrapper}
-      {...attributes}
-      {...listeners}
     >
-      <DeviceCard device={device} />
+      <DeviceCard 
+        device={device} 
+        isManualSort={!disabled}
+        dragAttributes={attributes}
+        dragListeners={listeners}
+        dragRef={setActivatorNodeRef}
+      />
+      {room && (
+        <div className={styles.roomTag}>{room}</div>
+      )}
     </div>
   )
 }
@@ -88,7 +90,7 @@ export function Dashboard() {
   const [viewMode, setViewMode]   = useState('devices') // 'devices' | 'groups'
   const [sortMode, setSortMode]   = useState('manual') // 'manual', 'az', 'za', 'date', 'room'
   const [localOrder, setLocalOrder] = useState([])
-  const [columns, setContainerRef] = useColumnCount()
+  const [activeId, setActiveId]     = useState(null)
 
   useEffect(() => {
     fetchDevices()
@@ -179,14 +181,12 @@ export function Dashboard() {
 
   const isManualSort = sortMode === 'manual'
 
-  const rowCount = Math.ceil(filtered.length / columns)
-  const virtualizer = useWindowVirtualizer({
-    count: rowCount,
-    estimateSize: () => 340, // 320px card + 20px gap
-    overscan: 2,
-  })
+  const handleDragStart = useCallback((event) => {
+    setActiveId(event.active.id)
+  }, [])
 
   const handleDragEnd = useCallback(({ active, over }) => {
+    setActiveId(null)
     if (!isManualSort) return
     if (!over || active.id === over.id) return
     const oldIndex = localOrder.indexOf(active.id)
@@ -195,6 +195,12 @@ export function Dashboard() {
     setLocalOrder(next)
     reorderDevices(next)
   }, [localOrder, reorderDevices, isManualSort])
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null)
+  }, [])
+
+  const activeDevice = activeId ? devices.find(d => d.id === activeId) : null
 
   const showSearch = devices.length > 4
 
@@ -232,22 +238,20 @@ export function Dashboard() {
             </select>
           )}
 
-          {groups.length > 0 && (
-            <div className={styles.modeToggle} role="group" aria-label="Dashboard view mode">
-              <button
-                className={[styles.modeBtn, viewMode === 'devices' && styles.modeBtnActive].filter(Boolean).join(' ')}
-                onClick={() => setViewMode('devices')}
-              >
-                Devices
-              </button>
-              <button
-                className={[styles.modeBtn, viewMode === 'groups' && styles.modeBtnActive].filter(Boolean).join(' ')}
-                onClick={() => setViewMode('groups')}
-              >
-                Groups ({groups.length})
-              </button>
-            </div>
-          )}
+          <select
+            value={viewMode}
+            onChange={e => setViewMode(e.target.value)}
+            className={styles.sortSelect}
+            title="Dashboard View"
+            style={{ fontWeight: 600, color: 'var(--text-primary)' }}
+          >
+            <option value="devices">⊞ Grid View</option>
+            <option value="compact">≡ Compact List</option>
+            <option value="rooms">🏠 Rooms View</option>
+            {groups.length > 0 && <option value="groups">⚄ Groups ({groups.length})</option>}
+            <option value="media">🎵 Media & Sync</option>
+            <option value="favorites">⭐ Favorites</option>
+          </select>
           <span className={styles.networkBadge}>
             <span className={styles.networkDot} />
             Local Network
@@ -273,52 +277,44 @@ export function Dashboard() {
             <GroupCard key={group.id} group={group} />
           ))}
         </section>
+      ) : viewMode === 'rooms' ? (
+        <RoomsView devices={filtered} deviceRoomMap={deviceRoomMap} />
+      ) : viewMode === 'compact' ? (
+        <CompactView devices={filtered} />
+      ) : viewMode === 'media' ? (
+        <MediaView devices={filtered} />
+      ) : viewMode === 'favorites' ? (
+        <FavoritesView devices={filtered} />
       ) : filtered.length === 0 ? (
         <NoResults onClear={() => { setSearch(''); setFilter('all') }} />
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext 
+          sensors={sensors} 
+          collisionDetection={closestCenter} 
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
+        >
           <SortableContext items={filtered.map(d => d.id)} strategy={rectSortingStrategy}>
-            <section
-              ref={setContainerRef}
-              aria-label="Device list"
-              style={{
-                position: 'relative',
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-              }}
-            >
-              {virtualizer.getVirtualItems().map(virtualRow => {
-                const startIndex = virtualRow.index * columns
-                const rowDevices = filtered.slice(startIndex, startIndex + columns)
-
-                return (
-                  <div
-                    key={virtualRow.index}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualRow.size - 20}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                      display: 'grid',
-                      gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                      gap: '20px',
-                    }}
-                  >
-                    {rowDevices.map((device, i) => (
-                      <div key={device.id} style={{ animationDelay: `${(startIndex + i) * 30}ms` }}>
-                        <SortableCard device={device} disabled={!isManualSort} />
-                        {sortMode === 'room' && deviceRoomMap[device.id] && (
-                          <div className={styles.roomTag}>{deviceRoomMap[device.id]}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )
-              })}
+            <section className={styles.grid} aria-label="Device list">
+              {filtered.map((device, i) => (
+                <SortableCard 
+                  key={device.id} 
+                  device={device} 
+                  disabled={!isManualSort} 
+                  room={sortMode === 'room' ? deviceRoomMap[device.id] : null}
+                  animationDelay={`${i * 30}ms`}
+                />
+              ))}
             </section>
           </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeDevice ? (
+              <div style={{ transform: 'scale(1.02)', boxShadow: 'var(--shadow-4)', borderRadius: 'var(--radius-l)', cursor: 'grabbing' }}>
+                <DeviceCard device={activeDevice} />
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
     </main>
@@ -391,5 +387,163 @@ function DashboardError({ message, onRetry }) {
         <button className={styles.retryBtn} onClick={onRetry}>Try Again</button>
       </div>
     </main>
+  )
+}
+
+// ─── Extra Views ──────────────────────────────────────────────────────────────
+
+function CompactView({ devices }) {
+  const sendCommand = useDeviceStore(s => s.sendCommand)
+  const [sortKey, setSortKey] = useState('name')
+  const [sortAsc, setSortAsc] = useState(true)
+
+  if (devices.length === 0) return <NoResults onClear={() => {}} />
+
+  const handleSort = (key) => {
+    if (sortKey === key) {
+      setSortAsc(!sortAsc)
+    } else {
+      setSortKey(key)
+      setSortAsc(true)
+    }
+  }
+
+  const sortedDevices = [...devices].sort((a, b) => {
+    const aOn = a.liveState?.on ?? false
+    const bOn = b.liveState?.on ?? false
+    const aBri = a.liveState?.bri ?? 0
+    const bBri = b.liveState?.bri ?? 0
+
+    let cmp = 0
+    if (sortKey === 'name') {
+      cmp = a.name.localeCompare(b.name, undefined, { numeric: true })
+    } else if (sortKey === 'ip') {
+      cmp = a.ip_address.localeCompare(b.ip_address, undefined, { numeric: true })
+    } else if (sortKey === 'status') {
+      cmp = (a.is_online ? 1 : 0) - (b.is_online ? 1 : 0)
+    } else if (sortKey === 'power') {
+      cmp = (aOn ? 1 : 0) - (bOn ? 1 : 0)
+    } else if (sortKey === 'bri') {
+      cmp = aBri - bBri
+    }
+
+    return sortAsc ? cmp : -cmp
+  })
+
+  const renderHeader = (key, label, style) => (
+    <div 
+      className={styles.compactHeaderCol} 
+      style={style} 
+      onClick={() => handleSort(key)}
+      role="button"
+      tabIndex={0}
+      title={`Sort by ${label}`}
+    >
+      {label} <span className={styles.sortIndicator}>{sortKey === key ? (sortAsc ? '▲' : '▼') : ''}</span>
+    </div>
+  )
+
+  return (
+    <div className={styles.compactContainer}>
+      <div className={styles.compactHeaderRow}>
+        {renderHeader('name', 'Name', { flex: 1 })}
+        {renderHeader('ip', 'IP Address', { width: '120px' })}
+        {renderHeader('status', 'Status', { width: '90px' })}
+        {renderHeader('power', 'Power', { width: '60px' })}
+        {renderHeader('bri', 'Bri', { width: '60px', textAlign: 'right' })}
+      </div>
+      {sortedDevices.map(d => {
+        const isOn = d.liveState?.on ?? false
+        const briPct = wledBriToPct(d.liveState?.bri ?? 0)
+        return (
+          <div key={d.id} className={styles.compactRow}>
+            <div className={styles.compactName} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className={styles.networkDot} style={{ backgroundColor: d.is_online ? 'var(--accent-emerald)' : 'var(--text-tertiary)', boxShadow: 'none' }} />
+              {d.name}
+            </div>
+            <div className={styles.compactIp} style={{ width: '120px' }}>{d.ip_address}</div>
+            <div style={{ width: '90px', color: d.is_online ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+              {d.is_online ? 'Online' : 'Offline'}
+            </div>
+            <div style={{ width: '60px' }}>
+              <Toggle 
+                id={`power-compact-${d.id}`}
+                checked={isOn}
+                disabled={!d.is_online}
+                onChange={(on) => sendCommand(d.id, { on, lor: 0 })}
+              />
+            </div>
+            <div style={{ width: '60px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+              {briPct}%
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function RoomsView({ devices, deviceRoomMap }) {
+  const rooms = {}
+  devices.forEach(d => {
+    const r = deviceRoomMap[d.id] || 'Unassigned'
+    if (!rooms[r]) rooms[r] = []
+    rooms[r].push(d)
+  })
+
+  return (
+    <div className={styles.roomsContainer}>
+      {Object.entries(rooms).sort().map(([room, devs]) => (
+        <div key={room} className={styles.roomSection}>
+          <h2 className={styles.roomTitle}>{room} <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8em' }}>({devs.length})</span></h2>
+          <section className={styles.grid}>
+            {devs.map(d => (
+              <DeviceCard key={d.id} device={d} />
+            ))}
+          </section>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function MediaView({ devices }) {
+  const mediaDevs = devices.filter(d => 
+    d.spotify_sync_enabled === 1 || 
+    d.weather_sync_enabled === 1 ||
+    d.liveState?.info?.name?.toLowerCase().includes('wled-sr') ||
+    d.liveState?.info?.audio
+  )
+  if (mediaDevs.length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        <p className={styles.emptyTitle}>No Media Sync Active</p>
+        <p className={styles.emptyBody}>Enable Spotify Sync or Weather Sync on a device to see it here.</p>
+      </div>
+    )
+  }
+  return (
+    <section className={styles.grid}>
+      {mediaDevs.map(d => <DeviceCard key={d.id} device={d} />)}
+    </section>
+  )
+}
+
+function FavoritesView({ devices }) {
+  const favorites = useUIStore(s => s.favorites)
+  const favDevs = devices.filter(d => favorites.includes(d.id))
+  
+  if (favDevs.length === 0) {
+    return (
+      <div className={styles.emptyState}>
+        <p className={styles.emptyTitle}>No Favorites Pinned</p>
+        <p className={styles.emptyBody}>Click the options menu (•••) on any device card and select "Pin to Favorites".</p>
+      </div>
+    )
+  }
+  return (
+    <section className={styles.grid}>
+      {favDevs.map(d => <DeviceCard key={d.id} device={d} />)}
+    </section>
   )
 }

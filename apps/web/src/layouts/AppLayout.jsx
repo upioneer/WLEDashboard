@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from '../components/Sidebar/Sidebar.jsx'
 import { ToastContainer } from '../components/Toast/Toast.jsx'
+import { SpotifyPlayer } from '../components/SpotifyPlayer/SpotifyPlayer.jsx'
 import { useUIStore } from '../stores/uiStore.js'
 import { useDeviceWebSocket } from '../hooks/useDeviceWebSocket.js'
 import styles from './AppLayout.module.css'
@@ -26,6 +27,7 @@ export function AppLayout() {
         />
         <Outlet />
       </div>
+      <SpotifyPlayer />
       <ToastContainer />
     </div>
   )

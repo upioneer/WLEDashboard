@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useDeviceStore } from '../stores/deviceStore.js'
+import { useUIStore } from '../stores/uiStore.js'
 
 const WS_URL = `ws://${window.location.hostname}:3001/ws`
 
@@ -30,6 +31,8 @@ export function useDeviceWebSocket() {
         const msg = JSON.parse(event.data)
         if (msg.type === 'state_update') {
           patchLiveState(msg.deviceId, msg.state)
+        } else if (msg.type === 'spotify_update') {
+          useUIStore.getState().setSpotifyState(msg.state)
         }
       } catch {}
     }

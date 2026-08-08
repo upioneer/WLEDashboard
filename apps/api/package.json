@@ -1,6 +1,6 @@
 {
   "name": "@wledashboard/api",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "type": "module",
   "description": "WLEDashboard backend: Fastify API, mDNS discovery, WLED proxy, SQLite persistence",
@@ -23,6 +23,7 @@
     "fastify": "^4.28.1",
     "mqtt": "^5.15.2",
     "node-cron": "^3.0.3",
+    "node-vibrant": "^4.0.4",
     "suncalc": "^1.9.0",
     "uuid": "^10.0.0",
     "zod": "^3.23.8"

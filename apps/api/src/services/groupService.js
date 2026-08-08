@@ -7,7 +7,7 @@ import { sendDeviceCommand, listDevices } from './deviceService.js'
 export function listGroups() {
   const db = getDb()
   const groups = db.prepare(`
-    SELECT id, name, type, color, sort_order, created_at
+    SELECT id, name, type, color, sort_order, spotify_sync_enabled, weather_sync_enabled, created_at
     FROM groups
     ORDER BY sort_order ASC, created_at DESC
   `).all()
@@ -64,25 +64,29 @@ export function createGroup({ name, type = 'custom', color = '#8b5cf6', device_i
   return getGroup(id)
 }
 
-export function updateGroup(id, { name, type, color, sort_order, device_ids, child_group_ids }) {
+export function updateGroup(id, { name, type, color, sort_order, spotify_sync_enabled, weather_sync_enabled, device_ids, child_group_ids }) {
   const db = getDb()
   const existing = getGroup(id)
   if (!existing) return null
 
   db.transaction(() => {
-    if (name !== undefined || type !== undefined || color !== undefined || sort_order !== undefined) {
+    if (name !== undefined || type !== undefined || color !== undefined || sort_order !== undefined || spotify_sync_enabled !== undefined || weather_sync_enabled !== undefined) {
       db.prepare(`
         UPDATE groups SET
           name       = COALESCE(?, name),
           type       = COALESCE(?, type),
           color      = COALESCE(?, color),
-          sort_order = COALESCE(?, sort_order)
+          sort_order = COALESCE(?, sort_order),
+          spotify_sync_enabled = COALESCE(?, spotify_sync_enabled),
+          weather_sync_enabled = COALESCE(?, weather_sync_enabled)
         WHERE id = ?
       `).run(
         name ?? null,
         type ?? null,
         color ?? null,
         sort_order ?? null,
+        spotify_sync_enabled ?? null,
+        weather_sync_enabled ?? null,
         id
       )
     }

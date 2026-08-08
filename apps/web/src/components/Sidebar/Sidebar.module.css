@@ -32,6 +32,12 @@
   display: flex;
 }
 
+.brandText {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .wordmark {
   font-family: var(--font-display);
   font-size: 1.05rem;
@@ -44,6 +50,13 @@
 .wordmark strong {
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+.version {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.05em;
+  margin-top: -2px;
 }
 
 /* ── Nav ────────────────────────────────────────────────────── */

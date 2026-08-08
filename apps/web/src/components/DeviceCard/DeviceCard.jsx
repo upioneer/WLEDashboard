@@ -26,7 +26,7 @@ function useDebounce(fn, ms) {
   }, [fn, ms])
 }
 
-export function DeviceCard({ device }) {
+export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners, dragRef }) {
   const sendCommand  = useDeviceStore(s => s.sendCommand)
   const removeDevice = useDeviceStore(s => s.removeDevice)
   const updateDevice = useDeviceStore(s => s.updateDevice)
@@ -319,7 +319,16 @@ export function DeviceCard({ device }) {
     fileInputRef.current?.click()
   }, [])
 
+  const isFavorite = useUIStore(s => s.favorites.includes(device.id))
+  const toggleFavorite = useUIStore(s => s.toggleFavorite)
+
   const contextItems = [
+    {
+      label: isFavorite ? 'Unpin from Favorites' : 'Pin to Favorites',
+      icon: isFavorite ? <span style={{fontSize: '14px'}}>⭐</span> : <span style={{fontSize: '14px'}}>☆</span>,
+      onClick: () => toggleFavorite(device.id),
+    },
+    { separator: true },
     {
       label: 'Rename',
       icon: <RenameIcon />,
@@ -375,6 +384,17 @@ export function DeviceCard({ device }) {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.identity}>
+            {isManualSort && (
+              <div 
+                className={styles.dragHandle} 
+                ref={dragRef}
+                {...(dragAttributes || {})} 
+                {...(dragListeners || {})}
+                title="Drag to reorder"
+              >
+                <DragIcon />
+              </div>
+            )}
             <span
               className={[styles.statusDot, statusClass].join(' ')}
               aria-label={!isOnline ? 'Offline' : isOn ? 'On' : 'Standby'}
@@ -481,6 +501,38 @@ export function DeviceCard({ device }) {
           </button>
 
           <button
+            className={[styles.chip, styles.actionChip].join(' ')}
+            style={device.spotify_sync_enabled ? { backgroundColor: 'var(--color-success, #10b981)', color: '#000' } : {}}
+            onClick={async () => {
+              try {
+                await updateDevice(device.id, { spotify_sync_enabled: device.spotify_sync_enabled ? 0 : 1 })
+                addToast({ message: `Spotify Sync ${device.spotify_sync_enabled ? 'Disabled' : 'Enabled'}`, type: 'success' })
+              } catch (err) {
+                addToast({ message: 'Failed to update Spotify sync', type: 'error' })
+              }
+            }}
+            title="Toggle Spotify Media Sync"
+          >
+            🎵 Sync
+          </button>
+
+          <button
+            className={[styles.chip, styles.actionChip].join(' ')}
+            style={device.weather_sync_enabled ? { backgroundColor: 'var(--accent-cyan)', color: '#000' } : {}}
+            onClick={async () => {
+              try {
+                await updateDevice(device.id, { weather_sync_enabled: device.weather_sync_enabled ? 0 : 1 })
+                addToast({ message: `Weather Sync ${device.weather_sync_enabled ? 'Disabled' : 'Enabled'}`, type: 'success' })
+              } catch (err) {
+                addToast({ message: 'Failed to update Weather sync', type: 'error' })
+              }
+            }}
+            title="Toggle Weather Sync"
+          >
+            🌤️ Weather
+          </button>
+
+          <button
             className={[styles.chip, styles.ipChip].join(' ')}
             onClick={handleCopyIP}
             title="Click to copy IP"
@@ -566,6 +618,19 @@ export function DeviceCard({ device }) {
 }
 
 // ─── Card Icons ───────────────────────────────────────────────────────────────
+
+function DragIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+      <circle cx="4" cy="3" r="1.2" />
+      <circle cx="4" cy="7" r="1.2" />
+      <circle cx="4" cy="11" r="1.2" />
+      <circle cx="10" cy="3" r="1.2" />
+      <circle cx="10" cy="7" r="1.2" />
+      <circle cx="10" cy="11" r="1.2" />
+    </svg>
+  )
+}
 
 function DotsIcon() {
   return (

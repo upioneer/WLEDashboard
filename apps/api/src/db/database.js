@@ -42,6 +42,8 @@ function applyMigrations(db) {
     { version: 4, sql: migration_004 },
     { version: 5, sql: migration_005 },
     { version: 6, sql: migration_006 },
+    { version: 7, sql: migration_007 },
+    { version: 8, sql: migration_008 },
   ]
 
   for (const m of migrations) {
@@ -247,5 +249,15 @@ const migration_005 = `
 
 const migration_006 = `
   ALTER TABLE devices ADD COLUMN led_density INTEGER DEFAULT 60;
+`
+
+const migration_007 = `
+  ALTER TABLE devices ADD COLUMN spotify_sync_enabled INTEGER DEFAULT 0;
+  ALTER TABLE groups ADD COLUMN spotify_sync_enabled INTEGER DEFAULT 0;
+`
+
+const migration_008 = `
+  ALTER TABLE devices ADD COLUMN weather_sync_enabled INTEGER DEFAULT 0;
+  ALTER TABLE groups ADD COLUMN weather_sync_enabled INTEGER DEFAULT 0;
 `
 

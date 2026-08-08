@@ -46,4 +46,16 @@ export const useUIStore = create((set, get) => ({
   // ── Global accent color (blended from live WLED output) ─────────────────────
   headerAccentColor: null,
   setHeaderAccentColor: (color) => set({ headerAccentColor: color }),
+
+  // ── Spotify State ───────────────────────────────────────────────────────────
+  spotifyState: { is_playing: false },
+  setSpotifyState: (state) => set({ spotifyState: state }),
+
+  // ── Favorites ───────────────────────────────────────────────────────────────
+  favorites: (() => { try { return JSON.parse(localStorage.getItem('wled_favorites') || '[]') } catch { return [] } })(),
+  toggleFavorite: (id) => set(s => {
+    const next = s.favorites.includes(id) ? s.favorites.filter(x => x !== id) : [...s.favorites, id]
+    localStorage.setItem('wled_favorites', JSON.stringify(next))
+    return { favorites: next }
+  }),
 }))
