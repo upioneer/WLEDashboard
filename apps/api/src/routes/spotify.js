@@ -3,9 +3,12 @@ import { getSpotifyAuthUrl, handleSpotifyCallback, disconnectSpotify, getSpotify
 
 export async function spotifyRoutes(fastify) {
   fastify.get('/spotify/login', async (req, reply) => {
-    const authUrl = getSpotifyAuthUrl()
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http'
+    const host = req.headers['x-forwarded-host'] || req.headers.host
+    const origin = `${protocol}://${host}`
+    const authUrl = getSpotifyAuthUrl(origin)
     if (!authUrl) {
-      reply.code(500).send({ error: 'Spotify Client ID/Secret not configured in .env' })
+      reply.code(500).send({ error: 'Spotify Client ID/Secret not configured. Please save them in Settings.' })
       return
     }
     reply.redirect(authUrl)
@@ -24,7 +27,11 @@ export async function spotifyRoutes(fastify) {
     }
 
     try {
-      await handleSpotifyCallback(code)
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http'
+      const host = req.headers['x-forwarded-host'] || req.headers.host
+      const origin = `${protocol}://${host}`
+      
+      await handleSpotifyCallback(code, origin)
       // Redirect back to frontend dashboard
       reply.redirect(process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173')
     } catch (err) {

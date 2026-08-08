@@ -159,6 +159,7 @@ export function SpatialView() {
   const [isAddingAnchor, setIsAddingAnchor] = useState(false)
   const [newAnchorName, setNewAnchorName]   = useState('')
   const [newAnchorDevId, setNewAnchorDevId] = useState('')
+  const [unassignedExpanded, setUnassignedExpanded] = useState(true)
 
   useEffect(() => {
     fetchHierarchy()
@@ -237,6 +238,7 @@ export function SpatialView() {
       ...room,
       display_width: metersToDisplay(room.width, unitSystem),
       display_depth: metersToDisplay(room.depth, unitSystem),
+      rotation_y: room.rotation_y || 0,
     })
   }, [unitSystem])
 
@@ -254,6 +256,7 @@ export function SpatialView() {
         depth: realDepthMeters,
         position_x: Number(editingRoom.position_x),
         position_y: Number(editingRoom.position_y),
+        rotation_y: Number(editingRoom.rotation_y),
       })
       setEditingRoom(null)
       addToast({ message: 'Room dimensions updated', type: 'success' })
@@ -401,7 +404,7 @@ export function SpatialView() {
     <main className={styles.page} id="main-content">
       {/* 3D Canvas Viewport */}
       <div className={styles.viewportWrapper}>
-        <SpatialCanvas />
+        <SpatialCanvas unitSystem={unitSystem} />
 
         {/* Floating Controls Overlay */}
         {selectedRoom && (
@@ -526,28 +529,42 @@ export function SpatialView() {
           {/* Unassigned WLED Devices Section */}
           {unassignedDevices.length > 0 && (
             <div className={styles.unassignedSection}>
-              <div className={styles.unassignedTitle}>
-                Unassigned WLED Instances ({unassignedDevices.length})
+              <div 
+                className={styles.unassignedTitle}
+                onClick={() => setUnassignedExpanded(prev => !prev)}
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span>Unassigned WLED Instances ({unassignedDevices.length})</span>
+                <span style={{ display: 'flex', alignItems: 'center', color: 'var(--text-muted)' }}>
+                  <svg 
+                    width="12" height="12" viewBox="0 0 16 16" fill="none"
+                    style={{ transform: unassignedExpanded ? 'rotate(270deg)' : 'rotate(180deg)', transition: 'transform 200ms cubic-bezier(0.16, 1, 0.3, 1)' }}
+                  >
+                    <polyline points="10,3 5,8 10,13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
               </div>
-              <div className={styles.unassignedList}>
-                {unassignedDevices.map(dev => (
-                  <div key={dev.id} className={styles.unassignedRow}>
-                    <span className={styles.unassignedName} title={dev.name}>{dev.name}</span>
-                    <select
-                      className={styles.assignSelect}
-                      onChange={e => handleAssignDeviceToRoom(dev, e.target.value)}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>Move to room...</option>
-                      {allRooms.map(r => (
-                        <option key={r.id} value={r.id}>
-                          {r.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
-              </div>
+              {unassignedExpanded && (
+                <div className={styles.unassignedList}>
+                  {unassignedDevices.map(dev => (
+                    <div key={dev.id} className={styles.unassignedRow}>
+                      <span className={styles.unassignedName} title={dev.name}>{dev.name}</span>
+                      <select
+                        className={styles.assignSelect}
+                        onChange={e => handleAssignDeviceToRoom(dev, e.target.value)}
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Move to room...</option>
+                        {allRooms.map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -567,7 +584,7 @@ export function SpatialView() {
                         <div key={room.id} className={styles.roomBlock}>
                           <div
                             className={[styles.roomItem, isSelected && styles.roomItemActive].filter(Boolean).join(' ')}
-                            onClick={() => selectRoom(room.id)}
+                            onClick={() => selectRoom(isSelected ? null : room.id)}
                           >
                             <div className={styles.roomMeta}>
                               <span className={styles.roomName}>{room.name}</span>
@@ -717,12 +734,22 @@ export function SpatialView() {
                   />
                 </label>
                 <label className={styles.modalLabel}>
-                  Position Y
+                  Position Z (Y-Axis in DB)
                   <input
                     type="number"
                     step="0.5"
                     value={editingRoom.position_y}
                     onChange={e => setEditingRoom({ ...editingRoom, position_y: e.target.value })}
+                    className={styles.modalInput}
+                  />
+                </label>
+                <label className={styles.modalLabel}>
+                  Rotation (deg)
+                  <input
+                    type="number"
+                    step="1"
+                    value={editingRoom.rotation_y}
+                    onChange={e => setEditingRoom({ ...editingRoom, rotation_y: e.target.value })}
                     className={styles.modalInput}
                   />
                 </label>

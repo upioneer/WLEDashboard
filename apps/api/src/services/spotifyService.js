@@ -46,11 +46,11 @@ function deleteSetting(key) {
   db.prepare('DELETE FROM settings WHERE key = ?').run(key)
 }
 
-export function getSpotifyAuthUrl() {
-  const clientId = process.env.SPOTIFY_CLIENT_ID
+export function getSpotifyAuthUrl(origin) {
+  const clientId = process.env.SPOTIFY_CLIENT_ID || getSetting('spotify_client_id')
   if (!clientId) return null
 
-  const redirectUri = (process.env.BACKEND_ORIGIN || 'http://localhost:3001') + '/api/spotify/callback'
+  const redirectUri = origin + '/api/spotify/callback'
   const scopes = 'user-read-currently-playing'
   
   const params = new URLSearchParams({
@@ -63,10 +63,10 @@ export function getSpotifyAuthUrl() {
   return `https://accounts.spotify.com/authorize?${params.toString()}`
 }
 
-export async function handleSpotifyCallback(code) {
-  const clientId = process.env.SPOTIFY_CLIENT_ID
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
-  const redirectUri = (process.env.BACKEND_ORIGIN || 'http://localhost:3001') + '/api/spotify/callback'
+export async function handleSpotifyCallback(code, origin) {
+  const clientId = process.env.SPOTIFY_CLIENT_ID || getSetting('spotify_client_id')
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || getSetting('spotify_client_secret')
+  const redirectUri = origin + '/api/spotify/callback'
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -116,8 +116,8 @@ async function refreshAccessToken() {
   const refreshToken = getSetting('spotify_refresh_token')
   if (!refreshToken) throw new Error('No refresh token')
 
-  const clientId = process.env.SPOTIFY_CLIENT_ID
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
+  const clientId = process.env.SPOTIFY_CLIENT_ID || getSetting('spotify_client_id')
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET || getSetting('spotify_client_secret')
 
   const res = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',

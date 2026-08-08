@@ -131,6 +131,14 @@ Access the application at `http://localhost:3001`.
 
 ---
 
+## Roadmap
+
+* **MagicPlan / Polygon Floorplan Imports**: Interpret complex geometric shapes, L-shaped rooms, and non-rectangular walls to accurately reconstruct advanced 3D spatial layouts from popular floorplan apps.
+* **Community Preset Hub**: Browse, download, and share custom pixel art and dynamic WLED effect presets with the community.
+* **Multi-Instance Dashboard Sync**: Synchronize configuration across multiple browser tabs and devices in real-time.
+
+---
+
 ## Verification & Testing
 
 WLEDashboard includes automated Playwright end to end test suites:

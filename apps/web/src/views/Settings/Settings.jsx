@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { settingsApi, mqttApi, spotifyApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
+import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
 import styles from './Settings.module.css'
 
 import { useAutomationStore } from '../../stores/automationStore.js'
@@ -12,10 +13,12 @@ const DEFAULTS = {
   latitude: '37.7749',
   longitude: '-122.4194',
   openweathermap_api_key: '',
-  unit_system: 'imperial',
   unit_prompt_shown: 'false',
   mqtt_enabled: '0',
   mqtt_broker_url: 'mqtt://localhost:1883',
+  spotify_client_id: '',
+  spotify_client_secret: '',
+  spatial_intro_enabled: 'true',
 }
 
 export function Settings() {
@@ -25,6 +28,8 @@ export function Settings() {
   const [saving, setSaving]     = useState(false)
   const [showUnitPromptModal, setShowUnitPromptModal] = useState(false)
   const [spotifyConnected, setSpotifyConnected] = useState(false)
+  const [copiedSpotifyUri, setCopiedSpotifyUri] = useState(false)
+  const { updateAvailable } = useUpdateCheck(__APP_VERSION__)
 
   useEffect(() => {
     Promise.all([
@@ -108,6 +113,19 @@ export function Settings() {
         </button>
       </header>
 
+      {updateAvailable && (
+        <div className={styles.updateBanner}>
+          <div className={styles.updateBannerText}>
+            <h3>Update Available: v{updateAvailable}</h3>
+            <p>A new version of WLEDashboard is available! Since you are running via Docker, you can update instantly without losing any data.</p>
+          </div>
+          <div className={styles.updateInstructions}>
+            <p>Run the following command in your terminal:</p>
+            <code>docker compose pull && docker compose up -d</code>
+          </div>
+        </div>
+      )}
+
       <div className={styles.sections}>
         {/* Unit System & Display */}
         <section className={styles.section} aria-labelledby="units-heading">
@@ -138,6 +156,30 @@ export function Settings() {
                 </button>
               </div>
             </SettingField>
+          </div>
+        </section>
+
+        {/* Spatial View Options */}
+        <section className={styles.section} aria-labelledby="spatial-heading">
+          <h2 id="spatial-heading" className={styles.sectionTitle}>Spatial View</h2>
+          <p className={styles.sectionDesc}>
+            Configure your 3D digital twin experience.
+          </p>
+          <div className={styles.fields}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <div>
+                <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600 }}>Play Globe Intro</h4>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>Show the futuristic Earth animation zooming into your location on load.</p>
+              </div>
+              <label className={styles.switch}>
+                <input
+                  type="checkbox"
+                  checked={settings.spatial_intro_enabled !== 'false'}
+                  onChange={(e) => handleChange('spatial_intro_enabled', e.target.checked ? 'true' : 'false')}
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
           </div>
         </section>
 
@@ -187,9 +229,87 @@ export function Settings() {
         <section className={styles.section} aria-labelledby="media-heading">
           <h2 id="media-heading" className={styles.sectionTitle}>Media Sync</h2>
           <p className={styles.sectionDesc}>
-            Connect your Spotify account to automatically extract album art colors and sync them to your WLED devices.
+            Connect your Spotify account to automatically extract album art colors and sync them to your WLED devices. Requires a <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>Spotify Developer App</a>.
           </p>
+          <div style={{ background: '#12141d', padding: '1rem', borderRadius: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', border: '1px solid #2d3348' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)', fontSize: '0.95rem' }}>Spotify Dashboard Setup</h4>
+            <ol style={{ margin: 0, paddingLeft: '1.5rem', lineHeight: '1.5' }}>
+              <li style={{ marginBottom: '0.75rem' }}><strong>APIs/SDKs:</strong> Select <strong>Web API</strong>.</li>
+              <li>
+                <strong>Redirect URIs:</strong> Spotify strictly requires Redirect URIs to be secure (HTTPS) unless using <code>localhost</code>. 
+                Copy and paste the exact URL below into your Spotify Developer dashboard:
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                  <input 
+                    readOnly 
+                    value={(window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+                      ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
+                      : `http://localhost:3001/api/spotify/callback`
+                    }
+                    style={{ flex: 1, background: '#1a1d29', border: '1px solid #2d3348', borderRadius: '4px', padding: '0.4rem 0.6rem', color: '#a5b4fc', fontFamily: 'monospace', fontSize: '0.8rem' }}
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const uri = (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+                        ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
+                        : `http://localhost:3001/api/spotify/callback`
+                      navigator.clipboard.writeText(uri)
+                      setCopiedSpotifyUri(true)
+                      setTimeout(() => setCopiedSpotifyUri(false), 2000)
+                      addToast({ message: 'Redirect URI copied to clipboard!', type: 'success' })
+                    }}
+                    style={{ 
+                      background: copiedSpotifyUri ? '#10b981' : '#2d3348', 
+                      color: '#fff', 
+                      border: 'none', 
+                      borderRadius: '4px', 
+                      padding: '0 0.75rem', 
+                      cursor: 'pointer', 
+                      fontSize: '0.8rem',
+                      fontWeight: copiedSpotifyUri ? 'bold' : 'normal',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transform: copiedSpotifyUri ? 'scale(0.95)' : 'scale(1)'
+                    }}
+                  >
+                    {copiedSpotifyUri ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+                {!(window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                  <div style={{ marginTop: '0.5rem', padding: '0.75rem', background: '#3f1616', border: '1px solid #7f1d1d', borderRadius: '6px', color: '#fca5a5', fontSize: '0.8rem' }}>
+                    <strong>Warning:</strong> You are accessing this dashboard via an insecure IP (<code>{window.location.hostname}</code>). Spotify will reject this IP. You must temporarily access the dashboard via <code>http://localhost:3001</code> (e.g. from the host machine or via SSH tunnel) to perform the initial Spotify connection, or set up a reverse proxy with HTTPS.
+                  </div>
+                )}
+              </li>
+            </ol>
+          </div>
           <div className={styles.fields}>
+            <SettingField
+              label="Spotify Client ID"
+              hint="Found in your Spotify Developer Dashboard"
+              id="spotify_client_id"
+            >
+              <TextInput
+                id="spotify_client_id"
+                value={settings.spotify_client_id || ''}
+                onChange={v => handleChange('spotify_client_id', v)}
+                placeholder="Enter Client ID"
+              />
+            </SettingField>
+
+            <SettingField
+              label="Spotify Client Secret"
+              hint="Found in your Spotify Developer Dashboard"
+              id="spotify_client_secret"
+            >
+              <TextInput
+                id="spotify_client_secret"
+                type="password"
+                value={settings.spotify_client_secret || ''}
+                onChange={v => handleChange('spotify_client_secret', v)}
+                placeholder="Enter Client Secret"
+              />
+            </SettingField>
+
             <div className={styles.mqttActionRow}>
               {spotifyConnected ? (
                 <>
@@ -215,6 +335,12 @@ export function Settings() {
                   href={`http://${window.location.hostname}:3001/api/spotify/login`}
                   className={styles.secondaryBtn}
                   style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                  onClick={(e) => {
+                    if (!settings.spotify_client_id || !settings.spotify_client_secret) {
+                      e.preventDefault()
+                      addToast({ message: 'Please save your Client ID and Secret first!', type: 'error' })
+                    }
+                  }}
                 >
                   Connect to Spotify
                 </a>
@@ -457,11 +583,11 @@ function NumberInput({ id, value, onChange, min, max, step, unit }) {
   )
 }
 
-function TextInput({ id, value, onChange, placeholder }) {
+function TextInput({ id, value, onChange, placeholder, type = "text" }) {
   return (
     <div className={styles.numberInput}>
       <input
-        type="text"
+        type={type}
         id={id}
         value={value}
         onChange={e => onChange(e.target.value)}

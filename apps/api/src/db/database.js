@@ -44,6 +44,7 @@ function applyMigrations(db) {
     { version: 6, sql: migration_006 },
     { version: 7, sql: migration_007 },
     { version: 8, sql: migration_008 },
+    { version: 9, sql: migration_009 },
   ]
 
   for (const m of migrations) {
@@ -261,3 +262,6 @@ const migration_008 = `
   ALTER TABLE groups ADD COLUMN weather_sync_enabled INTEGER DEFAULT 0;
 `
 
+const migration_009 = `
+  ALTER TABLE rooms ADD COLUMN rotation_y REAL DEFAULT 0;
+`

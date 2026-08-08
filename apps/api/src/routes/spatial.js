@@ -20,6 +20,7 @@ const CreateRoomSchema = z.object({
   depth: z.number().positive().optional().default(4.0),
   position_x: z.number().optional().default(0),
   position_y: z.number().optional().default(0),
+  rotation_y: z.number().optional().default(0),
 })
 
 const UpdateRoomSchema = z.object({
@@ -28,6 +29,7 @@ const UpdateRoomSchema = z.object({
   depth: z.number().positive().optional(),
   position_x: z.number().optional(),
   position_y: z.number().optional(),
+  rotation_y: z.number().optional(),
 })
 
 const CreateAnchorSchema = z.object({

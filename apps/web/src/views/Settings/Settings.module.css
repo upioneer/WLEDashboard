@@ -362,3 +362,52 @@
 .promptBtnSecondary:hover {
   color: var(--text-primary);
 }
+
+/* ── Update Banner ───────────────────────────────────────────── */
+.updateBanner {
+  background-color: var(--accent-amber-10);
+  border: 1px solid var(--accent-amber);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.updateBannerText h3 {
+  font: var(--type-h3);
+  color: var(--accent-amber);
+  margin-bottom: var(--sp-2);
+}
+
+.updateBannerText p {
+  font: var(--type-body);
+  color: var(--text-secondary);
+}
+
+.updateInstructions {
+  background-color: var(--surface-overlay);
+  border-radius: var(--radius-m);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  border: 1px solid var(--border-subtle);
+}
+
+.updateInstructions p {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.updateInstructions code {
+  font-family: monospace;
+  background-color: var(--surface-base);
+  padding: var(--sp-3);
+  border-radius: var(--radius-s);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}

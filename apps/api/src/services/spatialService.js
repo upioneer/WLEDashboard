@@ -128,9 +128,10 @@ export function updateRoom(id, data) {
       width      = COALESCE(?, width),
       depth      = COALESCE(?, depth),
       position_x = COALESCE(?, position_x),
-      position_y = COALESCE(?, position_y)
+      position_y = COALESCE(?, position_y),
+      rotation_y = COALESCE(?, rotation_y)
     WHERE id = ?
-  `).run(data.name ?? null, data.width ?? null, data.depth ?? null, data.position_x ?? null, data.position_y ?? null, id)
+  `).run(data.name ?? null, data.width ?? null, data.depth ?? null, data.position_x ?? null, data.position_y ?? null, data.rotation_y ?? null, id)
   return db.prepare('SELECT * FROM rooms WHERE id = ?').get(id)
 }
 

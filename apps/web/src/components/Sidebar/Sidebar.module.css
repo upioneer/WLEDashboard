@@ -166,3 +166,26 @@
     display: none;
   }
 }
+
+/* ── Updates ────────────────────────────────────────────────── */
+.updateBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-amber);
+  border: 2px solid var(--surface-base);
+  box-shadow: 0 0 0 1px var(--surface-base);
+}
+
+.updateText {
+  font-size: 0.65rem;
+  background-color: var(--accent-amber-10);
+  color: var(--accent-amber);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LogoMark } from '../Logo/LogoMark.jsx'
+import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
 import styles from './Sidebar.module.css'
 
 const NAV_ITEMS = [
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const collapsed = useUIStore(s => s.sidebarCollapsed)
   const toggle = useUIStore(s => s.toggleSidebar)
+  const { updateAvailable } = useUpdateCheck(__APP_VERSION__)
 
   return (
     <aside
@@ -74,8 +76,18 @@ export function Sidebar() {
             [styles.navItem, isActive && styles.active].filter(Boolean).join(' ')
           }
         >
-          <span className={styles.navIcon} aria-hidden><SettingsIcon /></span>
-          {!collapsed && <span className={styles.navLabel}>Settings</span>}
+          <span className={styles.navIcon} aria-hidden style={{ position: 'relative' }}>
+            <SettingsIcon />
+            {updateAvailable && (
+              <span className={styles.updateBadge} title={`Update v${updateAvailable} available!`} />
+            )}
+          </span>
+          {!collapsed && (
+            <span className={styles.navLabel} style={{ display: 'flex', justifyContent: 'space-between', flex: 1, alignItems: 'center' }}>
+              Settings
+              {updateAvailable && <span className={styles.updateText}>Update</span>}
+            </span>
+          )}
         </NavLink>
 
         <button
