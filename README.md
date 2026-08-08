@@ -10,7 +10,7 @@ A high performance, local first control surface for WLED devices. Control 1 to 1
 
 Control all your WLED devices with real time power toggles, dynamic brightness sliders with responsive color glow, compact inline color pickers, and live LED segment previews.
 
-![WLEDashboard Main Dashboard](project_details/changelog/v0.2.0/screenshots/01-dashboard.png)
+![WLEDashboard Main Dashboard](project_details/changelog/v0.9.0/screenshots/01-dashboard-calibrated-controls.png)
 
 ### Group Management
 
@@ -30,9 +30,9 @@ Automate lighting based on fixed times or astronomical sunrise/sunset triggers (
 
 ### 3D Spatial Viewport
 
-Experience your lighting in 3D space with Three.js / React Three Fiber. View procedural room geometries, wireframe wall bounds, and real-time emissive LED light strips that pulse and glow matching actual device color and brightness.
+Experience your lighting in 3D space with Three.js / React Three Fiber. View procedural room geometries, wireframe wall bounds, and real-time emissive LED light strips that pulse and glow matching actual device color and brightness. Includes a stunning holographic Earth intro sequence.
 
-![3D Spatial Viewport](project_details/changelog/v0.5.0/screenshots/01-spatial-3d-view.png)
+![3D Spatial Viewport](project_details/changelog/v0.13.0/screenshots/01-holographic-intro-altimeter.png)
 
 ### Effect Studio & Timeline Animator
 
