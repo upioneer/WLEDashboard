@@ -13,7 +13,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build:web
+RUN npm run build --workspace=apps/web
 
 FROM node:22-alpine AS runner
 

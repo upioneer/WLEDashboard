@@ -1,10 +1,10 @@
 # WLEDashboard v0.12.0 Changelog
 
-## 🚀 Overview
+## Overview
 
 This release introduces significant enhancements to the Dashboard's scale and organization, adds a robust multi-stage Docker deployment pipeline, and integrates full Weather Sync capabilities to drive ambient WLED effects based on live meteorological data!
 
-## ✨ Key Features & Improvements
+## Key Features & Improvements
 
 ### Multi-View Dashboard System
 The dashboard has been upgraded from a simple toggle to a powerful dropdown view selector designed for power users managing larger deployments:
@@ -31,7 +31,7 @@ The dashboard has been upgraded from a simple toggle to a powerful dropdown view
 * Upgraded sidebar iconography (Devices, Automation, Studio).
 * Linked `wledashboard.com` directly in the Settings About section.
 
-## 📸 Media Highlights
+## Media Highlights
 
 ### Grid View (Default)
 ![Grid View](./screenshots/01-dashboard-grid.png)

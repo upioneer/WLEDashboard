@@ -1,6 +1,6 @@
 {
   "name": "wledashboard",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "private": true,
   "description": "Premium local-first WLED device control surface",
   "workspaces": [
