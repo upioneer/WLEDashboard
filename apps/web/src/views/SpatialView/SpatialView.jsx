@@ -160,12 +160,14 @@ export function SpatialView() {
   const [newAnchorName, setNewAnchorName]   = useState('')
   const [newAnchorDevId, setNewAnchorDevId] = useState('')
   const [unassignedExpanded, setUnassignedExpanded] = useState(true)
+  const [introEnabled, setIntroEnabled]     = useState(true)
 
   useEffect(() => {
     fetchHierarchy()
     fetchDevices()
     settingsApi.get().then(s => {
       if (s.unit_system) setUnitSystem(s.unit_system)
+      if (s.spatial_intro_enabled !== undefined) setIntroEnabled(s.spatial_intro_enabled)
     }).catch(() => {})
   }, [fetchHierarchy, fetchDevices])
 
@@ -389,6 +391,17 @@ export function SpatialView() {
     }
   }, [updateAnchor, addToast])
 
+  const toggleIntro = useCallback(async (e) => {
+    const val = e.target.checked
+    setIntroEnabled(val)
+    try {
+      await settingsApi.update({ spatial_intro_enabled: val })
+      addToast({ message: val ? 'Orbital intro enabled' : 'Orbital intro disabled', type: 'success' })
+    } catch {
+      addToast({ message: 'Failed to update setting', type: 'error' })
+    }
+  }, [addToast])
+
   if (loading) return <SpatialSkeleton />
   if (error)   return <SpatialError message={error} onRetry={fetchHierarchy} />
 
@@ -511,7 +524,16 @@ export function SpatialView() {
       <aside className={styles.sidePanel}>
         <div className={styles.panelHeader} style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
           <h2 className={styles.panelTitle}>Spatial Hierarchy</h2>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={introEnabled} 
+                onChange={toggleIntro} 
+                style={{ cursor: 'pointer', accentColor: 'var(--accent-primary)' }}
+              />
+              Orbital Intro
+            </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
               <input 
                 type="checkbox" 
