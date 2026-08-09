@@ -14,10 +14,9 @@ export const useSpatialStore = create((set, get) => ({
   fetchHierarchy: async () => {
     try {
       const hierarchy = await spatialApi.getHierarchy()
-      const firstRoom = hierarchy[0]?.floors[0]?.rooms[0]?.id || null
       set({
         hierarchy,
-        selectedRoomId: get().selectedRoomId || firstRoom,
+        selectedRoomId: get().selectedRoomId || null,
         loading: false,
         error: null,
       })

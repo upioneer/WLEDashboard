@@ -1,7 +1,7 @@
 .page {
   flex: 1;
   display: flex;
-  height: calc(100vh - 60px);
+  min-height: 0;
   width: 100%;
   overflow: hidden;
   position: relative;
