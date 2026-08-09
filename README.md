@@ -10,7 +10,7 @@ A high performance, local first control surface for WLED devices. Control 1 to 1
 
 Control all your WLED devices with real time power toggles, dynamic brightness sliders with responsive color glow, compact inline color pickers, and live LED segment previews.
 
-![WLEDashboard Main Dashboard](project_details/changelog/v0.9.0/screenshots/01-dashboard-calibrated-controls.png)
+![WLEDashboard Main Dashboard](project_details/changelog/v0.12.0/screenshots/01-dashboard-grid.png)
 
 ### Group Management
 
