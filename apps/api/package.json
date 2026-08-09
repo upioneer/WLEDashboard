@@ -1,6 +1,6 @@
 {
   "name": "@wledashboard/api",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "type": "module",
   "description": "WLEDashboard backend: Fastify API, mDNS discovery, WLED proxy, SQLite persistence",

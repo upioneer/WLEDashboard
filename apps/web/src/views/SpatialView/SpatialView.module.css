@@ -1,11 +1,10 @@
 .page {
-  flex: 1;
+  position: absolute;
+  inset: 0;
   display: flex;
-  min-height: 0;
-  width: 100%;
   overflow: hidden;
-  position: relative;
   background-color: var(--surface-base);
+  z-index: 10;
 }
 
 .viewportWrapper {

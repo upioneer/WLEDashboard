@@ -709,6 +709,7 @@ export function SpatialCanvas({ unitSystem = 'imperial' }) {
       <Canvas
         camera={{ position: [0, 8, 12], fov: 45 }}
         gl={{ antialias: true }}
+        onPointerMissed={() => selectRoom(null)}
       >
         {/* Holographic Intro */}
         {introActive && (
