@@ -134,3 +134,11 @@ export const spotifyApi = {
   getStatus: () => request('GET', '/spotify/status'),
   disconnect: () => request('DELETE', '/spotify/disconnect'),
 }
+
+// ─── Weather ──────────────────────────────────────────────────────────────────
+export const weatherApi = {
+  getCurrent: () => request('GET', '/weather/current'),
+  syncNow: () => request('POST', '/weather/sync-now'),
+  testCondition: (condition) => request('POST', '/weather/test', { condition }),
+  saveMappings: (mappings) => request('PATCH', '/weather/mappings', mappings),
+}

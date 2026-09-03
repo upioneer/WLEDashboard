@@ -33,6 +33,8 @@ export function useDeviceWebSocket() {
           patchLiveState(msg.deviceId, msg.state)
         } else if (msg.type === 'spotify_update') {
           useUIStore.getState().setSpotifyState(msg.state)
+        } else if (msg.type === 'weather_update') {
+          useUIStore.getState().setWeatherState(msg.state)
         }
       } catch {}
     }

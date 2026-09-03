@@ -24,10 +24,11 @@ import { audioRoutes } from './routes/audio.js'
 import { matrixRoutes } from './routes/matrix.js'
 import { mcpRoutes } from './routes/mcp.js'
 import { spotifyRoutes } from './routes/spotify.js'
+import { weatherRoutes } from './routes/weather.js'
 import { initMqttService } from './services/mqttService.js'
 import { startAutomationScheduler, stopAutomationScheduler } from './services/automationService.js'
 import { startSpotifyPoller, subscribeToSpotify, getCurrentSpotifyState } from './services/spotifyService.js'
-import { startWeatherPoller } from './services/weatherService.js'
+import { startWeatherPoller, subscribeToWeather, getCurrentWeatherState } from './services/weatherService.js'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
@@ -106,6 +107,7 @@ await fastify.register(async (api) => {
   await api.register(matrixRoutes)
   await api.register(mcpRoutes)
   await api.register(spotifyRoutes)
+  await api.register(weatherRoutes)
 }, { prefix: '/api' })
 
 // ─── WebSocket: Live State Push ───────────────────────────────────────────────
@@ -115,6 +117,9 @@ fastify.get('/ws', { websocket: true }, (socket) => {
 
   const currentSpotify = getCurrentSpotifyState()
   socket.send(JSON.stringify({ type: 'spotify_update', state: currentSpotify }))
+
+  const currentWeather = getCurrentWeatherState()
+  socket.send(JSON.stringify({ type: 'weather_update', state: currentWeather }))
 
   const unsubscribeDevices = subscribe((deviceId, state) => {
     if (socket.readyState === socket.OPEN) {
@@ -128,10 +133,17 @@ fastify.get('/ws', { websocket: true }, (socket) => {
     }
   })
 
+  const unsubscribeWeather = subscribeToWeather((state) => {
+    if (socket.readyState === socket.OPEN) {
+      socket.send(JSON.stringify({ type: 'weather_update', state }))
+    }
+  })
+
   socket.on('close', () => {
     console.log('[ws] Client disconnected')
     unsubscribeDevices()
     unsubscribeSpotify()
+    unsubscribeWeather()
   })
 })
 

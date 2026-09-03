@@ -51,6 +51,10 @@ export const useUIStore = create((set, get) => ({
   spotifyState: { is_playing: false },
   setSpotifyState: (state) => set({ spotifyState: state }),
 
+  // ── Weather State ───────────────────────────────────────────────────────────
+  weatherState: null,
+  setWeatherState: (state) => set({ weatherState: state }),
+
   // ── Favorites ───────────────────────────────────────────────────────────────
   favorites: (() => { try { return JSON.parse(localStorage.getItem('wled_favorites') || '[]') } catch { return [] } })(),
   toggleFavorite: (id) => set(s => {

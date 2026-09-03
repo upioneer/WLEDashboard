@@ -7,6 +7,20 @@ const TRIGGER_TYPES = [
   { value: 'time',    label: 'Fixed Time',  desc: 'Specific time of day (HH:MM)' },
   { value: 'sunrise', label: 'Sunrise',     desc: 'Astronomical sunrise' },
   { value: 'sunset',  label: 'Sunset',      desc: 'Astronomical sunset' },
+  { value: 'weather', label: 'Weather',     desc: 'Real-time weather condition' },
+]
+
+const WEATHER_CONDITIONS = [
+  { value: 'thunderstorm', label: 'Thunderstorm' },
+  { value: 'rain',         label: 'Rain' },
+  { value: 'drizzle',      label: 'Drizzle' },
+  { value: 'snow',         label: 'Snow' },
+  { value: 'atmosphere',   label: 'Mist / Fog' },
+  { value: 'clear_day',    label: 'Clear Day' },
+  { value: 'clear_night',  label: 'Clear Night' },
+  { value: 'clouds',       label: 'Cloudy' },
+  { value: 'extreme',      label: 'Extreme Alert' },
+  { value: 'any',          label: 'Any Condition Change' },
 ]
 
 export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
@@ -125,6 +139,21 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
                 className={styles.textInput}
                 required
               />
+            </label>
+          )}
+
+          {triggerType === 'weather' && (
+            <label className={styles.fieldLabel}>
+              Condition Trigger
+              <select
+                value={WEATHER_CONDITIONS.some(w => w.value === triggerValue) ? triggerValue : 'thunderstorm'}
+                onChange={e => setTriggerValue(e.target.value)}
+                className={styles.selectInput}
+              >
+                {WEATHER_CONDITIONS.map(wc => (
+                  <option key={wc.value} value={wc.value}>{wc.label}</option>
+                ))}
+              </select>
             </label>
           )}
 

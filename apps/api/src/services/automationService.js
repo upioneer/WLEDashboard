@@ -123,6 +123,18 @@ export async function executeScheduleAction(schedule) {
   `).run(schedule.id)
 }
 
+export async function checkWeatherSchedules(conditionKey) {
+  const activeSchedules = listSchedules().filter(s => s.enabled && s.trigger_type === 'weather')
+  for (const schedule of activeSchedules) {
+    if (schedule.trigger_value === conditionKey || schedule.trigger_value === 'any') {
+      console.log(`[automation] Weather triggered schedule: "${schedule.name}" (${conditionKey})`)
+      executeScheduleAction(schedule).catch(err => {
+        console.error(`[automation] Weather schedule execution error: ${err.message}`)
+      })
+    }
+  }
+}
+
 // ─── Routines CRUD ────────────────────────────────────────────────────────────
 
 export function listRoutines() {

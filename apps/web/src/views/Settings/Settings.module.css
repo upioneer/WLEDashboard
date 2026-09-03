@@ -411,3 +411,248 @@
   color: var(--text-primary);
   font-size: 0.85rem;
 }
+
+/* ── Weather Sync Control Center ─────────────────────────────── */
+.weatherContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.weatherCard {
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.weatherHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.weatherHeaderMain {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+
+.weatherCity {
+  font: var(--type-h3);
+  color: var(--text-primary);
+}
+
+.weatherTemp {
+  font: var(--type-hero);
+  color: var(--accent-amber);
+  line-height: 1;
+}
+
+.weatherConditionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  background-color: var(--accent-cyan-10);
+  color: var(--accent-cyan);
+  border: 1px solid hsl(188, 72%, 48%, 0.3);
+  border-radius: var(--radius-full);
+  padding: 2px var(--sp-3);
+  font: var(--type-small);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.weatherStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.weatherStatItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weatherStatLabel {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.weatherStatValue {
+  font: var(--type-small);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.weatherActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.weatherTargetsNotice {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.weatherTargetsCount {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.syncNowBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-cyan-10);
+  color: var(--accent-cyan);
+  border: 1px solid hsl(188, 72%, 48%, 0.3);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms;
+}
+
+.syncNowBtn:hover:not(:disabled) {
+  background-color: hsl(188, 72%, 48%, 0.2);
+  border-color: var(--accent-cyan);
+}
+
+.syncNowBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.simSubheading {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: var(--sp-2);
+}
+
+.weatherSimGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--sp-2);
+}
+
+.weatherSimBtn {
+  height: 34px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  transition: all 120ms var(--ease-out-expo);
+  padding: 0 var(--sp-2);
+  white-space: nowrap;
+}
+
+.weatherSimBtn:hover {
+  background-color: var(--surface-raised);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.mappingToggleBtn {
+  height: 32px;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-secondary);
+  font: var(--type-small);
+  padding: 0 var(--sp-3);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  transition: border-color 120ms, color 120ms;
+}
+
+.mappingToggleBtn:hover {
+  border-color: var(--accent-violet);
+  color: var(--text-primary);
+}
+
+.mappingEditor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  background-color: var(--surface-overlay);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-4);
+  animation: fadeIn 180ms var(--ease-out-expo);
+}
+
+.mappingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.mappingRow:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.mappingMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mappingName {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mappingDesc {
+  font: var(--type-micro);
+  color: var(--text-tertiary);
+}
+
+.mappingControls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.mappingColorInput {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+}
+

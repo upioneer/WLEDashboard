@@ -222,6 +222,9 @@ export function GroupCard({ group, onEdit }) {
           <button
             style={{
               marginLeft: '0.5rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
               background: group.weather_sync_enabled ? 'var(--accent-cyan)' : 'transparent',
               color: group.weather_sync_enabled ? '#000' : 'var(--text-secondary)',
               border: group.weather_sync_enabled ? 'none' : '1px solid var(--border-subtle)',
@@ -242,7 +245,10 @@ export function GroupCard({ group, onEdit }) {
             }}
             title="Toggle Weather Sync"
           >
-            🌤️ Weather {group.weather_sync_enabled ? 'On' : 'Off'}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+            </svg>
+            Weather {group.weather_sync_enabled ? 'On' : 'Off'}
           </button>
         </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { settingsApi, mqttApi, spotifyApi } from '../../lib/api.js'
+import { settingsApi, mqttApi, spotifyApi, weatherApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
@@ -23,27 +23,43 @@ const DEFAULTS = {
 
 export function Settings() {
   const addToast = useUIStore(s => s.addToast)
+  const liveWeatherWs = useUIStore(s => s.weatherState)
   const [settings, setSettings] = useState(DEFAULTS)
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
   const [showUnitPromptModal, setShowUnitPromptModal] = useState(false)
   const [spotifyConnected, setSpotifyConnected] = useState(false)
   const [copiedSpotifyUri, setCopiedSpotifyUri] = useState(false)
+  const [weatherData, setWeatherData] = useState(null)
+  const [weatherSyncing, setWeatherSyncing] = useState(false)
+  const [testingCondition, setTestingCondition] = useState(null)
+  const [showMappingEditor, setShowMappingEditor] = useState(false)
+  const [customMappings, setCustomMappings] = useState(null)
   const { updateAvailable } = useUpdateCheck(__APP_VERSION__)
 
   useEffect(() => {
     Promise.all([
       settingsApi.get(),
-      spotifyApi.getStatus().catch(() => ({ connected: false }))
-    ]).then(([s, spot]) => {
+      spotifyApi.getStatus().catch(() => ({ connected: false })),
+      weatherApi.getCurrent().catch(() => ({ state: null, mappings: null }))
+    ]).then(([s, spot, weather]) => {
       setSettings({ ...DEFAULTS, ...s })
       setSpotifyConnected(spot.connected)
+      setWeatherData(weather.state)
+      setCustomMappings(weather.mappings)
       setLoading(false)
     }).catch(() => {
       setLoading(false)
       addToast({ message: 'Failed to load settings', type: 'error' })
     })
   }, [])
+
+  // Sync live weather from WebSocket if available
+  useEffect(() => {
+    if (liveWeatherWs) {
+      setWeatherData(liveWeatherWs)
+    }
+  }, [liveWeatherWs])
 
   const handleChange = useCallback((key, value) => {
     setSettings(s => ({ ...s, [key]: value }))
@@ -353,12 +369,13 @@ export function Settings() {
         <section className={styles.section} aria-labelledby="weather-heading">
           <h2 id="weather-heading" className={styles.sectionTitle}>Weather Sync</h2>
           <p className={styles.sectionDesc}>
-            Connect OpenWeatherMap to automatically reflect live weather conditions via WLED effects on your ambient lights. (e.g., pulsing blue for rain). Requires an API key from <a href="https://home.openweathermap.org/api_keys" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>OpenWeatherMap</a>.
+            Connect OpenWeatherMap to automatically reflect live weather conditions via WLED effects on your ambient lights. Requires a free API key from <a href="https://home.openweathermap.org/api_keys" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-cyan)' }}>OpenWeatherMap</a>.
           </p>
+
           <div className={styles.fields}>
             <SettingField
               label="OpenWeatherMap API Key"
-              hint="Paste your free API key here to enable weather polling."
+              hint="Paste your free API key here to enable automated weather polling."
               id="openweathermap_api_key"
             >
               <TextInput
@@ -368,6 +385,200 @@ export function Settings() {
                 placeholder="00000000000000000000000000000000"
               />
             </SettingField>
+
+            {/* Live Weather Status Card */}
+            {weatherData && weatherData.status === 'active' && (
+              <div className={styles.weatherCard}>
+                <div className={styles.weatherHeader}>
+                  <div className={styles.weatherHeaderMain}>
+                    <span className={styles.weatherTemp}>
+                      {settings.unit_system === 'metric' ? `${weatherData.temp_c}°C` : `${weatherData.temp_f}°F`}
+                    </span>
+                    <div>
+                      <div className={styles.weatherCity}>{weatherData.city || 'Local Area'}, {weatherData.country || ''}</div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textTransform: 'capitalize' }}>
+                        {weatherData.description || weatherData.condition_name} ({weatherData.is_day ? 'Daytime' : 'Night'})
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className={styles.weatherConditionBadge}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                    </svg>
+                    {weatherData.condition_name || 'Active'}
+                  </span>
+                </div>
+
+                <div className={styles.weatherStatsGrid}>
+                  <div className={styles.weatherStatItem}>
+                    <span className={styles.weatherStatLabel}>Humidity</span>
+                    <span className={styles.weatherStatValue}>{weatherData.humidity ?? '--'}%</span>
+                  </div>
+                  <div className={styles.weatherStatItem}>
+                    <span className={styles.weatherStatLabel}>Wind Speed</span>
+                    <span className={styles.weatherStatValue}>
+                      {weatherData.wind_speed != null 
+                        ? (settings.unit_system === 'metric' ? `${weatherData.wind_speed} m/s` : `${Math.round(weatherData.wind_speed * 2.237)} mph`) 
+                        : '--'}
+                    </span>
+                  </div>
+                  <div className={styles.weatherStatItem}>
+                    <span className={styles.weatherStatLabel}>Last Synced</span>
+                    <span className={styles.weatherStatValue}>
+                      {weatherData.last_sync_at ? new Date(weatherData.last_sync_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Never'}
+                    </span>
+                  </div>
+                  <div className={styles.weatherStatItem}>
+                    <span className={styles.weatherStatLabel}>Active Targets</span>
+                    <span className={styles.weatherStatValue}>
+                      {weatherData.targetCounts?.devices || 0} dev, {weatherData.targetCounts?.groups || 0} grp
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.weatherActionsRow}>
+                  <div className={styles.weatherTargetsNotice}>
+                    Syncing live to <strong className={styles.weatherTargetsCount}>{weatherData.targetCounts?.devices || 0} devices</strong> and <strong className={styles.weatherTargetsCount}>{weatherData.targetCounts?.groups || 0} groups</strong>.
+                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.syncNowBtn}
+                    disabled={weatherSyncing}
+                    onClick={async () => {
+                      setWeatherSyncing(true)
+                      try {
+                        const res = await weatherApi.syncNow()
+                        if (res.state) setWeatherData(res.state)
+                        addToast({ message: 'Live weather synced to lights', type: 'success' })
+                      } catch {
+                        addToast({ message: 'Failed to sync weather', type: 'error' })
+                      } finally {
+                        setWeatherSyncing(false)
+                      }
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ animation: weatherSyncing ? 'spin 1s linear infinite' : 'none' }}>
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                      <path d="M3 3v5h5"/>
+                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                      <path d="M16 21h5v-5"/>
+                    </svg>
+                    {weatherSyncing ? 'Syncing...' : 'Sync Now'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Condition Simulator / Preview Matrix */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div className={styles.simSubheading}>Simulate & Preview Conditions on Synced Lights</div>
+              <div className={styles.weatherSimGrid}>
+                {[
+                  { key: 'thunderstorm', label: 'Thunderstorm' },
+                  { key: 'rain',         label: 'Rain' },
+                  { key: 'drizzle',      label: 'Drizzle' },
+                  { key: 'snow',         label: 'Snow' },
+                  { key: 'atmosphere',   label: 'Mist / Fog' },
+                  { key: 'clear_day',    label: 'Clear Day' },
+                  { key: 'clear_night',  label: 'Clear Night' },
+                  { key: 'clouds',       label: 'Cloudy' },
+                  { key: 'extreme',      label: 'Extreme Alert' },
+                ].map(cond => (
+                  <button
+                    type="button"
+                    key={cond.key}
+                    className={styles.weatherSimBtn}
+                    disabled={testingCondition === cond.key}
+                    onClick={async () => {
+                      setTestingCondition(cond.key)
+                      try {
+                        await weatherApi.testCondition(cond.key)
+                        addToast({ message: `Simulating ${cond.label} on lights`, type: 'info' })
+                      } catch {
+                        addToast({ message: 'Failed to simulate condition', type: 'error' })
+                      } finally {
+                        setTimeout(() => setTestingCondition(null), 500)
+                      }
+                    }}
+                  >
+                    {testingCondition === cond.key ? 'Testing...' : cond.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Condition Mappings Toggle & Editor */}
+            <div>
+              <button
+                type="button"
+                className={styles.mappingToggleBtn}
+                onClick={() => setShowMappingEditor(prev => !prev)}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                {showMappingEditor ? 'Hide Condition Lighting Config' : 'Customize Condition Lighting Effects'}
+              </button>
+
+              {showMappingEditor && customMappings && (
+                <div className={styles.mappingEditor} style={{ marginTop: '0.75rem' }}>
+                  {Object.entries(customMappings).map(([condKey, config]) => {
+                    const primaryRgb = config.col?.[0] || [255, 255, 255]
+                    const hexColor = `#${primaryRgb.map(c => c.toString(16).padStart(2, '0')).join('')}`
+                    return (
+                      <div key={condKey} className={styles.mappingRow}>
+                        <div className={styles.mappingMeta}>
+                          <span className={styles.mappingName}>{config.name || condKey}</span>
+                          <span className={styles.mappingDesc}>{config.description || ''}</span>
+                        </div>
+
+                        <div className={styles.mappingControls}>
+                          <input
+                            type="color"
+                            value={hexColor}
+                            className={styles.mappingColorInput}
+                            title="Primary Condition Color"
+                            onChange={(e) => {
+                              const hex = e.target.value
+                              const r = parseInt(hex.slice(1, 3), 16)
+                              const g = parseInt(hex.slice(3, 5), 16)
+                              const b = parseInt(hex.slice(5, 7), 16)
+                              setCustomMappings(prev => ({
+                                ...prev,
+                                [condKey]: {
+                                  ...prev[condKey],
+                                  col: [[r, g, b], prev[condKey]?.col?.[1] || [0, 0, 0], prev[condKey]?.col?.[2] || [0, 0, 0]],
+                                }
+                              }))
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className={styles.secondaryBtn}
+                      onClick={async () => {
+                        try {
+                          await weatherApi.saveMappings(customMappings)
+                          addToast({ message: 'Weather lighting mappings saved', type: 'success' })
+                        } catch {
+                          addToast({ message: 'Failed to save mappings', type: 'error' })
+                        }
+                      }}
+                    >
+                      Save Custom Mappings
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
