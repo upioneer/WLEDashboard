@@ -139,6 +139,33 @@ export function deleteRoom(id) {
   return getDb().prepare('DELETE FROM rooms WHERE id = ?').run(id).changes > 0
 }
 
+export function listRooms() {
+  const db = getDb()
+  return db.prepare(`
+    SELECT r.*, f.name as floor_name, d.name as dwelling_name
+    FROM rooms r
+    JOIN floors f ON r.floor_id = f.id
+    JOIN dwellings d ON f.dwelling_id = d.id
+    ORDER BY r.sort_order ASC
+  `).all()
+}
+
+export async function sendRoomCommand(roomId, payload) {
+  const db = getDb()
+  const anchors = db.prepare('SELECT device_id FROM anchors WHERE room_id = ? AND device_id IS NOT NULL').all(roomId)
+  const devIds = [...new Set(anchors.map(a => a.device_id))]
+  
+  const { getDevice, sendDeviceCommand } = await import('./deviceService.js')
+  const promises = devIds.map(devId => {
+    const dev = getDevice(devId)
+    if (dev && dev.is_online) {
+      return sendDeviceCommand(dev, payload).catch(() => {})
+    }
+    return Promise.resolve()
+  })
+  await Promise.all(promises)
+}
+
 // ─── Anchors (Spatial Light Bindings) ─────────────────────────────────────────
 
 export function createAnchor({ room_id, device_id = null, name, type = 'strip_linear', offset_x = 0, offset_y = 1.0, offset_z = 0, rotation_y = 0, length = 3.5, led_density = 30 }) {

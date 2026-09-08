@@ -30,6 +30,8 @@ export function Settings() {
   const [showUnitPromptModal, setShowUnitPromptModal] = useState(false)
   const [spotifyConnected, setSpotifyConnected] = useState(false)
   const [copiedSpotifyUri, setCopiedSpotifyUri] = useState(false)
+  const [copiedApiToken, setCopiedApiToken]     = useState(false)
+  const [showApiToken, setShowApiToken]         = useState(false)
   const [weatherData, setWeatherData] = useState(null)
   const [weatherSyncing, setWeatherSyncing] = useState(false)
   const [testingCondition, setTestingCondition] = useState(null)
@@ -640,6 +642,73 @@ export function Settings() {
                 Publish HA Discovery Payload
               </button>
             </div>
+
+            {/* Long-Lived API Access Token */}
+            <SettingField
+              label="Long-Lived API Token"
+              hint="Use this token to authenticate the official WLEDashboard Home Assistant integration or external REST/WebSocket clients"
+              id="api_token"
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <input
+                    type={showApiToken ? 'text' : 'password'}
+                    readOnly
+                    value={settings.api_token || ''}
+                    style={{ flex: 1, background: 'var(--surface-input)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-s)', padding: '0.4rem 0.6rem', color: 'var(--accent-amber)', fontFamily: 'monospace', fontSize: '0.85rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiToken(prev => !prev)}
+                    className={styles.secondaryBtn}
+                    style={{ padding: '0 0.75rem', fontSize: '0.8rem' }}
+                  >
+                    {showApiToken ? 'Hide' : 'Reveal'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!settings.api_token) return
+                      navigator.clipboard.writeText(settings.api_token)
+                      setCopiedApiToken(true)
+                      setTimeout(() => setCopiedApiToken(false), 2000)
+                      addToast({ message: 'API Token copied to clipboard', type: 'success' })
+                    }}
+                    className={styles.secondaryBtn}
+                    style={{
+                      background: copiedApiToken ? 'var(--accent-emerald)' : undefined,
+                      color: copiedApiToken ? '#000' : undefined,
+                      padding: '0 0.75rem',
+                      fontSize: '0.8rem',
+                      fontWeight: copiedApiToken ? 600 : 'normal',
+                    }}
+                  >
+                    {copiedApiToken ? 'Copied ✓' : 'Copy'}
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <button
+                    type="button"
+                    className={styles.secondaryBtn}
+                    style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', color: 'var(--accent-rose)', borderColor: 'hsl(348 72% 58% / 0.3)' }}
+                    onClick={async () => {
+                      try {
+                        const res = await settingsApi.regenerateApiToken()
+                        if (res.api_token) {
+                          setSettings(prev => ({ ...prev, api_token: res.api_token }))
+                          addToast({ message: 'New API token generated', type: 'success' })
+                        }
+                      } catch {
+                        addToast({ message: 'Failed to regenerate API token', type: 'error' })
+                      }
+                    }}
+                  >
+                    Regenerate API Token
+                  </button>
+                </div>
+              </div>
+            </SettingField>
           </div>
         </section>
 

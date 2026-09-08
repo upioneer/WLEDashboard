@@ -40,6 +40,7 @@ export const devicesApi = {
 export const settingsApi = {
   get: () => request('GET', '/settings'),
   update: (data) => request('PATCH', '/settings', data),
+  regenerateApiToken: () => request('POST', '/settings/api-token/regenerate'),
 }
 
 // ─── Groups ───────────────────────────────────────────────────────────────────

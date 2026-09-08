@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to WLEDashboard",
+        "description": "Configure the connection to your WLEDashboard server.",
+        "data": {
+          "host": "Host / IP Address",
+          "port": "Port",
+          "api_token": "Long-Lived API Token",
+          "ssl": "Use SSL (HTTPS)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to WLEDashboard. Ensure the server is running and accessible.",
+      "timeout_connect": "Connection to WLEDashboard timed out.",
+      "invalid_auth": "Invalid API token provided.",
+      "unknown": "Unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This WLEDashboard instance is already configured."
+    }
+  }
+}

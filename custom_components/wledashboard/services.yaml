@@ -1,0 +1,67 @@
+execute_routine:
+  name: Execute Routine
+  description: Triggers a multi-step animation timeline routine defined in WLEDashboard.
+  fields:
+    routine_id:
+      name: Routine ID
+      description: The unique ID of the routine to execute.
+      required: true
+      example: "7e92a832-6a7e-41bc-b70c-2641a9dc912a"
+      selector:
+        text:
+
+simulate_weather:
+  name: Simulate Weather
+  description: Simulates an outdoor weather condition across all active weather-synced fixtures.
+  fields:
+    condition:
+      name: Weather Condition
+      description: Condition key to simulate.
+      required: true
+      example: "thunderstorm"
+      selector:
+        select:
+          options:
+            - "thunderstorm"
+            - "rain"
+            - "drizzle"
+            - "snow"
+            - "atmosphere"
+            - "clear_day"
+            - "clear_night"
+            - "clouds"
+            - "extreme"
+
+sync_weather_now:
+  name: Sync Weather Now
+  description: Forces an instant OpenWeatherMap fetch and syncs current outdoor conditions to all enabled lights.
+
+apply_palette:
+  name: Apply Palette
+  description: Applies a custom Studio gradient color palette to a specific room, group, or device.
+  fields:
+    palette_id:
+      name: Palette ID
+      description: ID of the custom palette.
+      required: true
+      example: "sunset_glow"
+      selector:
+        text:
+    room_id:
+      name: Room ID
+      description: Target 3D spatial room ID.
+      required: false
+      selector:
+        text:
+    group_id:
+      name: Group ID
+      description: Target lighting group ID.
+      required: false
+      selector:
+        text:
+    device_id:
+      name: Device ID
+      description: Target device ID.
+      required: false
+      selector:
+        text:
