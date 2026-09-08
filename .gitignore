@@ -12,10 +12,8 @@ data/
 *.db-shm
 *.db-wal
 
-# Code Scaffold Project Details (Local Context)
-project_details/*.md
-!project_details/readme.md
+# Python
+__pycache__/
+*.pyc
+*.pyo
 
-!project_details/changelog/
-!project_details/playbooks/
-!project_details/proof/
