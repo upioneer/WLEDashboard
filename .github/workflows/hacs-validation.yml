@@ -1,0 +1,43 @@
+name: HACS & Hassfest Validation
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - "custom_components/**"
+      - "hacs.json"
+      - ".github/workflows/hacs-validation.yml"
+  pull_request:
+    branches:
+      - master
+      - main
+    paths:
+      - "custom_components/**"
+      - "hacs.json"
+      - ".github/workflows/hacs-validation.yml"
+
+jobs:
+  validate-hacs:
+    name: HACS Action Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: HACS Action
+        uses: hacs/action/validate@main
+        with:
+          category: integration
+          ignore: brands
+
+  validate-hassfest:
+    name: Hassfest Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Hassfest Action
+        uses: home-assistant/actions/hassfest@master
