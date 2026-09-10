@@ -124,16 +124,55 @@ Open `http://localhost:5173` in your browser.
 
 ## Docker Deployment
 
-Run the complete production stack in a single container using Docker Compose:
+WLEDashboard provides pre-built container images published to the GitHub Container Registry (`ghcr.io/upioneer/wledashboard:latest`).
 
-```bash
-cd apps/docker
-docker compose up --build
+### Using Docker Compose (Recommended)
+
+Create a `docker-compose.yml` file (or use the one included in the repository root):
+
+```yaml
+version: '3.8'
+
+services:
+  wledashboard:
+    image: ghcr.io/upioneer/wledashboard:latest
+    container_name: wledashboard
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATA_DIR=/app/data
+    volumes:
+      - wledashboard_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  wledashboard_data:
 ```
 
-Access the application at `http://localhost:3001`.
+Start the container in detached mode:
 
-*Note: Host networking mode is used in docker-compose.yml to enable mDNS multicast discovery across your local subnet.*
+```bash
+docker compose up -d
+```
+
+### Using Docker CLI
+
+```bash
+docker run -d \
+  --name wledashboard \
+  -p 3001:3001 \
+  -e NODE_ENV=production \
+  -e DATA_DIR=/app/data \
+  -v wledashboard_data:/app/data \
+  --restart unless-stopped \
+  ghcr.io/upioneer/wledashboard:latest
+```
+
+Access the application in your browser at `http://localhost:3001`.
+
+* Persistence: All configuration, groups, and device states persist in the `wledashboard_data` volume mounted to `/app/data`.
+* Local Discovery: Standard bridge port mapping routes web traffic on port 3001. On Linux bare metal hosts or LXC containers where mDNS broadcast discovery across subnets is required, `network_mode: host` can optionally be configured.
 
 ---
 

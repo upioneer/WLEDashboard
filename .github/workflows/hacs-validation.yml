@@ -30,7 +30,7 @@ jobs:
         uses: hacs/action@main
         with:
           category: integration
-          ignore: "brands, license"
+          ignore: "brands"
 
   validate-hassfest:
     name: Hassfest Validation
