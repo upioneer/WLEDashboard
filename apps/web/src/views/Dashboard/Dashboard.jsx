@@ -84,11 +84,14 @@ export function Dashboard() {
   const { groups, fetchGroups } = useGroupStore()
   const { hierarchy, fetchHierarchy } = useSpatialStore()
   const setHeaderAccentColor = useUIStore(s => s.setHeaderAccentColor)
+  const sortMode = useUIStore(s => s.dashboardSortMode)
+  const setSortMode = useUIStore(s => s.setDashboardSortMode)
+  const viewMode = useUIStore(s => s.dashboardViewMode)
+  const setViewMode = useUIStore(s => s.setDashboardViewMode)
+  const filter = useUIStore(s => s.dashboardFilter)
+  const setFilter = useUIStore(s => s.setDashboardFilter)
 
-  const [search, setSearch]       = useState('')
-  const [filter, setFilter]       = useState('all')
-  const [viewMode, setViewMode]   = useState('devices') // 'devices' | 'groups'
-  const [sortMode, setSortMode]   = useState('manual') // 'manual', 'az', 'za', 'date', 'room'
+  const [search, setSearch]         = useState('')
   const [localOrder, setLocalOrder] = useState([])
   const [activeId, setActiveId]     = useState(null)
 
@@ -223,7 +226,7 @@ export function Dashboard() {
         </div>
 
         <div className={styles.headerRight}>
-          {viewMode === 'devices' && (
+          {(viewMode === 'devices' || viewMode === 'compact') && (
             <select
               value={sortMode}
               onChange={e => setSortMode(e.target.value)}
@@ -245,12 +248,12 @@ export function Dashboard() {
             title="Dashboard View"
             style={{ fontWeight: 600, color: 'var(--text-primary)' }}
           >
-            <option value="devices">⊞ Grid View</option>
-            <option value="compact">≡ Compact List</option>
-            <option value="rooms">🏠 Rooms View</option>
-            {groups.length > 0 && <option value="groups">⚄ Groups ({groups.length})</option>}
-            <option value="media">🎵 Media & Sync</option>
-            <option value="favorites">⭐ Favorites</option>
+            <option value="devices">Grid View</option>
+            <option value="compact">Compact List</option>
+            <option value="rooms">Rooms View</option>
+            {groups.length > 0 && <option value="groups">Groups ({groups.length})</option>}
+            <option value="media">Media & Sync</option>
+            <option value="favorites">Favorites</option>
           </select>
           <span className={styles.networkBadge}>
             <span className={styles.networkDot} />

@@ -3,6 +3,7 @@ import { settingsApi, mqttApi, spotifyApi, weatherApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
+import { copyToClipboard } from '../../lib/clipboard.js'
 import styles from './Settings.module.css'
 
 import { useAutomationStore } from '../../stores/automationStore.js'
@@ -267,14 +268,18 @@ export function Settings() {
                   />
                   <button 
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       const uri = (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
                         ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
                         : `http://localhost:3001/api/spotify/callback`
-                      navigator.clipboard.writeText(uri)
-                      setCopiedSpotifyUri(true)
-                      setTimeout(() => setCopiedSpotifyUri(false), 2000)
-                      addToast({ message: 'Redirect URI copied to clipboard!', type: 'success' })
+                      const ok = await copyToClipboard(uri)
+                      if (ok) {
+                        setCopiedSpotifyUri(true)
+                        setTimeout(() => setCopiedSpotifyUri(false), 2000)
+                        addToast({ message: 'Redirect URI copied to clipboard!', type: 'success' })
+                      } else {
+                        addToast({ message: 'Failed to copy redirect URI', type: 'error' })
+                      }
                     }}
                     style={{ 
                       background: copiedSpotifyUri ? '#10b981' : '#2d3348', 
@@ -667,12 +672,16 @@ export function Settings() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!settings.api_token) return
-                      navigator.clipboard.writeText(settings.api_token)
-                      setCopiedApiToken(true)
-                      setTimeout(() => setCopiedApiToken(false), 2000)
-                      addToast({ message: 'API Token copied to clipboard', type: 'success' })
+                      const ok = await copyToClipboard(settings.api_token)
+                      if (ok) {
+                        setCopiedApiToken(true)
+                        setTimeout(() => setCopiedApiToken(false), 2000)
+                        addToast({ message: 'API Token copied to clipboard', type: 'success' })
+                      } else {
+                        addToast({ message: 'Failed to copy API token', type: 'error' })
+                      }
                     }}
                     className={styles.secondaryBtn}
                     style={{

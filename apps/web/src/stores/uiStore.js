@@ -62,4 +62,23 @@ export const useUIStore = create((set, get) => ({
     localStorage.setItem('wled_favorites', JSON.stringify(next))
     return { favorites: next }
   }),
+
+  // ── Dashboard View Preferences ──────────────────────────────────────────────
+  dashboardSortMode: (() => { try { return localStorage.getItem('wled_dashboard_sort') || 'manual' } catch { return 'manual' } })(),
+  setDashboardSortMode: (mode) => {
+    try { localStorage.setItem('wled_dashboard_sort', mode) } catch {}
+    set({ dashboardSortMode: mode })
+  },
+
+  dashboardViewMode: (() => { try { return localStorage.getItem('wled_dashboard_view_mode') || 'devices' } catch { return 'devices' } })(),
+  setDashboardViewMode: (mode) => {
+    try { localStorage.setItem('wled_dashboard_view_mode', mode) } catch {}
+    set({ dashboardViewMode: mode })
+  },
+
+  dashboardFilter: (() => { try { return localStorage.getItem('wled_dashboard_filter') || 'all' } catch { return 'all' } })(),
+  setDashboardFilter: (filter) => {
+    try { localStorage.setItem('wled_dashboard_filter', filter) } catch {}
+    set({ dashboardFilter: filter })
+  },
 }))

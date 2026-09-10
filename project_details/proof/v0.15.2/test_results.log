@@ -1,0 +1,43 @@
+# Validation and Test Log: v0.15.2
+Date: 2026-09-10
+
+1. Version Bump Verification
+Command:
+powershell -ExecutionPolicy Bypass -File ./bump_version.ps1 0.15.2
+Result:
+Updated package.json
+Updated apps/api/package.json
+Updated apps/web/package.json
+Updated custom_components/wledashboard/manifest.json
+
+BOM Check:
+First byte of package.json: 123 ({)
+Status: Clean UTF8 without BOM
+
+2. Frontend Compilation & Asset Verification
+Command:
+npm run build --workspace=apps/web
+Output:
+vite v5.4.21 building for production...
+715 modules transformed.
+dist/index.html 1.21 kB
+dist/assets/index-D22TUtI9.js 1504.62 kB
+built in 6.36s
+Status: SUCCESS
+
+3. Clipboard Fallback Validation
+Module: apps/web/src/lib/clipboard.js
+Supported contexts:
+* Modern async navigator.clipboard API in secure contexts (HTTPS/localhost)
+* Document execCommand copy fallback for insecure HTTP / LAN IP contexts
+* Selection range preservation and silent element cleanup
+Status: SUCCESS
+
+4. Dashboard View Preferences Persistence
+Store: apps/web/src/stores/uiStore.js
+Persisted fields:
+* dashboardSortMode: manual, room, az, za, date
+* dashboardViewMode: devices, compact, rooms, groups, media, favorites
+* dashboardFilter: all, online, offline, on, off
+Backed by: localStorage with in-memory Zustand store fallback
+Status: SUCCESS

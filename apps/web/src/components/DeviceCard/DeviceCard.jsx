@@ -14,6 +14,7 @@ import { Toggle } from '../Toggle/Toggle.jsx'
 import { Slider } from '../Slider/Slider.jsx'
 import { ColorPickerCompact } from '../ColorPicker/ColorPickerCompact.jsx'
 import { ContextMenu } from '../ContextMenu/ContextMenu.jsx'
+import { copyToClipboard } from '../../lib/clipboard.js'
 import styles from './DeviceCard.module.css'
 
 const DEBOUNCE_MS = 50
@@ -288,9 +289,14 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
   }, [renaming, device.name, commitRename])
 
   // Copy IP
-  const handleCopyIP = useCallback(() => {
-    navigator.clipboard?.writeText(device.ip_address)
-    addToast({ message: `Copied ${device.ip_address}`, type: 'info', duration: 2000 })
+  const handleCopyIP = useCallback(async (e) => {
+    if (e && e.stopPropagation) e.stopPropagation()
+    const success = await copyToClipboard(device.ip_address)
+    if (success) {
+      addToast({ message: `Copied ${device.ip_address}`, type: 'info', duration: 2000 })
+    } else {
+      addToast({ message: `Failed to copy ${device.ip_address}`, type: 'error', duration: 3000 })
+    }
   }, [device.ip_address, addToast])
 
   // Firmware Update
@@ -529,7 +535,7 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
             }}
             title="Toggle Weather Sync"
           >
-            🌤️ Weather
+            Weather
           </button>
 
           <button
