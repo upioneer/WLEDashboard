@@ -11,23 +11,27 @@ if ($Version -notmatch '^\d+\.\d+\.\d+$') {
 
 Write-Host "Bumping version to $Version..." -ForegroundColor Cyan
 
-$files = @(
-  "package.json",
-  "apps/api/package.json",
-  "apps/web/package.json",
-  "custom_components/wledashboard/manifest.json"
-)
-
-foreach ($file in $files) {
-  if (-not (Test-Path $file)) {
-    Write-Warning "File not found, skipping: $file"
-    continue
-  }
-  $json = Get-Content $file -Raw | ConvertFrom-Json
-  $json.version = $Version
-  $json | ConvertTo-Json -Depth 10 | Set-Content $file -Encoding UTF8
-  Write-Host "  Updated $file" -ForegroundColor Green
+$nodeScript = @"
+const fs = require('fs');
+const files = [
+  'package.json',
+  'apps/api/package.json',
+  'apps/web/package.json',
+  'custom_components/wledashboard/manifest.json'
+];
+const version = process.argv[1];
+for (const file of files) {
+  if (!fs.existsSync(file)) continue;
+  let content = fs.readFileSync(file, 'utf8');
+  if (content.charCodeAt(0) === 0xFEFF) content = content.slice(1);
+  const json = JSON.parse(content);
+  json.version = version;
+  fs.writeFileSync(file, JSON.stringify(json, null, 2) + '\n', 'utf8');
+  console.log('  Updated ' + file);
 }
+"@
+
+node -e $nodeScript $Version
 
 Write-Host "Version bumped to $Version" -ForegroundColor Cyan
 Write-Host "Next steps:" -ForegroundColor Yellow
