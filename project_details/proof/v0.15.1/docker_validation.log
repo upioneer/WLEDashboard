@@ -1,0 +1,60 @@
+# Container and Database Migration Validation Log: v0.15.1
+Date: 2026-09-10
+
+1. Migration Validation on Fresh Volume
+Command:
+node --input-type=module -e "import { getDb } from './apps/api/src/db/database.js'; const db = getDb(); const rows = db.prepare('SELECT version FROM schema_version').all(); console.log('Applied versions:', rows);"
+
+Result:
+[db] Applied migration v1
+[db] Applied migration v2
+[db] Applied migration v3
+[db] Applied migration v4
+[db] Applied migration v5
+[db] Applied migration v6
+[db] Applied migration v7
+[db] Applied migration v8
+[db] Applied migration v9
+Applied versions: [
+  { version: 1 },
+  { version: 2 },
+  { version: 3 },
+  { version: 4 },
+  { version: 5 },
+  { version: 6 },
+  { version: 7 },
+  { version: 8 },
+  { version: 9 }
+]
+Status: SUCCESS
+
+2. Docker Multi-Stage Build with .dockerignore
+Context transfer: 24.41MB
+Build time: 30s
+Status: SUCCESS
+
+3. Container Startup and HTTP Verification
+Container ID: ea1b812731cdb980444521dc391c255384e0c201061a1696e9e2efcfb148811f
+Runtime logs:
+[db] Applied migration v1
+[db] Applied migration v2
+[db] Applied migration v3
+[db] Applied migration v4
+[db] Applied migration v5
+[db] Applied migration v6
+[db] Applied migration v7
+[db] Applied migration v8
+[db] Applied migration v9
+[poller] Started polling 0 device(s)
+[mdns] Discovery started (scan interval: 30000ms)
+[automation] Automation scheduler started (30s interval)
+[weather] Starting weather poller
+Server listening at http://0.0.0.0:3001
+WLEDashboard API listening on http://0.0.0.0:3001
+
+HTTP Health Check /:
+HTTP/1.1 200 OK
+content-type: text/html; charset=UTF-8
+content-length: 1212
+
+Status: SUCCESS

@@ -22,8 +22,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV DATA_DIR=/app/data
 
-# Create data directory
-RUN mkdir -p /app/data
+# Install runtime dependencies for native addons and create data directory
+RUN apk add --no-cache libstdc++ && mkdir -p /app/data
 
 # Only copy necessary files from builder
 COPY --from=builder /app/node_modules ./node_modules

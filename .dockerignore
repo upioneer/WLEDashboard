@@ -1,0 +1,12 @@
+node_modules
+*/node_modules
+apps/*/node_modules
+.git
+.github
+project_details
+custom_components
+scratch
+*.md
+dist
+apps/*/dist
+npm-debug.log

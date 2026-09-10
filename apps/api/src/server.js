@@ -6,8 +6,15 @@ import staticFiles from '@fastify/static'
 import multipart from '@fastify/multipart'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { existsSync, readFileSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+
+let APP_VERSION = '0.15.0'
+try {
+  const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'))
+  APP_VERSION = pkg.version || APP_VERSION
+} catch (_) {}
 
 import { getDb } from './db/database.js'
 import { startAllPolling, subscribe } from './services/deviceService.js'
@@ -72,23 +79,33 @@ await fastify.register(multipart, {
 // ─── Static Frontend (production only) ───────────────────────────────────────
 
 if (IS_PROD) {
-  const distPath = join(__dirname, '../../../web/dist')
-  await fastify.register(staticFiles, {
-    root: distPath,
-    prefix: '/',
-    decorateReply: false,
-  })
-  // SPA fallback: return index.html for all non-API routes
-  fastify.setNotFoundHandler((_req, reply) => {
-    reply.sendFile('index.html', distPath)
-  })
+  const possiblePaths = [
+    join(__dirname, '../../web/dist'),
+    join(__dirname, '../../../apps/web/dist'),
+    join(__dirname, '../../../web/dist'),
+    join(process.cwd(), 'apps/web/dist'),
+  ]
+  const distPath = possiblePaths.find((p) => existsSync(p))
+  if (distPath) {
+    await fastify.register(staticFiles, {
+      root: distPath,
+      prefix: '/',
+      decorateReply: false,
+    })
+    // SPA fallback: return index.html for all non-API routes
+    fastify.setNotFoundHandler((_req, reply) => {
+      reply.sendFile('index.html', distPath)
+    })
+  } else {
+    fastify.log.warn('Static web frontend directory not found. Running in API-only mode.')
+  }
 }
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
 fastify.get('/api/health', async () => ({
   status: 'ok',
-  version: '0.7.0',
+  version: APP_VERSION,
   uptime: process.uptime(),
 }))
 

@@ -14,7 +14,8 @@ Write-Host "Bumping version to $Version..." -ForegroundColor Cyan
 $files = @(
   "package.json",
   "apps/api/package.json",
-  "apps/web/package.json"
+  "apps/web/package.json",
+  "custom_components/wledashboard/manifest.json"
 )
 
 foreach ($file in $files) {

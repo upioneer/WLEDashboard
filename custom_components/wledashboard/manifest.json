@@ -1,12 +1,16 @@
-{
-  "domain": "wledashboard",
-  "name": "WLEDashboard",
-  "codeowners": ["@upioneer"],
-  "config_flow": true,
-  "documentation": "https://github.com/upioneer/WLEDashboard",
-  "integration_type": "hub",
-  "iot_class": "local_push",
-  "issue_tracker": "https://github.com/upioneer/WLEDashboard/issues",
-  "requirements": ["aiohttp>=3.9.0"],
-  "version": "1.0.0"
+﻿{
+    "domain":  "wledashboard",
+    "name":  "WLEDashboard",
+    "codeowners":  [
+                       "@upioneer"
+                   ],
+    "config_flow":  true,
+    "documentation":  "https://github.com/upioneer/WLEDashboard",
+    "integration_type":  "hub",
+    "iot_class":  "local_push",
+    "issue_tracker":  "https://github.com/upioneer/WLEDashboard/issues",
+    "requirements":  [
+                         "aiohttp\u003e=3.9.0"
+                     ],
+    "version":  "0.15.1"
 }

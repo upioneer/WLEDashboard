@@ -50,10 +50,28 @@ function applyMigrations(db) {
   for (const m of migrations) {
     if (m.version > current) {
       db.transaction(() => {
-        db.exec(m.sql)
+        safeExec(db, m.sql)
         db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(m.version)
       })()
       console.log(`[db] Applied migration v${m.version}`)
+    }
+  }
+}
+
+function safeExec(db, sql) {
+  const statements = sql
+    .split(';')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+
+  for (const stmt of statements) {
+    try {
+      db.exec(stmt)
+    } catch (err) {
+      if (err.message && err.message.includes('duplicate column name')) {
+        continue
+      }
+      throw err
     }
   }
 }
@@ -168,9 +186,7 @@ const migration_001 = `
     type       TEXT NOT NULL,
     offset_x   REAL NOT NULL DEFAULT 0,
     offset_y   REAL NOT NULL DEFAULT 0,
-    offset_z   REAL NOT NULL DEFAULT 0,
-    rotation_y REAL NOT NULL DEFAULT 0,
-    length     REAL NOT NULL DEFAULT 3.5
+    offset_z   REAL NOT NULL DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS settings (
