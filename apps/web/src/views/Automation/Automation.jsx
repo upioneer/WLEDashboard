@@ -99,15 +99,36 @@ export function Automation() {
           </button>
         </div>
 
-        {activeTab === 'schedules' ? (
-          <button className={styles.primaryBtn} onClick={() => setIsCreatingSchedule(true)}>
-            + Create Schedule
-          </button>
-        ) : (
-          <button className={styles.primaryBtn} onClick={() => setIsCreatingRoutine(true)}>
-            + Create Routine
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Link
+            to="/guides?topic=automations-routines"
+            style={{
+              padding: '0.4rem 0.8rem',
+              borderRadius: 'var(--radius-s)',
+              border: '1px solid var(--border-default)',
+              color: 'var(--text-secondary)',
+              textDecoration: 'none',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              display: 'inline-flex',
+              alignItems: 'center',
+              backgroundColor: 'var(--surface-raised)',
+              transition: 'all 120ms ease'
+            }}
+            title="Read how schedules, suncalc triggers, and routines work"
+          >
+            Automation Guide
+          </Link>
+          {activeTab === 'schedules' ? (
+            <button className={styles.primaryBtn} onClick={() => setIsCreatingSchedule(true)}>
+              + Create Schedule
+            </button>
+          ) : (
+            <button className={styles.primaryBtn} onClick={() => setIsCreatingRoutine(true)}>
+              + Create Routine
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tab Content */}

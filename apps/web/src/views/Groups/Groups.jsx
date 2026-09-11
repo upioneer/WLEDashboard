@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useGroupStore } from '../../stores/groupStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
@@ -85,6 +86,14 @@ export function Groups() {
         </div>
 
         <div className={styles.headerActions}>
+          <Link
+            to="/guides?topic=group-sync-scaling"
+            className={styles.secondaryBtn}
+            title="Read how WLED groups and LED counts synchronize"
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+          >
+            Group Sync Guide
+          </Link>
           <button className={styles.secondaryBtn} onClick={handleExportConfig} title="Export JSON configuration backup">
             Export Backup
           </button>

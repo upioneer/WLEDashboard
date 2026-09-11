@@ -305,6 +305,27 @@
 
 .addBtn:hover { background-color: hsl(262, 68%, 62%, 0.2); }
 
+.guideBtn {
+  height: 28px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-raised);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-micro);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 120ms ease;
+}
+
+.guideBtn:hover {
+  color: var(--accent-violet);
+  border-color: var(--accent-violet);
+}
+
 .tree {
   flex: 1;
   overflow-y: auto;

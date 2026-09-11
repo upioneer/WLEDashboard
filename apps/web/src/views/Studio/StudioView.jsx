@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
 import { PixelStripCanvas } from '../../components/PixelStripCanvas/PixelStripCanvas.jsx'
 import { PresetBrowser } from './PresetBrowser.jsx'
@@ -33,6 +34,13 @@ export default function StudioView() {
               Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, and design 2D matrix artwork.
             </p>
           </div>
+          <Link
+            to="/guides?topic=studio-timelines-matrix"
+            className={styles.guideLink}
+            title="Read the Effect Studio & Matrix Guide"
+          >
+            Studio Guide
+          </Link>
         </header>
 
         {/* Live LED Strip Pixel Simulator */}

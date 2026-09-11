@@ -33,7 +33,8 @@ export async function spotifyRoutes(fastify) {
       
       await handleSpotifyCallback(code, origin)
       // Redirect back to frontend dashboard
-      reply.redirect(process.env.FRONTEND_ORIGIN ?? 'http://localhost:5173')
+      const frontendRedirect = process.env.FRONTEND_ORIGIN || (process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:5173')
+      reply.redirect(frontendRedirect)
     } catch (err) {
       req.log.error('Spotify callback error:', err)
       reply.code(500).send({ error: 'Failed to exchange authorization code' })

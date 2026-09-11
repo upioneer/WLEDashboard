@@ -260,18 +260,22 @@ export function Settings() {
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
                   <input 
                     readOnly 
-                    value={(window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-                      ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
-                      : `http://localhost:3001/api/spotify/callback`
+                    value={window.location.protocol === 'https:' 
+                      ? `${window.location.origin}/api/spotify/callback`
+                      : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                        ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
+                        : `http://localhost:3001/api/spotify/callback`
                     }
                     style={{ flex: 1, background: '#1a1d29', border: '1px solid #2d3348', borderRadius: '4px', padding: '0.4rem 0.6rem', color: '#a5b4fc', fontFamily: 'monospace', fontSize: '0.8rem' }}
                   />
                   <button 
                     type="button"
                     onClick={async () => {
-                      const uri = (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-                        ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
-                        : `http://localhost:3001/api/spotify/callback`
+                      const uri = window.location.protocol === 'https:' 
+                        ? `${window.location.origin}/api/spotify/callback`
+                        : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                          ? `${window.location.protocol}//${window.location.hostname}:3001/api/spotify/callback`
+                          : `http://localhost:3001/api/spotify/callback`
                       const ok = await copyToClipboard(uri)
                       if (ok) {
                         setCopiedSpotifyUri(true)
@@ -355,7 +359,7 @@ export function Settings() {
                 </>
               ) : (
                 <a
-                  href={`http://${window.location.hostname}:3001/api/spotify/login`}
+                  href="/api/spotify/login"
                   className={styles.secondaryBtn}
                   style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
                   onClick={(e) => {

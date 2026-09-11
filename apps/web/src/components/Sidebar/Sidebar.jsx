@@ -59,6 +59,17 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className={styles.footer}>
+        <NavLink
+          to="/guides"
+          className={({ isActive }) =>
+            [styles.navItem, isActive && styles.active].filter(Boolean).join(' ')
+          }
+          title="Guides & Documentation"
+        >
+          <span className={styles.navIcon} aria-hidden><GuidesIcon /></span>
+          {!collapsed && <span className={styles.navLabel}>Guides & Docs</span>}
+        </NavLink>
+
         <a
           href="https://github.com/upioneer/WLEDashboard/issues"
           target="_blank"
@@ -203,6 +214,19 @@ function FeedbackIcon() {
       <path d="M9 16c-1.5 0-3-.5-4.2-1.3L1 16l1.3-3.8C1.5 11 1 9.5 1 8c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <circle cx="9" cy="11.5" r="1" fill="currentColor" />
       <line x1="9" y1="5" x2="9" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function GuidesIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <path d="M2 3.5C2 2.67 2.67 2 3.5 2H7.5C8.33 2 9 2.67 9 3.5V15C9 14.17 8.33 13.5 7.5 13.5H3.5C2.67 13.5 2 14.17 2 15V3.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <path d="M16 3.5C16 2.67 15.33 2 14.5 2H10.5C9.67 2 9 2.67 9 3.5V15C9 14.17 9.67 13.5 10.5 13.5H14.5C15.33 13.5 16 14.17 16 15V3.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+      <line x1="4.5" y1="5.5" x2="7" y2="5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="4.5" y1="8.5" x2="7" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="11" y1="5.5" x2="13.5" y2="5.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <line x1="11" y1="8.5" x2="13.5" y2="8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   )
 }

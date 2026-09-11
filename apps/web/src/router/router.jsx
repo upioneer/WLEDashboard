@@ -7,6 +7,7 @@ import { Groups } from '../views/Groups/Groups.jsx'
 import { Automation } from '../views/Automation/Automation.jsx'
 import { SpatialView } from '../views/SpatialView/SpatialView.jsx'
 import StudioView from '../views/Studio/StudioView.jsx'
+import { Guides } from '../views/Guides/Guides.jsx'
 
 function RouteErrorBoundary() {
   const error = useRouteError();
@@ -33,6 +34,7 @@ const childRoutes = [
   { path: 'groups',        element: <Groups /> },
   { path: 'automation',    element: <Automation /> },
   { path: 'studio',        element: <StudioView /> },
+  { path: 'guides',        element: <Guides /> },
   { path: 'settings',      element: <Settings /> },
   { path: 'devices',       element: <DeviceManager /> },
 ].map(route => ({ ...route, errorElement: <RouteErrorBoundary /> }))

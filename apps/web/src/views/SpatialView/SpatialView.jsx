@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useSpatialStore } from '../../stores/spatialStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
@@ -543,6 +544,13 @@ export function SpatialView() {
               />
               Snap Grid
             </label>
+            <Link
+              to="/guides?topic=spatial-3d-anchors"
+              className={styles.guideBtn}
+              title="Learn about 3D Spatial layout & anchors"
+            >
+              Spatial Guide
+            </Link>
             <button className={styles.addBtn} onClick={() => setIsAddingRoom(true)}>+ Add Room</button>
           </div>
         </div>

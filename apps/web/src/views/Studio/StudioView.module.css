@@ -30,6 +30,26 @@
   margin-top: var(--sp-1);
 }
 
+.guideLink {
+  padding: var(--sp-2) var(--sp-4);
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-m);
+  color: var(--text-secondary);
+  font: var(--type-small);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 150ms var(--ease-out-expo);
+  flex-shrink: 0;
+}
+
+.guideLink:hover {
+  color: var(--accent-violet);
+  border-color: var(--accent-violet);
+  background-color: var(--accent-violet-10);
+}
+
 .tabBar {
   display: flex;
   gap: var(--sp-2);
