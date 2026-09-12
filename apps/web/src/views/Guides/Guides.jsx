@@ -226,6 +226,29 @@ export function Guides() {
                     </ol>
                   )}
 
+                  {sec.table && (
+                    <div className={styles.tableContainer}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            {sec.table.headers.map((h, hIdx) => (
+                              <th key={hIdx} className={styles.th}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sec.table.rows.map((row, rIdx) => (
+                            <tr key={rIdx} className={styles.tr}>
+                              {row.map((cell, cIdx) => (
+                                <td key={cIdx} className={styles.td}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
                   {sec.callout && (
                     <div className={[
                       styles.callout,

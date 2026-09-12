@@ -2,6 +2,7 @@
 
 export const GUIDE_CATEGORIES = [
   { id: "all", label: "All Guides" },
+  { id: "architecture", label: "OEM vs WLEDashboard" },
   { id: "groups", label: "Groups & Sync" },
   { id: "traveling", label: "Multi-Controller" },
   { id: "spatial", label: "3D Spatial" },
@@ -11,6 +12,138 @@ export const GUIDE_CATEGORIES = [
 ]
 
 export const GUIDES = [
+  {
+    id: "oem-vs-wledashboard",
+    category: "architecture",
+    title: "Why WLEDashboard? Capabilities Beyond the OEM Interface",
+    summary: "How WLED native microcontroller firmware and WLEDashboard centralized orchestration layer complement each other.",
+    readTime: "5 min read",
+    tags: ["oem", "wled", "architecture", "comparison", "orchestration", "spatial", "fleet", "studio", "sync", "automation"],
+    sections: [
+      {
+        title: "The Foundation: What Makes Native WLED Extraordinary",
+        content: "WLED firmware, created by Christian Schwinne (Aircoookie) and the open source community, is the premier real-time LED control engine for ESP32 and ESP8266 microcontrollers. Operating bare-metal directly on the hardware, WLED provides microsecond-precise PWM, RMT, and SPI signaling for addressable LED chipsets (WS2812B, SK6812 RGBW, APA102, and analog fixtures), frame-accurate segment rendering, over 150 built-in effects, and strict electrical safety limiters. The native WLED web interface remains the essential tool for initial physical hardware setup, including assigning GPIO data pins, setting hardware color orders, and calibrating voltage/current limiters.",
+        callout: {
+          type: "note",
+          title: "Hardware Bedrock",
+          text: "WLEDashboard does not replace WLED firmware. WLED remains the dedicated real-time hardware driver executing directly on your ESP devices, while WLEDashboard acts as the centralized fleet conductor and spatial intelligence layer communicating over local JSON APIs, WebSockets, and real-time DDP streaming.",
+        },
+      },
+      {
+        title: "The Multi-Device Challenge with Native OEM Control",
+        content: "While native WLED excels at controlling single strips or matrices, managing multiple controllers across a home or architectural installation introduces operational hurdles:",
+        steps: [
+          "Siloed Management: Each controller operates as an isolated island on its own IP address, requiring multiple browser bookmarks, separate logins, and constant tab switching.",
+          "No Global Fleet Visibility: Native WLED provides no consolidated view of aggregate power draw, offline device alerts, total LED counts, or collective room brightness.",
+          "Microcontroller Flash Constraints: ESP chips have limited onboard flash storage (LittleFS / SPIFFS), restricting the number of stored presets, playlist steps, and animation frame buffers.",
+          "Lack of Cross-Controller Choreography: Native WLED provides basic UDP synchronization, but cannot natively coordinate sequential traveling wave animations that physically flow from one ESP controller to another across a room.",
+          "Absence of Physical 3D Spatial Awareness: The native firmware operates in 1D pixel indexes or 2D matrix grids without understanding real-world 3D coordinates (X, Y, Z meters), physical rooms, or spatial orientation."
+        ],
+      },
+      {
+        title: "Key Capabilities Unlocked by WLEDashboard",
+        content: "WLEDashboard extends WLED installations into an enterprise-grade lighting system with the following architectural capabilities:",
+        steps: [
+          "Single Pane of Glass Fleet Management: Monitor and control your entire fleet of controllers from a unified interface with real-time heartbeat monitoring, live power telemetry, instant search, and master controls.",
+          "3D Spatial Layout & Virtual Light Anchors: Position fixtures in a 3D WebGL viewport using real-world metric dimensions. Group lights by physical room volumes, coordinate multi-fixture directional lighting, and export spatial rooms to Home Assistant.",
+          "Continuous Traveling Waves & Multi-Controller Choreography: Create animations that smoothly cross physical controller boundaries using virtual DDP routing, segment cascading, and automated routine phase delays.",
+          "Studio Keyframe Timelines & 2D Matrix Canvas: Design complex multi-track keyframe timelines, custom color palette interpolations, frame-by-frame pixel matrix art, and real-time audio FFT frequency visualizations.",
+          "Astronomical & Meteorological Automations: Leverage SunCalc-powered astronomical triggers (sunrise, sunset, dusk, dawn, golden hour) and live OpenWeatherMap condition polling for dynamic weather-reactive lighting (lightning strobes, rain ripple, snowfall sparkle).",
+          "Real-Time Spotify Synchronization: Extract dominant color palettes from active Spotify album artwork in real time and distribute dynamic ambient lighting across selected rooms or zones.",
+          "Unified Home Assistant Integration: Eliminate dozens of manual entities with automatic discovery and consolidated Room Lights, Group Lights, and Studio Routine buttons over native HACS and MQTT Auto-Discovery.",
+          "Fleet Backups & Instant Disaster Recovery: One-click export and import of all groups, spatial layouts, routines, and device metadata, safeguarded in SQLite off the microcontroller flash."
+        ],
+      },
+      {
+        title: "Architecture Comparison: Native WLED vs WLEDashboard",
+        content: "A side-by-side comparison of architectural responsibilities and capabilities:",
+        table: {
+          headers: ["Capability", "Native WLED (OEM Interface)", "WLEDashboard Central Layer"],
+          rows: [
+            [
+              "Operational Focus",
+              "Microcontroller hardware driver, GPIO pin control, and bare-metal LED rendering.",
+              "Centralized fleet management, 3D spatial layout, multi-controller choreography, and automation."
+            ],
+            [
+              "Device Management",
+              "Single device per browser tab; manual navigation by IP address.",
+              "Unified single pane of glass; manage dozens of controllers with live status and power draw."
+            ],
+            [
+              "Multi-Controller Choreography",
+              "Basic UDP sync (duplicate effects on all strips simultaneously).",
+              "Sequential traveling waves, spatial wave propagation, and synchronized routine timelines."
+            ],
+            [
+              "Spatial Modeling",
+              "1D strip indexes (0 to N) or flat 2D matrix grids.",
+              "Interactive 3D WebGL space with real-world meter coordinates and spatial light anchors."
+            ],
+            [
+              "Data Persistence",
+              "Limited ESP32/ESP8266 flash memory (LittleFS / SPIFFS).",
+              "Local-first SQLite database with unlimited routines, palettes, and device history."
+            ],
+            [
+              "Schedules & Automations",
+              "Basic local time-of-day clock triggers stored on ESP.",
+              "Astronomical sun elevation triggers (sunrise, sunset, golden hour) and live weather conditions."
+            ],
+            [
+              "Media Reactivity",
+              "Audio reactive requires dedicated I2S/analog mic hardware on each ESP.",
+              "Host-level Web Audio FFT visualizer and real-time Spotify album art color extraction."
+            ],
+            [
+              "Home Assistant Integration",
+              "Individual entity per controller; manual entity organization.",
+              "Native HACS and MQTT Auto-Discovery with consolidated 3D Room and Group entities."
+            ],
+            [
+              "Fleet Backups",
+              "Manual backup of cfg.json and presets.json device-by-device.",
+              "Single-click full backup, export, and migration across your entire controller network."
+            ]
+          ]
+        },
+      },
+      {
+        title: "How They Work Together",
+        content: "WLED and WLEDashboard operate in perfect harmony. WLED handles the time-critical microsecond LED signaling on your hardware, while WLEDashboard acts as the brain and conductor across your network:",
+        diagram: [
+          "+-------------------------------------------------------------------------+",
+          "|                         WLEDashboard Central Layer                      |",
+          "|   [3D Spatial Engine]  [Studio Timelines]  [Automations]  [Spotify / Wx] |",
+          "+-------------------------------------------------------------------------+",
+          "                                    |",
+          "           Local LAN (JSON REST / WebSockets / Real-Time DDP)",
+          "           +------------------------+------------------------+",
+          "           |                        |                        |",
+          "           v                        v                        v",
+          "    +--------------+         +--------------+         +--------------+",
+          "    | WLED ESP32 #1|         | WLED ESP32 #2|         | WLED ESP32 #3|",
+          "    | (Under-Cabinet)        | (Ceiling Cove)         | (Desk Matrix)|",
+          "    +--------------+         +--------------+         +--------------+",
+          "           |                        |                        |",
+          "      [WS2812B Strip]          [SK6812 RGBW]            [16x16 Matrix]"
+        ].join("\n"),
+        callout: {
+          type: "tip",
+          title: "Best Practice Workflow",
+          text: "Use the native WLED web UI during initial hardware assembly to configure Wi-Fi, assign GPIO pins, set maximum current limits, and verify physical wiring. Once your controller is online, manage daily lighting, spatial arrangements, group scenes, and multi-device animations through WLEDashboard.",
+        },
+      },
+      {
+        title: "Quick Reference: When to Use Which Interface",
+        content: "Guidelines for when to leverage the native WLED web UI versus WLEDashboard:",
+        steps: [
+          "Use Native WLED OEM Interface for: Initial Wi-Fi provisioning, GPIO pin assignment, LED count configuration, power supply amp limiters, hardware relay pins, color channel order calibration (RGB/GRB/RGBW), and flashing OTA firmware updates.",
+          "Use WLEDashboard for: Daily lighting control, grouping controllers by room, multi-strip traveling wave animations, 3D spatial layout design, keyframe timeline authoring, Spotify artwork reactive sync, weather-based lighting automations, and unified Home Assistant integration."
+        ],
+      },
+    ],
+  },
   {
     id: "group-sync-scaling",
     category: "groups",
