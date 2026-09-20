@@ -1232,6 +1232,12 @@
   accent-color: var(--accent-cyan, #22d3ee);
 }
 
+.restoreModeOption input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--accent-cyan, #22d3ee);
+}
+
 .restoreModeOption strong {
   display: block;
   font-size: 0.875rem;

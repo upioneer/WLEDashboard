@@ -4,6 +4,127 @@ import { getDb } from '../db/database.js'
 const BACKUP_SCHEMA_VERSION = '0.22.1'
 
 /**
+ * Selective restore categories. Each category maps to the SQLite tables it owns.
+ * Together they cover all 17 backup tables exactly once.
+ */
+export const BACKUP_CATEGORIES = {
+  devices:     { label: 'Devices', tables: ['devices'] },
+  groups:      { label: 'Groups', tables: ['groups', 'group_members', 'group_children'] },
+  presets:     { label: 'Presets', tables: ['presets'] },
+  settings:    { label: 'Settings', tables: ['settings'] },
+  automations: { label: 'Routines and automations', tables: ['schedules', 'routines', 'routine_steps'] },
+  spatial:     { label: 'Spatial layouts', tables: ['dwellings', 'floors', 'rooms', 'anchors'] },
+  studio:      { label: 'Studio palettes and timelines', tables: ['animations', 'palettes', 'matrices', 'matrix_drawings'] },
+}
+
+const CATEGORY_KEYS = Object.keys(BACKUP_CATEGORIES)
+
+/** FK-safe table deletion order (children before parents). */
+const DELETE_ORDER = [
+  'matrix_drawings', 'matrices', 'animations', 'palettes',
+  'routine_steps', 'routines', 'schedules',
+  'anchors', 'rooms', 'floors', 'dwellings',
+  'presets', 'group_children', 'group_members', 'groups', 'devices',
+]
+
+function normalizeCategories(categories) {
+  if (categories === undefined || categories === null) return null
+  if (!Array.isArray(categories)) throw new Error('Invalid backup categories: expected an array.')
+  const unknown = categories.filter((c) => !CATEGORY_KEYS.includes(c))
+  if (unknown.length) throw new Error(`Unknown backup categories: ${unknown.join(', ')}.`)
+  return new Set(categories)
+}
+
+function activeTablesFor(selected) {
+  const tables = new Set()
+  const keys = selected ?? CATEGORY_KEYS
+  for (const key of keys) {
+    for (const table of BACKUP_CATEGORIES[key].tables) tables.add(table)
+  }
+  return tables
+}
+
+function idUnion(backupRows, db, table) {
+  const ids = new Set()
+  for (const row of backupRows) {
+    if (row && row.id) ids.add(row.id)
+  }
+  try {
+    for (const row of db.prepare(`SELECT id FROM ${table}`).all()) ids.add(row.id)
+  } catch (_) {}
+  return ids
+}
+
+/**
+ * Dependency graph validator for partial restores.
+ * Drops child rows whose parents are absent from both the backup selection
+ * and the surviving database state, and nulls optional foreign keys instead
+ * of dropping the row. Returns filtered arrays plus skip counts and warnings.
+ */
+export function validateBackupReferences(data, db, clearedTables) {
+  const skipped = {}
+  const warnings = []
+  const drop = (table, rows, keep) => {
+    const kept = rows.filter(keep)
+    const n = rows.length - kept.length
+    if (n > 0) {
+      skipped[table] = (skipped[table] ?? 0) + n
+      warnings.push(`${n} ${table} row(s) skipped: parent reference missing from backup and database.`)
+    }
+    return kept
+  }
+
+  const survivingIds = (backupRows, table) => {
+    const ids = new Set()
+    for (const row of backupRows) {
+      if (row && row.id) ids.add(row.id)
+    }
+    if (!clearedTables.has(table)) {
+      for (const id of idUnion([], db, table)) ids.add(id)
+    }
+    return ids
+  }
+
+  const deviceIds = survivingIds(data.devices, 'devices')
+  const groupIds = survivingIds(data.groups, 'groups')
+  const routineIds = survivingIds(data.routines, 'routines')
+  const dwellingIds = survivingIds(data.dwellings, 'dwellings')
+  const floorIds = survivingIds(data.floors, 'floors')
+  const roomIds = survivingIds(data.rooms, 'rooms')
+
+  data.group_members = drop('group_members', data.group_members,
+    (m) => m && groupIds.has(m.group_id) && deviceIds.has(m.device_id))
+  data.group_children = drop('group_children', data.group_children,
+    (c) => c && groupIds.has(c.parent_group_id) && groupIds.has(c.child_group_id))
+  data.floors = drop('floors', data.floors, (f) => f && dwellingIds.has(f.dwelling_id))
+  data.rooms = drop('rooms', data.rooms, (r) => r && floorIds.has(r.floor_id))
+  data.anchors = drop('anchors', data.anchors, (a) => a && roomIds.has(a.room_id))
+  data.routine_steps = drop('routine_steps', data.routine_steps,
+    (s) => s && routineIds.has(s.routine_id))
+
+  for (const a of data.anchors) {
+    if (a && a.device_id && !deviceIds.has(a.device_id)) {
+      a.device_id = null
+      warnings.push(`Anchor "${a.name ?? a.id}" kept with device unlinked: device missing from backup and database.`)
+    }
+  }
+  for (const p of data.presets) {
+    if (p && p.group_id && !groupIds.has(p.group_id)) {
+      p.group_id = null
+      warnings.push(`Preset "${p.name ?? p.id}" kept with group unlinked: group missing from backup and database.`)
+    }
+  }
+  for (const m of data.matrices) {
+    if (m && m.device_id && !deviceIds.has(m.device_id)) {
+      m.device_id = null
+      warnings.push(`Matrix "${m.name ?? m.id}" kept with device unlinked: device missing from backup and database.`)
+    }
+  }
+
+  return { skipped, warnings }
+}
+
+/**
  * Export full system configuration as JSON object.
  * Covers all user-editable SQLite tables introduced up to the current schema version.
  */
@@ -79,14 +200,18 @@ export function exportConfig() {
  * Tables that are read-only system tables (schema_version) are never modified.
  * Settings are always merged key-by-key to prevent wiping system-injected defaults.
  */
-export function importConfig(configObj, mode = 'merge') {
+export function importConfig(configObj, mode = 'merge', options = {}) {
   if (!configObj || typeof configObj !== 'object' || !configObj.data) {
     throw new Error('Invalid backup format: missing data envelope.')
   }
 
+  const selected = normalizeCategories(options?.categories)
+  const active = activeTablesFor(selected)
+  const clearedTables = mode === 'replace' ? new Set(active) : new Set()
+
   const db = getDb()
 
-  const {
+  let {
     devices        = [],
     groups         = [],
     group_members  = [],
@@ -106,25 +231,45 @@ export function importConfig(configObj, mode = 'merge') {
     matrix_drawings = [],
   } = configObj.data
 
+  // Selective restore: ignore tables outside the chosen categories.
+  // groups, group_members, and group_children share one category.
+  if (!active.has('devices')) devices = []
+  if (!active.has('groups')) { groups = []; group_members = []; group_children = [] }
+  if (!active.has('settings')) settings = []
+  if (!active.has('presets')) presets = []
+  if (!active.has('schedules')) schedules = []
+  if (!active.has('routines')) routines = []
+  if (!active.has('routine_steps')) routine_steps = []
+  if (!active.has('dwellings')) dwellings = []
+  if (!active.has('floors')) floors = []
+  if (!active.has('rooms')) rooms = []
+  if (!active.has('anchors')) anchors = []
+  if (!active.has('animations')) animations = []
+  if (!active.has('palettes')) palettes = []
+  if (!active.has('matrices')) matrices = []
+  if (!active.has('matrix_drawings')) matrix_drawings = []
+
+  const refData = {
+    devices, groups, group_members, group_children, settings, presets,
+    schedules, routines, routine_steps, dwellings, floors, rooms, anchors,
+    animations, palettes, matrices, matrix_drawings,
+  }
+  const { skipped, warnings } = validateBackupReferences(refData, db, clearedTables)
+  devices = refData.devices; groups = refData.groups
+  group_members = refData.group_members; group_children = refData.group_children
+  settings = refData.settings; presets = refData.presets
+  schedules = refData.schedules; routines = refData.routines; routine_steps = refData.routine_steps
+  dwellings = refData.dwellings; floors = refData.floors; rooms = refData.rooms; anchors = refData.anchors
+  animations = refData.animations; palettes = refData.palettes
+  matrices = refData.matrices; matrix_drawings = refData.matrix_drawings
+
   db.transaction(() => {
     if (mode === 'replace') {
-      // Delete in FK-safe order (children before parents)
-      db.prepare('DELETE FROM matrix_drawings').run()
-      db.prepare('DELETE FROM matrices').run()
-      db.prepare('DELETE FROM animations').run()
-      db.prepare('DELETE FROM palettes').run()
-      db.prepare('DELETE FROM routine_steps').run()
-      db.prepare('DELETE FROM routines').run()
-      db.prepare('DELETE FROM schedules').run()
-      db.prepare('DELETE FROM anchors').run()
-      db.prepare('DELETE FROM rooms').run()
-      db.prepare('DELETE FROM floors').run()
-      db.prepare('DELETE FROM dwellings').run()
-      db.prepare('DELETE FROM presets').run()
-      db.prepare('DELETE FROM group_children').run()
-      db.prepare('DELETE FROM group_members').run()
-      db.prepare('DELETE FROM groups').run()
-      db.prepare('DELETE FROM devices').run()
+      // Delete in FK-safe order (children before parents), scoped to selected tables.
+      // Settings are never cleared: they always merge key-by-key below.
+      for (const table of DELETE_ORDER) {
+        if (active.has(table)) db.prepare(`DELETE FROM ${table}`).run()
+      }
     }
 
     // ── Devices ───────────────────────────────────────────────────────────────
@@ -461,5 +606,7 @@ export function importConfig(configObj, mode = 'merge') {
       matrices: matrices.length,
       matrix_drawings: matrix_drawings.length,
     },
+    skipped,
+    warnings,
   }
 }

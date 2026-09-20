@@ -4,7 +4,17 @@ import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs'
 
-const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wled-settings-test-'))
+function makeTempDir(prefix) {
+  try {
+    return fs.mkdtempSync(path.join(os.tmpdir(), prefix))
+  } catch {
+    const fallbackBase = path.join(process.cwd(), '.test-tmp')
+    fs.mkdirSync(fallbackBase, { recursive: true })
+    return fs.mkdtempSync(path.join(fallbackBase, `${prefix}-`))
+  }
+}
+
+const tmpDir = makeTempDir('wled-settings-test-')
 process.env.DATA_DIR = tmpDir
 
 // Import after DATA_DIR is set

@@ -114,10 +114,10 @@
 * [x] Implement Virtual Scrolling for the Dashboard (handling 100+ devices)
 * [x] Implement the Setup Wizard for the 3D Procedural Layout Engine
 
-## PLANNED: PHASE 11 (AI Control & Media Sync)
+## COMPLETED: PHASE 11 (AI Control & Media Sync)
 
-* [ ] Fastify MCP (Model Context Protocol) / ACP Server integration
-* [ ] Expose MCP tools (`get_devices`, `set_state`, `apply_palette`) for AI Natural Language Control
+* [x] Fastify MCP (Model Context Protocol) / ACP Server integration
+* [x] Expose MCP tools (`get_devices`, `set_state`, `apply_palette`) for AI Natural Language Control
 * [x] Spotify "Now Playing" API OAuth & Webhook integration
 * [x] Real-time album art dominant color extraction (via `node-vibrant`) and WLED palette application
 
@@ -142,11 +142,11 @@
 * [x] Settings view Backup & Restore section with 1 click JSON download trigger (`GET /api/config/export`) and file picker upload trigger (`POST /api/config/import`) with merge vs replace mode toggle
 * [x] Import validation: schema version compatibility check ("Backup is vX.Y.Z and you are currently on vA.B.C"), pre import row count preview grid, and post import success confirmation toast
 
-## PLANNED: PHASE 15 (Selective and Granular Backup Restore)
+## COMPLETED: PHASE 15 (Selective and Granular Backup Restore)
 
-* [ ] Granular module opt in checkboxes in the restore preview modal allowing users to selectively deploy specific subsets of backup data (such as devices only, devices and groups, spatial layouts only, routines and automations, or studio palettes)
-* [ ] Dependency graph validator ensuring parent references (such as groups referencing devices, or anchors referencing rooms and devices) remain coherent during partial restore operations
-* [ ] Selective Merge and Replace execution modes scoped down to user selected data categories without touching unselected tables
+* [x] Granular module opt in checkboxes in the restore preview modal allowing users to selectively deploy specific subsets of backup data (such as devices only, devices and groups, spatial layouts only, routines and automations, or studio palettes)
+* [x] Dependency graph validator ensuring parent references (such as groups referencing devices, or anchors referencing rooms and devices) remain coherent during partial restore operations
+* [x] Selective Merge and Replace execution modes scoped down to user selected data categories without touching unselected tables
 
 ## FUTURE BACKLOG (Rainy Day)
 
@@ -156,4 +156,7 @@
 * [ ] Segment control in the 3D spatial visualizer with declared bend angles at specified pixel counts
 * [x] Proxmox VE Helper Script for 1 click LXC automated container deployment
 * [ ] GhostPoly inspired procedural blueprint to 3D room spatial mesh extrusion
+* [x] Unraid deployment support (Community Applications template + install/unraid guide + compose yml), mirroring TrueNAS helper approach. Yml must carry commented bridge vs host guidance inline. All Unraid docs (install readme, inbuilt Guides, docs) must cover bridge limitations and host/br0 workarounds. Repo side complete; Community Applications listing submission is an external PR and still pending, same as TrueNAS
+* [ ] NEXT RELEASE: submit Unraid Community Applications template PR to the official channel and track reviewer feedback
+* [ ] NEXT RELEASE: submit Proxmox VE helper script PR to the official channel and track reviewer feedback
 

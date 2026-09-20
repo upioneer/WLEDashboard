@@ -57,7 +57,12 @@ export const groupsApi = {
 // ─── Config (Export/Import) ───────────────────────────────────────────────────
 export const configApi = {
   export: () => request('GET', '/config/export'),
-  import: (data, mode = 'merge') => request('POST', '/config/import', { data, mode }),
+  categories: () => request('GET', '/config/categories'),
+  import: (data, mode = 'merge', categories) => request(
+    'POST',
+    '/config/import',
+    categories ? { data, mode, categories } : { data, mode },
+  ),
 }
 
 // ─── Automation (Schedules & Routines) ────────────────────────────────────────

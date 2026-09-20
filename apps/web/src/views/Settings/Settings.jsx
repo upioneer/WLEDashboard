@@ -49,6 +49,19 @@ const CONTRIBUTORS = [
   { name: 'zero-degrees28', platform: 'reddit' },
 ].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
 
+// Selective restore categories. Mirrors BACKUP_CATEGORIES in apps/api/src/services/configService.js.
+const RESTORE_CATEGORIES = [
+  { key: 'devices', label: 'Devices', hint: 'Controllers, IPs, and hardware details.', tables: ['devices'] },
+  { key: 'groups', label: 'Groups', hint: 'Groups plus device and group memberships.', tables: ['groups', 'group_members', 'group_children'] },
+  { key: 'presets', label: 'Presets', hint: 'Saved device and group states.', tables: ['presets'] },
+  { key: 'settings', label: 'Settings', hint: 'App settings, merged key by key.', tables: ['settings'] },
+  { key: 'automations', label: 'Routines and automations', hint: 'Schedules, routines, and routine steps.', tables: ['schedules', 'routines', 'routine_steps'] },
+  { key: 'spatial', label: 'Spatial layouts', hint: 'Dwellings, floors, rooms, and anchors.', tables: ['dwellings', 'floors', 'rooms', 'anchors'] },
+  { key: 'studio', label: 'Studio palettes and timelines', hint: 'Animations, palettes, matrices, and drawings.', tables: ['animations', 'palettes', 'matrices', 'matrix_drawings'] },
+]
+
+const ALL_RESTORE_CATEGORIES = RESTORE_CATEGORIES.map((c) => c.key)
+
 export function Settings() {
   const addToast = useUIStore(s => s.addToast)
   const liveWeatherWs = useUIStore(s => s.weatherState)
@@ -88,6 +101,7 @@ export function Settings() {
   const [restorePreview, setRestorePreview]     = useState(null)   // parsed backup envelope before commit
   const [restoreMode, setRestoreMode]           = useState('merge') // 'merge' | 'replace'
   const [showReplaceConfirm, setShowReplaceConfirm] = useState(false)
+  const [selectedCategories, setSelectedCategories] = useState(ALL_RESTORE_CATEGORIES)
   const fileInputRef = useRef(null)
 
   const debounceTimers = useRef({})
@@ -336,6 +350,9 @@ export function Settings() {
         }
         setRestorePreview(parsed)
         setRestoreState('previewing')
+        setSelectedCategories(ALL_RESTORE_CATEGORIES)
+        setRestoreMode('merge')
+        setShowReplaceConfirm(false)
       } catch {
         addToast({ message: 'Invalid backup file: could not parse JSON', type: 'error' })
       }
@@ -347,26 +364,45 @@ export function Settings() {
     setRestorePreview(null)
     setRestoreState('idle')
     setShowReplaceConfirm(false)
+    setSelectedCategories(ALL_RESTORE_CATEGORIES)
+    setRestoreMode('merge')
+  }, [])
+
+  const toggleRestoreCategory = useCallback((key) => {
+    setSelectedCategories((prev) => (
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    ))
+    setShowReplaceConfirm(false)
   }, [])
 
   // ── Restore: Commit ──────────────────────────────────────────────────────────
   const handleRestoreCommit = useCallback(async () => {
-    if (!restorePreview?.data) return
+    if (!restorePreview?.data || selectedCategories.length === 0) return
     setRestoreState('importing')
     try {
-      const result = await configApi.import(restorePreview.data, restoreMode)
+      const scoped = selectedCategories.length < ALL_RESTORE_CATEGORIES.length
+      const result = await configApi.import(
+        restorePreview.data,
+        restoreMode,
+        scoped ? selectedCategories : undefined,
+      )
+      const skippedCount = Object.values(result.skipped ?? {}).reduce((n, v) => n + v, 0)
       addToast({
-        message: `Restore complete. Devices: ${result.stats.devices}, Routines: ${result.stats.routines}, Rooms: ${result.stats.rooms}`,
+        message: `Restore complete. Devices: ${result.stats.devices}, Routines: ${result.stats.routines}, Rooms: ${result.stats.rooms}${skippedCount > 0 ? `, Skipped orphans: ${skippedCount}` : ''}`,
         type: 'success',
       })
+      if ((result.warnings ?? []).length > 0) {
+        addToast({ message: result.warnings[0], type: 'error' })
+      }
       setRestorePreview(null)
       setRestoreState('idle')
       setShowReplaceConfirm(false)
+      setSelectedCategories(ALL_RESTORE_CATEGORIES)
     } catch (err) {
       addToast({ message: `Restore failed: ${err.message}`, type: 'error' })
       setRestoreState('previewing')
     }
-  }, [restorePreview, restoreMode, addToast])
+  }, [restorePreview, restoreMode, selectedCategories, addToast])
 
   if (loading) {
     return (
@@ -1431,6 +1467,34 @@ export function Settings() {
                 )}
 
                 <div className={styles.restoreModeRow}>
+                  <span className={styles.restoreModeLabel}>Restore scope (uncheck to skip):</span>
+                  <div className={styles.restoreModeOptions}>
+                    {RESTORE_CATEGORIES.map((cat) => {
+                      const catCount = cat.tables.reduce((n, t) => n + (counts[t] ?? 0), 0)
+                      return (
+                        <label key={cat.key} className={styles.restoreModeOption}>
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(cat.key)}
+                            onChange={() => toggleRestoreCategory(cat.key)}
+                            aria-label={`Restore ${cat.label}`}
+                          />
+                          <div>
+                            <strong>{cat.label} ({catCount})</strong>
+                            <p>{cat.hint} Child records with missing parents are skipped automatically.</p>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  {selectedCategories.length === 0 && (
+                    <div className={styles.restoreReplaceWarning}>
+                      <strong>Select at least one category to restore.</strong>
+                    </div>
+                  )}
+                </div>
+
+                <div className={styles.restoreModeRow}>
                   <span className={styles.restoreModeLabel}>Restore mode:</span>
                   <div className={styles.restoreModeOptions}>
                     <label className={styles.restoreModeOption}>
@@ -1464,7 +1528,7 @@ export function Settings() {
 
                 {restoreMode === 'replace' && !showReplaceConfirm && (
                   <div className={styles.restoreReplaceWarning}>
-                    <strong>Replace mode will permanently erase all current devices, groups, automations, spatial layouts, and studio content before restoring.</strong> Click Confirm Replace below to acknowledge this is intentional.
+                    <strong>Replace mode will permanently erase {selectedCategories.length < ALL_RESTORE_CATEGORIES.length ? `current data in the selected categories (${selectedCategories.join(', ')})` : 'all current devices, groups, automations, spatial layouts, and studio content'} before restoring.</strong> Click Confirm Replace below to acknowledge this is intentional.
                   </div>
                 )}
 
@@ -1489,7 +1553,7 @@ export function Settings() {
                       type="button"
                       className={restoreMode === 'replace' ? styles.backupBtnDanger : styles.backupBtn}
                       onClick={handleRestoreCommit}
-                      disabled={restoreState === 'importing'}
+                      disabled={restoreState === 'importing' || selectedCategories.length === 0}
                     >
                       {restoreState === 'importing' ? 'Restoring...' : (restoreMode === 'replace' ? 'Replace & Restore' : 'Merge & Restore')}
                     </button>

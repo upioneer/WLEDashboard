@@ -676,6 +676,21 @@ export const GUIDES = [
         },
       },
       {
+        title: "Unraid Deployment (Community Applications Template & Compose Stack)",
+        content: "On Unraid, WLEDashboard deploys from the prebuilt image ghcr.io/upioneer/wledashboard:latest with no build step. Install the Community Applications template from Apps (or sideload install/unraid/wledashboard.xml via Docker > Add Container), or paste install/unraid/docker-compose.unraid.yml into a Compose Manager stack. Both paths serve the UI on port 8301 and map AppData (/mnt/user/appdata/wledashboard) to /app/data in the container:",
+        code: {
+          language: "bash",
+          description: "Manual template URL for Docker > Add Container",
+          content: "https://raw.githubusercontent.com/upioneer/WLEDashboard/master/install/unraid/wledashboard.xml",
+        },
+        steps: [
+          "Bridge Mode (Default): Works everywhere with zero setup. Web UI on port 8301. Limitation: UDP multicast mDNS discovery (224.0.0.251:5353) never crosses the docker0 bridge, so add controllers by typing their LAN IP in the dashboard or Device Manager. Polling, control, groups, spatial, automations, and MQTT are unaffected.",
+          "Host Mode Workaround: Switch the container Network to host for native mDNS auto-discovery. Tradeoff: port mappings are ignored, port 8301 must be free on the Unraid host, and the container shares the host firewall surface.",
+          "Custom br0 Workaround: Assign the container its own LAN IP for discovery without host port conflicts (reserve the IP in your DHCP server). Quirk: the Unraid host cannot reach br0 container IPs directly because of macvlan isolation, so open the UI from another LAN device.",
+          "Updates: Pull and recreate (docker compose pull && docker compose up -d). Never use down -v, which deletes mapped data. Keep /mnt/user/appdata/wledashboard in CA Backup and export JSON snapshots from Settings > Backup & Restore.",
+        ],
+      },
+      {
         title: "Updating Your Container (Zero Downtime & Persistence)",
         content: "Upgrading WLEDashboard to a new release is safe, instant, and preserves all user configurations, device associations, spatial layouts, routines, and custom color palettes:",
         code: {

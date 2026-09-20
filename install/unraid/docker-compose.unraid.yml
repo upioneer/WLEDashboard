@@ -1,0 +1,74 @@
+# WLEDashboard on Unraid (Compose Manager plugin or standalone docker compose)
+# Copyright (c) 2026 upioneer. All Rights Reserved. See LICENSE.md.
+#
+# QUICK START (Compose Manager plugin):
+#   1. Unraid > Plugins > install "Compose Manager" (dceejay).
+#   2. Create a stack (e.g. /boot/compose/wledashboard) and paste this file.
+#   3. Compose Up. Open http://<unraid-ip>:8301.
+#
+# ==============================================================================
+# NETWORKING: BRIDGE (default) vs HOST vs CUSTOM br0
+# ==============================================================================
+# OPTION A - BRIDGE (this file, recommended starting point):
+#   Works everywhere with zero setup. The web UI is published on port 8301 and
+#   every feature works EXCEPT zero-configuration mDNS auto-discovery, because
+#   multicast (224.0.0.251:5353) does not cross the docker0 bridge into the
+#   container. Workaround: add controllers by typing their LAN IP in the
+#   dashboard or Device Manager. Polling, control, groups, 3D spatial,
+#   automations, MQTT, and Spotify/weather sync are all unaffected.
+#
+# OPTION B - HOST (native mDNS discovery):
+#   Gives the container the Unraid host network stack, so mDNS auto-discovery
+#   works out of the box. Tradeoffs, decide on the spot:
+#     - The 'ports:' section below MUST be removed (host mode ignores it, and
+#       a stale mapping will fail validation in Compose Manager).
+#     - Port 8301 must be free on the Unraid host itself. If another service
+#       (or a second WLEDashboard) already binds 8301, the container exits.
+#     - The container shares the host firewall surface. Fine on a trusted LAN,
+#       but prefer bridge if this host is exposed beyond your LAN.
+#   To switch: delete 'ports:' and add 'network_mode: host' (both lines are
+#   pre-written and commented out below).
+#
+# OPTION C - CUSTOM br0 (static LAN IP, e.g. 192.168.1.50):
+#   Assigns the container its own address on your physical LAN via a macvlan
+#   bridge. You get native mDNS AND no host port conflicts, at the cost of
+#   managing one more LAN IP (reserve it in your DHCP server or router).
+#   Unraid quirk: the host cannot reach a br0 container IP directly
+#   (macvlan host isolation), so manage it from another LAN device.
+#   To switch: set 'network_mode' to your br0 network name and give the service
+#   a static ipv4_address. Requires the br0 network to exist in Unraid
+#   (Settings > Network Settings > Enable bridging).
+#
+# UPGRADES (never lose data):
+#   Compose Manager > stack > Pull + Up, or:
+#     docker compose pull && docker compose up -d
+#   NEVER use 'down -v': the -v flag deletes the appdata bind contents.
+#   The SQLite database lives at /mnt/user/appdata/wledashboard on the host
+#   (mapped to /app/data in the container). Back it up via the Unraid CA
+#   Backup plugin, or from inside WLEDashboard via Settings > Backup & Restore.
+# ==============================================================================
+
+services:
+  wledashboard:
+    image: ghcr.io/upioneer/wledashboard:latest
+    container_name: wledashboard
+    restart: unless-stopped
+    # --- OPTION A (bridge, default): publish the web UI port ---
+    ports:
+      - "8301:8301"
+    # --- OPTION B (host): delete 'ports:' above and uncomment next line ---
+    # network_mode: host
+    # --- OPTION C (custom br0): delete 'ports:' above and uncomment below ---
+    # networks:
+    #   br0_lan:
+    #     ipv4_address: 192.168.1.50
+    volumes:
+      - /mnt/user/appdata/wledashboard:/app/data
+    environment:
+      - NODE_ENV=production
+
+# --- OPTION C only: define the external br0 network (uncomment with above) ---
+# networks:
+#   br0_lan:
+#     name: br0
+#     external: true

@@ -1,8 +1,11 @@
 import { z } from 'zod'
-import { exportConfig, importConfig } from '../services/configService.js'
+import { exportConfig, importConfig, BACKUP_CATEGORIES } from '../services/configService.js'
+
+const CATEGORY_KEYS = Object.keys(BACKUP_CATEGORIES)
 
 const ImportSchema = z.object({
   mode: z.enum(['merge', 'replace']).optional().default('merge'),
+  categories: z.array(z.enum(CATEGORY_KEYS)).optional(),
   data: z.object({
     devices:         z.array(z.record(z.unknown())).optional(),
     groups:          z.array(z.record(z.unknown())).optional(),
@@ -33,13 +36,19 @@ export async function configRoutes(fastify) {
     return config
   })
 
-  // POST /api/config/import - Import JSON backup (merge or replace mode)
+  // GET /api/config/categories - Selective restore categories and their tables
+  fastify.get('/config/categories', async () => {
+    return { categories: BACKUP_CATEGORIES }
+  })
+
+  // POST /api/config/import - Import JSON backup (merge or replace mode,
+  // optionally scoped to a subset of categories)
   fastify.post('/config/import', async (req, reply) => {
     const parsed = ImportSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
 
     try {
-      const result = importConfig(parsed.data, parsed.data.mode)
+      const result = importConfig(parsed.data, parsed.data.mode, { categories: parsed.data.categories })
       return result
     } catch (err) {
       return reply.code(400).send({ error: err.message ?? 'Import failed' })

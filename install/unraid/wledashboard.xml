@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  WLEDashboard Community Applications template for Unraid.
+  Copyright (c) 2026 upioneer. All Rights Reserved. See LICENSE.md.
+
+  INSTALL (before this template is listed in Community Applications):
+    Unraid > Apps > search "WLEDashboard", or paste this URL via
+    Docker > Add Container > Template > Template URL:
+      https://raw.githubusercontent.com/upioneer/WLEDashboard/master/install/unraid/wledashboard.xml
+
+  NETWORKING NOTE (bridge vs host):
+    This template defaults to bridge mode, which works everywhere with zero
+    setup: the web UI is published on port 8301 and every feature works except
+    zero-configuration mDNS auto-discovery (multicast 224.0.0.251:5353 does not
+    cross the docker0 bridge). In bridge mode, add controllers by typing their
+    LAN IP in the dashboard or Device Manager.
+    Advanced users who want native mDNS discovery can switch Network to host
+    (or assign a custom br0 address) in the container settings. Host mode gives
+    the container the Unraid host network stack, so mDNS works, but port
+    mappings are ignored and any host port conflict will prevent startup.
+    See install/unraid/README.md and docs/unraid.md for the full tradeoff table.
+-->
+<Container version="2">
+  <Name>WLEDashboard</Name>
+  <Repository>ghcr.io/upioneer/wledashboard:latest</Repository>
+  <Registry>https://github.com/upioneer/WLEDashboard</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/upioneer/WLEDashboard/issues</Support>
+  <Project>https://wledashboard.com</Project>
+  <Overview>Premium local-first control surface for WLED firmware devices: multi-device dashboard, 3D spatial view, effect studio, automations, MQTT bridge, and full JSON backup and restore. Data persists in embedded SQLite under /app/data.</Overview>
+  <Category>HomeAutomation:MediaServer:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:8301]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/upioneer/WLEDashboard/master/install/unraid/wledashboard.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/upioneer/WLEDashboard/master/apps/web/public/icon-512.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <Cmd/>
+  <DonateText/>
+  <DonateLink/>
+  <Description>WLEDashboard on Unraid. Bridge mode (default): web UI on port 8301, add WLED controllers by IP. For zero-configuration mDNS discovery, switch Network to host or a custom br0 address instead. AppData maps to /app/data and must be preserved across updates.</Description>
+  <Config Name="WebUI Port" Target="8301" Default="8301" Mode="tcp" Description="WLEDashboard web interface port. Ignored when Network is set to host." Type="Port" Display="always" Required="true" Mask="false">8301</Config>
+  <Config Name="AppData" Target="/app/data" Default="/mnt/user/appdata/wledashboard" Mode="rw" Description="Persistent storage for the SQLite database and settings. Never delete this mapping on update or your configuration is lost." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/wledashboard</Config>
+  <Config Name="NODE_ENV" Target="NODE_ENV" Default="production" Mode="" Description="Runtime mode. Keep at production." Type="Variable" Display="advanced" Required="false" Mask="false">production</Config>
+</Container>

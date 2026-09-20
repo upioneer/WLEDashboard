@@ -82,6 +82,12 @@ Install WLEDashboard directly to your mobile home screen on iOS and Android for 
 
 ![Mobile Progressive Web App](project_details/changelog/v0.18.0/screenshots/08-mobile-dashboard.png)
 
+### Selective Backup Restore
+
+Restore exactly what you need from any backup with per category opt in checkboxes covering devices, groups, presets, settings, automations, spatial layouts, and studio content. A dependency validator keeps parent references coherent by skipping orphaned child records automatically, in both merge and replace modes.
+
+![Selective Backup Restore](project_details/changelog/v0.24.0/screenshots/settings-restore-scope.png)
+
 ---
 
 ## Core Features
