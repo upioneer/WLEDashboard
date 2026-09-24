@@ -24,6 +24,7 @@ const ImportSchema = z.object({
     palettes:        z.array(z.record(z.unknown())).optional(),
     matrices:        z.array(z.record(z.unknown())).optional(),
     matrix_drawings: z.array(z.record(z.unknown())).optional(),
+    studio_objects: z.array(z.record(z.unknown())).optional(),
   }),
 })
 

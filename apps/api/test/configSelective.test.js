@@ -25,12 +25,12 @@ test('Phase 15 selective restore', async (t) => {
   const fastify = Fastify({ logger: false })
   await fastify.register(configRoutes)
 
-  await t.test('GET /api/config/categories covers all 17 tables', async () => {
+  await t.test('GET /api/config/categories covers all 18 tables', async () => {
     const res = await fastify.inject({ method: 'GET', url: '/config/categories' })
     assert.equal(res.statusCode, 200)
     const body = JSON.parse(res.body)
     const tables = Object.values(body.categories).flatMap((c) => c.tables)
-    assert.equal(new Set(tables).size, 17)
+    assert.equal(new Set(tables).size, 18)
   })
 
   await t.test('POST /api/config/import restores only selected categories in merge mode', async () => {

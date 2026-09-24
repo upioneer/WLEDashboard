@@ -49,7 +49,7 @@ export const GUIDES = [
           "Single Pane of Glass Fleet Management: Monitor and control your entire fleet of controllers from a unified interface with real-time heartbeat monitoring, live power telemetry, instant search, and master controls.",
           "3D Spatial Layout & Virtual Light Anchors: Position fixtures in a 3D WebGL viewport using real-world metric dimensions. Group lights by physical room volumes, coordinate multi-fixture directional lighting, and export spatial rooms to Home Assistant.",
           "Continuous Traveling Waves & Multi-Controller Choreography: Create animations that smoothly cross physical controller boundaries using virtual DDP routing, segment cascading, and automated routine phase delays.",
-          "Studio Keyframe Timelines & 2D Matrix Canvas: Design complex multi-track keyframe timelines, custom color palette interpolations, frame-by-frame pixel matrix art, and real-time audio FFT frequency visualizations.",
+          "Studio Timelines, 2D Matrix & 3D Objects: Design complex multi-track keyframe timelines, custom color palette interpolations, frame-by-frame pixel matrix art, real-time audio FFT frequency visualizations, and parametric 3D object blueprints.",
           "Astronomical & Meteorological Automations: Leverage SunCalc-powered astronomical triggers (sunrise, sunset, dusk, dawn, golden hour) and live OpenWeatherMap condition polling for dynamic weather-reactive lighting (lightning strobes, rain ripple, snowfall sparkle).",
           "Real-Time Spotify Synchronization: Extract dominant color palettes from active Spotify album artwork in real time and distribute dynamic ambient lighting across selected rooms or zones.",
           "Unified Home Assistant Integration: Eliminate dozens of manual entities with automatic discovery and consolidated Room Lights, Group Lights, and Studio Routine buttons over native HACS and MQTT Auto-Discovery.",
@@ -547,10 +547,10 @@ export const GUIDES = [
   {
     id: "studio-timelines-matrix",
     category: "studio",
-    title: "Effect Studio, Timelines & 2D Matrix Canvas",
-    summary: "Design custom keyframe animation timelines, browse WLED presets, and paint 2D matrix pixel artwork.",
-    readTime: "5 min read",
-    tags: ["studio", "timeline", "keyframes", "presets", "palettes", "matrix", "audio"],
+    title: "Effect Studio, Timelines, 2D Matrix & 3D Objects",
+    summary: "Design custom keyframe animation timelines, browse WLED presets, paint 2D matrix pixel artwork, and construct parametric 3D objects with power math.",
+    readTime: "6 min read",
+    tags: ["studio", "timeline", "keyframes", "presets", "palettes", "matrix", "audio", "3d", "blueprint"],
     sections: [
       {
         title: "Preset Browser",
@@ -574,6 +574,17 @@ export const GUIDES = [
       {
         title: "Audio Visualizer Streaming",
         content: "The Audio Visualizer captures microphone or system audio input in the browser, processes fast Fourier transform (FFT) frequency spectrum bands, and streams real-time color frames directly to your WLED controller over UDP DDP packets (port 4048).",
+      },
+      {
+        title: "3D Objects & Blueprint Safety",
+        content: "The 3D Objects tab turns real dimensions into a shopping list: pick a cone, cylinder, sphere, box, or plane, enter measurements in meters, choose a layout strategy, and set LED density. The blueprint reports total LED count, wire path length, strip to buy with 5% slack, a per run cut list, and PSU sizing computed at 100% bright white with 20% headroom. Select your exact LED chip (WS2812B, SK6812, WS2811, TM1814): WLED firmware cannot detect what is wired, so power math always starts from your selection.",
+        steps: [
+          "Power injection: feed power every 300 LEDs (about every 5 meters). Long runs brown out at the far end without extra feeds.",
+          "Common ground is mandatory: PSU ground, ESP ground, and strip ground must all be tied together, or the data signal has no voltage reference and pixels flicker or freeze.",
+          "Never power a long strip through the ESP board. Feed the strip directly from the supply and fuse the positive lead near the supply.",
+          "Disconnect power before wiring. Verify polarity and voltage (5V versus 12V) before first power on.",
+          "Lower brightness, colors, and patterns draw proportionally less than the full white sizing: the blueprint is the safe minimum, not the typical draw.",
+        ],
       },
     ],
   },
@@ -722,7 +733,7 @@ export const GUIDES = [
       },
       {
         title: "Backup & Restore: Full Configuration Snapshot",
-        content: "WLEDashboard supports a full JSON backup and restore covering all 17 database tables: devices, groups, group memberships, presets, schedules, routines, routine steps, spatial dwellings, floors, rooms, anchors, animations, palettes, matrices, matrix drawings, and settings. Backups are performed from Settings > Backup & Restore.",
+        content: "WLEDashboard supports a full JSON backup and restore covering all 18 database tables: devices, groups, group memberships, presets, schedules, routines, routine steps, spatial dwellings, floors, rooms, anchors, animations, palettes, matrices, matrix drawings, studio objects, and settings. Backups are performed from Settings > Backup & Restore.",
         steps: [
           "Export: Click Download Backup in Settings. A timestamped JSON file (e.g. wledashboard-backup-v0.21.0-2026-09-16.json) downloads to your browser. No server restart required. Safe to run at any time.",
           "Migrate Between Hosts: Copy the backup file to the new host, launch the container, and use Restore from Backup to load the file. All devices, spatial layouts, automations, and palettes transfer instantly.",

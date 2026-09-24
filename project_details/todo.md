@@ -159,4 +159,5 @@
 * [x] Unraid deployment support (Community Applications template + install/unraid guide + compose yml), mirroring TrueNAS helper approach. Yml must carry commented bridge vs host guidance inline. All Unraid docs (install readme, inbuilt Guides, docs) must cover bridge limitations and host/br0 workarounds. Repo side complete; Community Applications listing submission is an external PR and still pending, same as TrueNAS
 * [ ] NEXT RELEASE: submit Unraid Community Applications template PR to the official channel and track reviewer feedback
 * [ ] NEXT RELEASE: submit Proxmox VE helper script PR to the official channel and track reviewer feedback
+* [ ] LATER: affiliate product links on blueprint shopping lists (disclosed, health checked), once the list format survives real builds
 

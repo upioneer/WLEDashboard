@@ -1,7 +1,7 @@
 import { getDb } from '../db/database.js'
 
 // Current schema version identifier -- update this when new tables or columns are added.
-const BACKUP_SCHEMA_VERSION = '0.22.1'
+const BACKUP_SCHEMA_VERSION = '0.24.0'
 
 /**
  * Selective restore categories. Each category maps to the SQLite tables it owns.
@@ -14,14 +14,14 @@ export const BACKUP_CATEGORIES = {
   settings:    { label: 'Settings', tables: ['settings'] },
   automations: { label: 'Routines and automations', tables: ['schedules', 'routines', 'routine_steps'] },
   spatial:     { label: 'Spatial layouts', tables: ['dwellings', 'floors', 'rooms', 'anchors'] },
-  studio:      { label: 'Studio palettes and timelines', tables: ['animations', 'palettes', 'matrices', 'matrix_drawings'] },
+  studio:      { label: 'Studio palettes and timelines', tables: ['animations', 'palettes', 'matrices', 'matrix_drawings', 'studio_objects'] },
 }
 
 const CATEGORY_KEYS = Object.keys(BACKUP_CATEGORIES)
 
 /** FK-safe table deletion order (children before parents). */
 const DELETE_ORDER = [
-  'matrix_drawings', 'matrices', 'animations', 'palettes',
+  'matrix_drawings', 'matrices', 'animations', 'palettes', 'studio_objects',
   'routine_steps', 'routines', 'schedules',
   'anchors', 'rooms', 'floors', 'dwellings',
   'presets', 'group_children', 'group_members', 'groups', 'devices',
@@ -148,6 +148,7 @@ export function exportConfig() {
   const palettes       = db.prepare('SELECT * FROM palettes').all()
   const matrices       = db.prepare('SELECT * FROM matrices').all()
   const matrix_drawings = db.prepare('SELECT * FROM matrix_drawings').all()
+  const studio_objects = db.prepare('SELECT * FROM studio_objects').all()
 
   return {
     schema_version: BACKUP_SCHEMA_VERSION,
@@ -170,6 +171,7 @@ export function exportConfig() {
       palettes: palettes.length,
       matrices: matrices.length,
       matrix_drawings: matrix_drawings.length,
+      studio_objects: studio_objects.length,
     },
     data: {
       devices,
@@ -189,6 +191,7 @@ export function exportConfig() {
       palettes,
       matrices,
       matrix_drawings,
+      studio_objects,
     },
   }
 }
@@ -229,6 +232,7 @@ export function importConfig(configObj, mode = 'merge', options = {}) {
     palettes       = [],
     matrices       = [],
     matrix_drawings = [],
+    studio_objects = [],
   } = configObj.data
 
   // Selective restore: ignore tables outside the chosen categories.
@@ -248,11 +252,12 @@ export function importConfig(configObj, mode = 'merge', options = {}) {
   if (!active.has('palettes')) palettes = []
   if (!active.has('matrices')) matrices = []
   if (!active.has('matrix_drawings')) matrix_drawings = []
+  if (!active.has('studio_objects')) studio_objects = []
 
   const refData = {
     devices, groups, group_members, group_children, settings, presets,
     schedules, routines, routine_steps, dwellings, floors, rooms, anchors,
-    animations, palettes, matrices, matrix_drawings,
+    animations, palettes, matrices, matrix_drawings, studio_objects,
   }
   const { skipped, warnings } = validateBackupReferences(refData, db, clearedTables)
   devices = refData.devices; groups = refData.groups
@@ -262,6 +267,7 @@ export function importConfig(configObj, mode = 'merge', options = {}) {
   dwellings = refData.dwellings; floors = refData.floors; rooms = refData.rooms; anchors = refData.anchors
   animations = refData.animations; palettes = refData.palettes
   matrices = refData.matrices; matrix_drawings = refData.matrix_drawings
+  studio_objects = refData.studio_objects
 
   db.transaction(() => {
     if (mode === 'replace') {
@@ -586,6 +592,31 @@ export function importConfig(configObj, mode = 'merge', options = {}) {
         created_at: d.created_at ?? null,
       })
     }
+
+    // ── Studio Objects ──────────────────────────────────────────────────────
+    const objStmt = db.prepare(`
+      INSERT OR REPLACE INTO studio_objects
+        (id, name, shape, dims_json, strategy, options_json, chip, device_id,
+         created_at, updated_at)
+      VALUES
+        (@id, @name, @shape, @dims_json, @strategy, @options_json, @chip, @device_id,
+         COALESCE(@created_at, datetime('now')), COALESCE(@updated_at, datetime('now')))
+    `)
+    for (const o of studio_objects) {
+      if (!o || !o.id || !o.name || !o.shape || !o.strategy) continue
+      objStmt.run({
+        id: o.id,
+        name: o.name,
+        shape: o.shape,
+        dims_json: typeof o.dims_json === 'string' ? o.dims_json : JSON.stringify(o.dims ?? o.dims_json ?? {}),
+        strategy: o.strategy,
+        options_json: typeof o.options_json === 'string' ? o.options_json : JSON.stringify(o.options ?? o.options_json ?? {}),
+        chip: o.chip ?? 'ws2812b',
+        device_id: o.device_id ?? null,
+        created_at: o.created_at ?? null,
+        updated_at: o.updated_at ?? null,
+      })
+    }
   })()
 
   return {
@@ -605,6 +636,7 @@ export function importConfig(configObj, mode = 'merge', options = {}) {
       palettes: palettes.length,
       matrices: matrices.length,
       matrix_drawings: matrix_drawings.length,
+      studio_objects: studio_objects.length,
     },
     skipped,
     warnings,

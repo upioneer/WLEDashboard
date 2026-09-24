@@ -7,7 +7,12 @@ export const useStudioStore = create((set, get) => ({
   paletteCatalog: [],
   animations: [],
   customPalettes: [],
-  activeTab: 'presets', // 'presets' | 'timeline' | 'palette'
+  objectShapes: [],
+  objectStrategies: {},
+  objectChips: {},
+  powerDisclaimer: '',
+  studioObjects: [],
+  activeTab: 'presets', // 'presets' | 'timeline' | 'palette' | 'audio' | 'matrix' | 'objects'
   loading: true,
   error: null,
 
@@ -29,11 +34,13 @@ export const useStudioStore = create((set, get) => ({
 
   fetchStudioData: async () => {
     try {
-      const [effects, paletteCatalog, animations, customPalettes] = await Promise.all([
+      const [effects, paletteCatalog, animations, customPalettes, shapes, studioObjects] = await Promise.all([
         studioApi.getEffects().catch(() => []),
         studioApi.getPaletteCatalog().catch(() => []),
         studioApi.listAnimations().catch(() => []),
         studioApi.listPalettes().catch(() => []),
+        studioApi.getShapes().catch(() => ({})),
+        studioApi.listObjects().catch(() => []),
       ])
 
       set({
@@ -41,6 +48,11 @@ export const useStudioStore = create((set, get) => ({
         paletteCatalog,
         animations,
         customPalettes,
+        objectShapes: shapes.shapes ?? [],
+        objectStrategies: shapes.strategies ?? {},
+        objectChips: shapes.chips ?? {},
+        powerDisclaimer: shapes.powerDisclaimer ?? '',
+        studioObjects,
         loading: false,
         error: null,
       })
@@ -85,6 +97,26 @@ export const useStudioStore = create((set, get) => ({
   deletePalette: async (id) => {
     await studioApi.deletePalette(id)
     set(s => ({ customPalettes: s.customPalettes.filter(p => p.id !== id) }))
+  },
+
+  // Studio 3D Objects CRUD
+  saveStudioObject: async (objectData) => {
+    if (objectData.id) {
+      const updated = await studioApi.updateObject(objectData.id, objectData)
+      set(s => ({
+        studioObjects: s.studioObjects.map(o => o.id === updated.id ? updated : o)
+      }))
+      return updated
+    } else {
+      const created = await studioApi.createObject(objectData)
+      set(s => ({ studioObjects: [created, ...s.studioObjects] }))
+      return created
+    }
+  },
+
+  deleteStudioObject: async (id) => {
+    await studioApi.deleteObject(id)
+    set(s => ({ studioObjects: s.studioObjects.filter(o => o.id !== id) }))
   },
 
   // Playhead Player Controls

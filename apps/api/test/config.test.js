@@ -25,12 +25,12 @@ test('Config Backup & Restore API', async (t) => {
   const fastify = Fastify({ logger: false })
   await fastify.register(configRoutes)
 
-  await t.test('GET /api/config/export includes schema version, row counts, and all 17 tables', async () => {
+  await t.test('GET /api/config/export includes schema version, row counts, and all 18 tables', async () => {
     const res = await fastify.inject({ method: 'GET', url: '/config/export' })
     assert.equal(res.statusCode, 200)
     const body = JSON.parse(res.body)
 
-    assert.equal(body.schema_version, '0.22.1')
+    assert.equal(body.schema_version, '0.24.0')
     assert.ok(body.exported_at)
     assert.ok(body.row_counts)
     assert.ok(body.data)
@@ -39,7 +39,7 @@ test('Config Backup & Restore API', async (t) => {
       'devices', 'groups', 'group_members', 'group_children',
       'settings', 'presets', 'schedules', 'routines', 'routine_steps',
       'dwellings', 'floors', 'rooms', 'anchors', 'animations',
-      'palettes', 'matrices', 'matrix_drawings'
+      'palettes', 'matrices', 'matrix_drawings', 'studio_objects'
     ]
 
     for (const tbl of expectedTables) {

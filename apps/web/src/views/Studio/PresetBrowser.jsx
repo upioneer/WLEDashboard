@@ -8,6 +8,30 @@ import styles from './PresetBrowser.module.css'
 
 const CATEGORIES = ['All', 'Basic', 'Dynamic', 'Fire', 'Festive', 'Nature']
 
+function CardsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+    </svg>
+  )
+}
+
+function ListIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <circle cx="4" cy="6" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export function PresetBrowser() {
   const effects           = useStudioStore(s => s.effects)
   const paletteCatalog    = useStudioStore(s => s.paletteCatalog)
@@ -30,6 +54,20 @@ export function PresetBrowser() {
 
   const [activeCategory, setActiveCategory] = useState('All')
   const [searchQuery, setSearchQuery]       = useState('')
+  const [viewMode, setViewMode]             = useState(() => {
+    try {
+      return localStorage.getItem('wled_studio_preset_view_mode') || 'cards'
+    } catch {
+      return 'cards'
+    }
+  })
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode)
+    try {
+      localStorage.setItem('wled_studio_preset_view_mode', mode)
+    } catch {}
+  }
 
   const filteredEffects = useMemo(() => {
     return effects.filter(e => {
@@ -58,6 +96,8 @@ export function PresetBrowser() {
     })
     addToast({ message: `Applied effect to group "${grp.name}"`, type: 'success' })
   }
+
+  const isCurrentSelectionVisible = filteredEffects.some(e => e.id === selectedEffectId)
 
   return (
     <div className={styles.container}>
@@ -129,7 +169,7 @@ export function PresetBrowser() {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* Filter, Search & View Toggle Bar */}
       <div className={styles.filterBar}>
         <div className={styles.categoryPills}>
           {CATEGORIES.map(cat => (
@@ -142,37 +182,145 @@ export function PresetBrowser() {
             </button>
           ))}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search WLED effects..."
-          className={styles.searchInput}
-        />
+        <div className={styles.filterControlsRight}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search WLED effects..."
+            className={styles.searchInput}
+          />
+          <div className={styles.viewToggle} role="group" aria-label="Effect display view">
+            <button
+              type="button"
+              className={[styles.toggleBtn, viewMode === 'cards' && styles.toggleBtnActive].filter(Boolean).join(' ')}
+              onClick={() => handleViewModeChange('cards')}
+              title="Card View"
+              aria-pressed={viewMode === 'cards'}
+            >
+              <CardsIcon />
+              <span>Cards</span>
+            </button>
+            <button
+              type="button"
+              className={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive].filter(Boolean).join(' ')}
+              onClick={() => handleViewModeChange('list')}
+              title="Dropdown / List View"
+              aria-pressed={viewMode === 'list'}
+            >
+              <ListIcon />
+              <span>Dropdown / List</span>
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Effects Catalog Grid */}
-      <div className={styles.effectGrid}>
-        {filteredEffects.map(fx => {
-          const isSelected = fx.id === selectedEffectId
-          return (
-            <div
-              key={fx.id}
-              className={[styles.effectCard, isSelected && styles.effectCardSelected].filter(Boolean).join(' ')}
-              onClick={() => setEffect(fx.id)}
+      {/* Effects Display: Empty, Card Grid, or Dropdown/List View */}
+      {filteredEffects.length === 0 ? (
+        <div className={styles.emptyResults}>
+          No effects found matching "{searchQuery}"
+        </div>
+      ) : viewMode === 'cards' ? (
+        <div className={styles.effectGrid}>
+          {filteredEffects.map(fx => {
+            const isSelected = fx.id === selectedEffectId
+            return (
+              <div
+                key={fx.id}
+                className={[styles.effectCard, isSelected && styles.effectCardSelected].filter(Boolean).join(' ')}
+                onClick={() => setEffect(fx.id)}
+              >
+                <div className={styles.cardHeader}>
+                  <span className={styles.fxName}>{fx.name}</span>
+                  <span className={styles.fxCategory}>{fx.category}</span>
+                </div>
+                <div className={styles.cardMeta}>
+                  <span className={styles.fxId}>ID #{fx.id}</span>
+                  {isSelected && <span className={styles.activeTag}>Previewing</span>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className={styles.listViewContainer}>
+          {/* Quick Select Dropdown */}
+          <div className={styles.dropdownBar}>
+            <label htmlFor="effect-dropdown-select" className={styles.dropdownLabel}>
+              Quick Select Effect:
+            </label>
+            <select
+              id="effect-dropdown-select"
+              value={isCurrentSelectionVisible ? selectedEffectId : ''}
+              onChange={e => {
+                if (e.target.value !== '') {
+                  setEffect(Number(e.target.value))
+                }
+              }}
+              className={styles.effectDropdown}
             >
-              <div className={styles.cardHeader}>
-                <span className={styles.fxName}>{fx.name}</span>
-                <span className={styles.fxCategory}>{fx.category}</span>
-              </div>
-              <div className={styles.cardMeta}>
-                <span className={styles.fxId}>ID #{fx.id}</span>
-                {isSelected && <span className={styles.activeTag}>Previewing</span>}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+              {!isCurrentSelectionVisible && (
+                <option value="" disabled>
+                  Select an effect ({filteredEffects.length} available)...
+                </option>
+              )}
+              {activeCategory === 'All' ? (
+                CATEGORIES.filter(c => c !== 'All').map(cat => {
+                  const catEffects = filteredEffects.filter(e => e.category === cat)
+                  if (catEffects.length === 0) return null
+                  return (
+                    <optgroup key={cat} label={cat}>
+                      {catEffects.map(fx => (
+                        <option key={fx.id} value={fx.id}>
+                          #{fx.id.toString().padStart(2, '0')} - {fx.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )
+                })
+              ) : (
+                filteredEffects.map(fx => (
+                  <option key={fx.id} value={fx.id}>
+                    #{fx.id.toString().padStart(2, '0')} - {fx.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          {/* Compact Rows List */}
+          <div className={styles.effectList} role="listbox" aria-label="Effect list">
+            {filteredEffects.map(fx => {
+              const isSelected = fx.id === selectedEffectId
+              return (
+                <div
+                  key={fx.id}
+                  role="option"
+                  aria-selected={isSelected}
+                  tabIndex={0}
+                  className={[styles.effectRow, isSelected && styles.effectRowSelected].filter(Boolean).join(' ')}
+                  onClick={() => setEffect(fx.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setEffect(fx.id)
+                    }
+                  }}
+                >
+                  <div className={styles.rowLeft}>
+                    <span className={styles.rowId}>#{fx.id.toString().padStart(2, '0')}</span>
+                    <span className={styles.rowName}>{fx.name}</span>
+                  </div>
+                  <div className={styles.rowRight}>
+                    <span className={styles.rowCategory}>{fx.category}</span>
+                    {isSelected && <span className={styles.activeTag}>Previewing</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -27,15 +27,46 @@ export function listDrawings() {
   }))
 }
 
-export function saveDrawing({ name, width = 16, height = 16, pixels = [] }) {
+export function saveDrawing({ id, name, width = 16, height = 16, pixels = [] }) {
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (!trimmedName) {
+    const err = new Error('Drawing name is required.')
+    err.statusCode = 400
+    throw err
+  }
+
   const db = getDb()
-  const id = uuidv4()
+  const existingName = id
+    ? db.prepare('SELECT id FROM matrix_drawings WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) AND id != ?').get(trimmedName, id)
+    : db.prepare('SELECT id FROM matrix_drawings WHERE LOWER(TRIM(name)) = LOWER(TRIM(?))').get(trimmedName)
+
+  if (existingName) {
+    const err = new Error(`A drawing named "${trimmedName}" already exists.`)
+    err.statusCode = 409
+    throw err
+  }
+
   const pixelsJson = JSON.stringify(pixels)
+
+  if (id) {
+    const existing = db.prepare('SELECT id FROM matrix_drawings WHERE id = ?').get(id)
+    if (existing) {
+      db.prepare(`
+        UPDATE matrix_drawings
+        SET name = ?, width = ?, height = ?, pixels_json = ?
+        WHERE id = ?
+      `).run(trimmedName, width, height, pixelsJson, id)
+      const row = db.prepare('SELECT * FROM matrix_drawings WHERE id = ?').get(id)
+      return { ...row, pixels }
+    }
+  }
+
+  const targetId = id || uuidv4()
   db.prepare(`
     INSERT INTO matrix_drawings (id, name, width, height, pixels_json)
     VALUES (?, ?, ?, ?, ?)
-  `).run(id, name, width, height, pixelsJson)
-  const row = db.prepare('SELECT * FROM matrix_drawings WHERE id = ?').get(id)
+  `).run(targetId, trimmedName, width, height, pixelsJson)
+  const row = db.prepare('SELECT * FROM matrix_drawings WHERE id = ?').get(targetId)
   return { ...row, pixels }
 }
 

@@ -47,6 +47,7 @@ function applyMigrations(db) {
     { version: 7, sql: migration_007 },
     { version: 8, sql: migration_008 },
     { version: 9, sql: migration_009 },
+    { version: 10, sql: migration_010 },
   ]
 
   for (const m of migrations) {
@@ -282,4 +283,19 @@ const migration_008 = `
 
 const migration_009 = `
   ALTER TABLE rooms ADD COLUMN rotation_y REAL DEFAULT 0;
+`
+
+const migration_010 = `
+  CREATE TABLE IF NOT EXISTS studio_objects (
+    id           TEXT PRIMARY KEY,
+    name         TEXT NOT NULL,
+    shape        TEXT NOT NULL,
+    dims_json    TEXT NOT NULL DEFAULT '{}',
+    strategy     TEXT NOT NULL,
+    options_json TEXT NOT NULL DEFAULT '{}',
+    chip         TEXT NOT NULL DEFAULT 'ws2812b',
+    device_id    TEXT,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `

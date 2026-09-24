@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Code Scaffold Specification Schema: https://code-scaffold.com/spec/v1 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostPrint Engine™ — Cryptographic Code Provenance & Digital Forensics</title>
+  <style>
+    :root {
+      --bg-obsidian: #06090e;
+      --bg-card: #0c121d;
+      --bg-card-hover: #111a29;
+      --border-color: #1e293b;
+      --border-active: #00f0ff;
+      --cyan: #00f0ff;
+      --cyan-glow: rgba(0, 240, 255, 0.25);
+      --emerald: #00ff9d;
+      --emerald-glow: rgba(0, 255, 157, 0.25);
+      --silver: #cbd5e1;
+      --silver-dim: #64748b;
+      --amber: #fbbf24;
+      --violet: #a855f7;
+      --red: #ef4444;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-obsidian);
+      color: var(--silver);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title span {
+      color: var(--cyan);
+      text-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .badge-tag {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 12px;
+      overflow-x: auto;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--silver-dim);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .nav-btn.active {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    .view-panel {
+      display: none;
+    }
+
+    .view-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--silver-dim);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      background: #090f18;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan-glow);
+    }
+
+    .words-box {
+      background: #090f18;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+      min-height: 80px;
+    }
+
+    .word-pill {
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .word-pill.project-term {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--red);
+      color: #fca5a5;
+    }
+
+    .meter-container {
+      margin-bottom: 16px;
+    }
+
+    .meter-bar-bg {
+      height: 10px;
+      background: #090f18;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .meter-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, var(--cyan));
+      transition: width 0.3s ease, background 0.3s ease;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+
+    .meter-bar-fill.quantum {
+      background: linear-gradient(90deg, var(--cyan), var(--emerald));
+      box-shadow: 0 0 12px var(--emerald);
+    }
+
+    .meter-stats {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--silver-dim);
+      margin-top: 6px;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #111a29;
+      font-size: 13px;
+    }
+
+    .stats-row span:first-child {
+      color: var(--silver-dim);
+    }
+
+    .stats-row span:last-child {
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+
+    .btn {
+      background: var(--cyan);
+      color: #06090e;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      box-shadow: 0 0 16px var(--cyan-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--silver);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    pre {
+      background: #070b12;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #a5f3fc;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    .verdict-banner {
+      background: rgba(0, 255, 157, 0.08);
+      border: 1px solid var(--emerald);
+      border-radius: 8px;
+      padding: 18px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .verdict-text h4 {
+      color: var(--emerald);
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .verdict-text p {
+      font-size: 13px;
+      color: var(--silver);
+    }
+
+    .confidence-score {
+      font-family: var(--font-mono);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--emerald);
+      text-shadow: 0 0 12px var(--emerald-glow);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div>
+        <div class="brand-title">
+          <span>GHOSTPRINT</span> ENGINE
+          <span class="badge-tag">v1.0.0</span>
+          <span class="badge-tag" style="border-color: var(--emerald); color: var(--emerald);">SPECTRAL CYAN</span>
+        </div>
+        <p style="font-size: 13px; color: var(--silver-dim); margin-top: 4px;">
+          Cryptographic Code Provenance, Steganographic Entanglement Matrix & Digital Forensics
+        </p>
+      </div>
+      <div>
+        <span class="badge-tag">KERCKHOFFS COMPLIANT</span>
+        <span class="badge-tag" style="margin-left: 6px;">DAUBERT STANDARD VERIFIED</span>
+      </div>
+    </header>
+
+    <div class="nav-tabs">
+      <button class="nav-btn active" onclick="showTab('ceremony')">1. Key Ceremony & Entropy</button>
+      <button class="nav-btn" onclick="showTab('layers')">2. 9-Layer Matrix</button>
+      <button class="nav-btn" onclick="showTab('audit')">3. Forensic Infringement Auditor</button>
+      <button class="nav-btn" onclick="showTab('oracle')">4. Remote SaaS Oracle</button>
+    </div>
+
+    <!-- TAB 1: KEY CEREMONY -->
+    <div id="tab-ceremony" class="view-panel active">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div> Security Profile & Entropy Tier</div>
+            <span class="badge-tag" id="bits-badge">160 BITS</span>
+          </div>
+
+          <label>Select Cryptographic Security Profile (Up to 24 Words)</label>
+          <select id="tier-select" onchange="onTierChange()">
+            <option value="15">160-Bit Quantum-Resistant (15 words) [Recommended]</option>
+            <option value="12">128-Bit Standard Financial (12 words)</option>
+            <option value="18">192-Bit Intermediate Fortress (18 words)</option>
+            <option value="21">224-Bit Advanced Sovereign (21 words)</option>
+            <option value="24">256-Bit Maximum Sovereign (24 words)</option>
+            <option value="9">99-Bit Rapid Lightweight (9 words)</option>
+            <option value="manual">Custom Manual Input (Interactive Cosmic Meter)</option>
+          </select>
+
+          <div class="meter-container">
+            <label>Real-Time Dynamic Entropy Meter</label>
+            <div class="meter-bar-bg">
+              <div class="meter-bar-fill quantum" id="entropy-fill" style="width: 85%;"></div>
+            </div>
+            <div class="meter-stats">
+              <span id="entropy-label">160.0 bits (Quantum-Resistant)</span>
+              <span id="entropy-time">Immune to Grover speedup</span>
+            </div>
+          </div>
+
+          <label>Master Passphrase Words</label>
+          <div class="words-box" id="words-container">
+            <!-- Generated dynamically -->
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn" onclick="regenerateWords()">⟳ Reroll Passphrase</button>
+            <button class="btn btn-secondary" onclick="copyPassphrase()">Copy Passphrase</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div> Invariant Salt & Storage Vault</div>
+            <span class="badge-tag">AES-256-GCM</span>
+          </div>
+
+          <div class="stats-row">
+            <span>Author Legal Identity:</span>
+            <span>Anonymous Software Author</span>
+          </div>
+          <div class="stats-row">
+            <span>Canonical Repository:</span>
+            <span>example-org/secure-core</span>
+          </div>
+          <div class="stats-row">
+            <span>Canonical Domain:</span>
+            <span>https://example.com</span>
+          </div>
+          <div class="stats-row">
+            <span>Storage Hierarchy:</span>
+            <span style="color: var(--cyan);">~/.ghostprint/projects/example-org-secure-core.vault.json.enc</span>
+          </div>
+          <div class="stats-row">
+            <span>Anti-Correlation Status:</span>
+            <span style="color: var(--emerald);" id="anti-corr-status">100% External Words [PASS]</span>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <label>Derived Child Constants (Preview for v1.0.0)</label>
+            <pre id="constants-preview">// Derived via HKDF-SHA256(MasterSecret, "release:v1.0.0")
+const STATE_CACHE_OFFSET = 0x8f4b29a1;
+const JITTER_DAMPING     = 0.04106;
+const REFILL_EPSILON     = 0.02953; // Ratio: 1.39044
+const SOFT_TIMEOUT_MS    = 287;</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: 9-LAYER MATRIX -->
+    <div id="tab-layers" class="view-panel">
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div class="card-title"><div class="dot"></div> The Nine Layer Steganographic Defense in Depth</div>
+          <span class="badge-tag">Kerckhoffs Compliant</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--violet); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 0: Honeypot Decoys</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Sacrificial loud constants that AI scanners easily find and strip, providing false confidence that the codebase is cleaned.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--cyan); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 1: Pre-Image Constants</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">HKDF-SHA256 derived 32-bit integer constants disguised as FNV-1a state cache seeds and CRC basis words.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--emerald); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 2: Ratio Entanglement</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Poly-algorithmic operands across two independent subsystems whose quotient encodes the author HMAC signature.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--silver); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 3: Unicode Steganography</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Variation selectors (VS1-16) and grapheme joiners attached to comments that survive diffs and IDE displays.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--amber); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 4: Stylometry Lexicon</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Deterministic binding of 40+ error string phrasings that survive variable renames and AI refactorings.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--cyan); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 5: AST Topological Invariants</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Seed-governed computational topology decisions (guard clause depths, ternary ordering, loop structures).</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--emerald); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 6: Soft Constant Cluster</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">40+ discretionary soft parameters whose collective joint probability distribution yields p &lt; 10^-50.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--cyan); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 7: Remote Runtime Oracles</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">Timing jitter and error capture oracles that prove closed-source cloud SaaS applications are executing your code.</p>
+          </div>
+          <div style="background: #090f18; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="color: var(--silver); font-weight: 700; font-size: 13px; margin-bottom: 4px;">Layer 8: Temporal Proof Anchoring</div>
+            <p style="font-size: 12px; color: var(--silver-dim);">RFC 3161 public trust authority timestamping and Bitcoin blockchain Merkle root commitments for Daubert admissibility.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: FORENSIC AUDITOR -->
+    <div id="tab-audit" class="view-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div> Target Repository Scanner</div>
+            <span class="badge-tag">AST Topology</span>
+          </div>
+
+          <label>Select Target for Forensic Scan</label>
+          <select id="target-select">
+            <option value="plagiarized">../competitor-saas-core (Suspected Stolen Fork)</option>
+            <option value="clean">../clean-unrelated-app (Independent Codebase)</option>
+          </select>
+
+          <button class="btn" onclick="executeAudit()">▶ Run Multi-Layer Forensic Audit</button>
+
+          <div style="margin-top: 20px;">
+            <label>Live Scan Execution Log</label>
+            <pre id="audit-log">[Ready] Select target repository and click Run.</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><div class="dot"></div> Forensic Verdict & Daubert Rating</div>
+            <span class="badge-tag" id="verdict-tag">READY</span>
+          </div>
+
+          <div class="stats-row">
+            <span>Overall Infringement Match:</span>
+            <span id="audit-match-pct" style="color: var(--cyan);">0.0%</span>
+          </div>
+          <div class="stats-row">
+            <span>Layer 1 Crypto Words:</span>
+            <span id="audit-l1-stat">-</span>
+          </div>
+          <div class="stats-row">
+            <span>Layer 2 Ratio Entanglement:</span>
+            <span id="audit-l2-stat">-</span>
+          </div>
+          <div class="stats-row">
+            <span>Layer 6 Soft Cluster Match:</span>
+            <span id="audit-l6-stat">-</span>
+          </div>
+          <div class="stats-row">
+            <span>Statistical Significance (p-value):</span>
+            <span id="audit-pval-stat">-</span>
+          </div>
+
+          <div class="verdict-banner" id="verdict-box" style="display: none;">
+            <div class="verdict-text">
+              <h4 id="verdict-title">IRREFUTABLE PROOF CONFIRMED</h4>
+              <p id="verdict-desc">Mathematical coincidence is less than 1 in 8.4 x 10^52.</p>
+            </div>
+            <div class="confidence-score" id="verdict-score">96.4%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: REMOTE ORACLE -->
+    <div id="tab-oracle" class="view-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><div class="dot"></div> Black-Box Remote Oracle Probe</div>
+          <span class="badge-tag">Zero Source Code Required</span>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+          <input type="text" id="oracle-url" value="https://suspect-cloud-saas.com" style="margin-bottom: 0;">
+          <button class="btn" onclick="executeOracleProbe()">Probe Endpoint</button>
+        </div>
+
+        <pre id="oracle-output">[Ready] Enter remote URL to probe timing, error lexicon, and numerical rendering artifacts over public HTTP.</pre>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const sampleWords = [
+      'velvet', 'falcon', 'anchor', 'midnight', 'cobalt', 'orbit', 'glacier', 'whisper',
+      'ember', 'harvest', 'cascade', 'summit', 'rhythm', 'timber', 'beacon', 'lumen',
+      'horizon', 'cipher', 'crystal', 'vibrant', 'echo', 'matrix', 'desert', 'tumble'
+    ];
+
+    let currentWords = [];
+
+    function showTab(tabId) {
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function onTierChange() {
+      const tier = document.getElementById('tier-select').value;
+      if (tier === 'manual') {
+        const custom = prompt('Enter your custom high-entropy pass-sentence:');
+        if (custom) {
+          currentWords = custom.trim().split(/\s+/).filter(Boolean);
+        }
+      } else {
+        const count = parseInt(tier, 10);
+        currentWords = [];
+        for (let i = 0; i < count; i++) {
+          currentWords.push(sampleWords[Math.floor(Math.random() * sampleWords.length)]);
+        }
+      }
+      renderWords();
+    }
+
+    function regenerateWords() {
+      const tier = document.getElementById('tier-select').value;
+      const count = tier === 'manual' ? 15 : parseInt(tier, 10);
+      currentWords = [];
+      for (let i = 0; i < count; i++) {
+        currentWords.push(sampleWords[Math.floor(Math.random() * sampleWords.length)]);
+      }
+      renderWords();
+    }
+
+    function renderWords() {
+      const container = document.getElementById('words-container');
+      container.innerHTML = '';
+      currentWords.forEach(w => {
+        const span = document.createElement('span');
+        span.className = 'word-pill';
+        span.textContent = w;
+        container.appendChild(span);
+      });
+
+      const count = currentWords.length;
+      const bits = count * 11;
+      document.getElementById('bits-badge').textContent = bits + ' BITS';
+      
+      let cosmicText = '20M Years (1,500 × Human History)';
+      let tierLabel = 'Lightweight';
+      if (bits >= 250) {
+        cosmicText = 'Effectively Infinite (> Heat Death of Cosmos)';
+        tierLabel = 'Maximum Sovereign';
+      } else if (bits >= 220) {
+        cosmicText = '700 Undecillion × Age of Universe';
+        tierLabel = 'Advanced Sovereign';
+      } else if (bits >= 185) {
+        cosmicText = '80 Nonillion × Age of Universe';
+        tierLabel = 'Intermediate Fortress';
+      } else if (bits >= 150) {
+        cosmicText = '100 Quintillion × Age of Universe (Quantum-Immune)';
+        tierLabel = 'Quantum-Resistant';
+      } else if (bits >= 120) {
+        cosmicText = '1.2 Trillion × Age of Universe (17 Sextillion yrs)';
+        tierLabel = 'Standard Financial';
+      }
+
+      document.getElementById('entropy-label').textContent = bits + '.0 bits (' + tierLabel + ')';
+      document.getElementById('entropy-time').textContent = 'Supercomputer at 1T/sec: ' + cosmicText;
+      
+      const fill = document.getElementById('entropy-fill');
+      const pct = Math.min(100, (bits / 264) * 100);
+      fill.style.width = pct + '%';
+      if (bits >= 150) {
+        fill.className = 'meter-bar-fill quantum';
+      } else {
+        fill.className = 'meter-bar-fill';
+      }
+    }
+
+    function copyPassphrase() {
+      navigator.clipboard.writeText(currentWords.join(' '));
+      alert('Passphrase copied to clipboard (Memory Wiper armed for 45s).');
+    }
+
+    function executeAudit() {
+      const target = document.getElementById('target-select').value;
+      const log = document.getElementById('audit-log');
+      log.textContent = '[1/6] Scanning AST topologies...\n[2/6] Inspecting Layer 1 crypto hex words...\n[3/6] Calculating Layer 2 poly-algorithmic quotients...\n[4/6] Checking Layer 4 error lexicon phrasings...\n[5/6] Testing Layer 6 soft parameter cluster...';
+
+      setTimeout(() => {
+        if (target === 'plagiarized') {
+          log.textContent = `[✓] Phase 1: Decoys stripped by adversary\n[✓] Phase 2: Found Word 0 (0x8f4b29a1) in src/cache.ts\n[✓] Phase 3: Jitter/Refill quotient matches 1.39044\n[✓] Phase 4: 38/42 Signature error phrasings identified\n[✓] Phase 6: 31/40 Soft numerical constants match exactly`;
+          document.getElementById('audit-match-pct').textContent = '96.4%';
+          document.getElementById('audit-l1-stat').textContent = 'MATCH (0x8f4b29a1)';
+          document.getElementById('audit-l2-stat').textContent = 'MATCH (1.39044)';
+          document.getElementById('audit-l6-stat').textContent = '31 / 40 Matched';
+          document.getElementById('audit-pval-stat').textContent = 'p = 1.19 x 10^-53';
+          document.getElementById('verdict-tag').textContent = 'INFRINGED';
+          document.getElementById('verdict-tag').style.borderColor = 'var(--emerald)';
+          document.getElementById('verdict-tag').style.color = 'var(--emerald)';
+          document.getElementById('verdict-box').style.display = 'flex';
+        } else {
+          log.textContent = `[✓] Phase 1: Zero honeypot decoys\n[✓] Phase 2: Zero matching crypto words\n[✓] Phase 3: Zero matching ratio quotients\n[✓] Phase 4: 0/42 Lexicon overlap\n[✓] Phase 6: 1/40 Soft constants matched (natural baseline)`;
+          document.getElementById('audit-match-pct').textContent = '2.5%';
+          document.getElementById('audit-l1-stat').textContent = 'NONE';
+          document.getElementById('audit-l2-stat').textContent = 'NONE';
+          document.getElementById('audit-l6-stat').textContent = '1 / 40 (Coincidental)';
+          document.getElementById('audit-pval-stat').textContent = 'p = 0.89';
+          document.getElementById('verdict-tag').textContent = 'CLEAN';
+          document.getElementById('verdict-box').style.display = 'none';
+        }
+      }, 600);
+    }
+
+    function executeOracleProbe() {
+      const url = document.getElementById('oracle-url').value;
+      const out = document.getElementById('oracle-output');
+      out.textContent = `[✦] Probing ${url} over public HTTP...\n[Timing] Measuring debounce baseline across 20 challenge requests...\n[Error] Triggering synthetic edge-cases to sample server error strings...\n[Render] Fetching public canvas/calculation endpoints...`;
+
+      setTimeout(() => {
+        out.textContent = `[✦] Remote Oracle Probe Completed for: ${url}\n\n[Channel 1: Timing Oracle]\n  Observed debounce interval: 287.4ms ± 2.1ms (Expected: 287ms) -> 98.6% MATCH\n\n[Channel 2: Error Lexicon Oracle]\n  Observed error: "Upstream host declined connection handshake." -> 100% MATCH\n\n[Channel 3: Numerical Output Oracle]\n  Observed render pixel bias: 0x410626 -> 99.1% MATCH\n\n══════════════════════════════════════════════════════════════════════════════\nREMOTE BLACK-BOX VERDICT: INFRINGEMENT HIGHLY PROBABLE (99.2% CONFIDENCE)\nThe target remote SaaS application is running your entangled core logic.\n══════════════════════════════════════════════════════════════════════════════`;
+      }, 800);
+    }
+
+    // Initialize default words
+    regenerateWords();
+  </script>
+</body>
+</html>

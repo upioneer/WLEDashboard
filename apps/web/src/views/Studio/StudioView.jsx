@@ -7,6 +7,7 @@ import { TimelineEditor } from './TimelineEditor.jsx'
 import { PaletteDesigner } from './PaletteDesigner.jsx'
 import { AudioVisualizer } from '../../components/AudioVisualizer/AudioVisualizer.jsx'
 import { MatrixEditor } from './MatrixEditor.jsx'
+import { ObjectDesigner } from './ObjectDesigner.jsx'
 import styles from './StudioView.module.css'
 
 export default function StudioView() {
@@ -31,20 +32,22 @@ export default function StudioView() {
           <div>
             <h1 className={styles.title}>Effect Studio</h1>
             <p className={styles.subtitle}>
-              Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, and design 2D matrix artwork.
+              Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, design 2D matrix artwork, and build 3D objects.
             </p>
           </div>
           <Link
             to="/guides?topic=studio-timelines-matrix"
             className={styles.guideLink}
-            title="Read the Effect Studio & Matrix Guide"
+            title="Read the Effect Studio, Matrix & 3D Objects Guide"
           >
             Studio Guide
           </Link>
         </header>
 
-        {/* Live LED Strip Pixel Simulator */}
-        <PixelStripCanvas />
+        {/* Live LED Strip Pixel Simulator - Pinned / Sticky when scrolling */}
+        <div className={styles.stickySimulator}>
+          <PixelStripCanvas />
+        </div>
 
         {/* Navigation Tabs */}
         <div className={styles.tabBar}>
@@ -78,6 +81,12 @@ export default function StudioView() {
           >
             2D Matrix Canvas
           </button>
+          <button
+            className={[styles.tabBtn, activeTab === 'objects' && styles.tabBtnActive].filter(Boolean).join(' ')}
+            onClick={() => setActiveTab('objects')}
+          >
+            3D Objects
+          </button>
         </div>
 
         {/* Active Tab Panel */}
@@ -87,6 +96,7 @@ export default function StudioView() {
           {activeTab === 'palette' && <PaletteDesigner />}
           {activeTab === 'audio' && <AudioVisualizer />}
           {activeTab === 'matrix' && <MatrixEditor />}
+          {activeTab === 'objects' && <ObjectDesigner />}
         </div>
       </div>
     </main>

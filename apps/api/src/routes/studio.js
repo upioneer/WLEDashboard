@@ -10,6 +10,18 @@ import {
   createPalette,
   deletePalette,
 } from '../services/studioService.js'
+import {
+  SHAPES,
+  STRATEGIES,
+  CHIP_REFERENCE,
+  POWER_DISCLAIMER,
+  computeLayout,
+  computePower,
+  listObjects,
+  createObject,
+  updateObject,
+  deleteObject,
+} from '../services/studioObjects.js'
 
 const KeyframeSchema = z.object({
   time_ms: z.number().nonnegative(),
@@ -36,6 +48,26 @@ const UpdateAnimationSchema = z.object({
 const CreatePaletteSchema = z.object({
   name: z.string().min(1).max(64).trim(),
   colors: z.array(z.string()).min(1),
+})
+
+const StudioObjectSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(64),
+  shape: z.enum(SHAPES),
+  dims: z.record(z.number()).default({}),
+  strategy: z.string().min(1),
+  options: z.record(z.unknown()).default({}),
+  chip: z.enum(Object.keys(CHIP_REFERENCE)).optional().default('ws2812b'),
+  device_id: z.string().nullable().optional().default(null),
+})
+
+const UpdateStudioObjectSchema = StudioObjectSchema.partial()
+
+const PreviewSchema = z.object({
+  shape: z.enum(SHAPES),
+  dims: z.record(z.number()).default({}),
+  strategy: z.string().min(1),
+  options: z.record(z.unknown()).default({}),
+  chip: z.enum(Object.keys(CHIP_REFERENCE)).optional().default('ws2812b'),
 })
 
 export async function studioRoutes(fastify) {
@@ -95,6 +127,63 @@ export async function studioRoutes(fastify) {
   fastify.delete('/studio/palettes/:id', async (req, reply) => {
     const deleted = deletePalette(req.params.id)
     if (!deleted) return reply.code(404).send({ error: 'Palette not found' })
+    return reply.code(204).send()
+  })
+
+  // GET /api/studio/shapes - Parametric shapes, strategies, and chip reference
+  fastify.get('/studio/shapes', async () => {
+    return { shapes: SHAPES, strategies: STRATEGIES, chips: CHIP_REFERENCE, powerDisclaimer: POWER_DISCLAIMER }
+  })
+
+  // POST /api/studio/objects/preview - Compute layout + power without saving
+  fastify.post('/studio/objects/preview', async (req, reply) => {
+    const parsed = PreviewSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+    try {
+      const layout = computeLayout(parsed.data)
+      const power = computePower({ count: layout.count, chip: parsed.data.chip })
+      return { ...layout, power }
+    } catch (err) {
+      return reply.code(400).send({ error: err.message ?? 'Preview failed' })
+    }
+  })
+
+  // GET /api/studio/objects
+  fastify.get('/studio/objects', async () => {
+    return listObjects()
+  })
+
+  // POST /api/studio/objects
+  fastify.post('/studio/objects', async (req, reply) => {
+    const parsed = StudioObjectSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+    try {
+      const object = createObject(parsed.data)
+      return reply.code(201).send(object)
+    } catch (err) {
+      const code = err.statusCode ?? 400
+      return reply.code(code).send({ error: err.message ?? 'Create failed' })
+    }
+  })
+
+  // PATCH /api/studio/objects/:id
+  fastify.patch('/studio/objects/:id', async (req, reply) => {
+    const parsed = UpdateStudioObjectSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+    try {
+      const object = updateObject(req.params.id, parsed.data)
+      if (!object) return reply.code(404).send({ error: 'Studio object not found' })
+      return object
+    } catch (err) {
+      const code = err.statusCode ?? 400
+      return reply.code(code).send({ error: err.message ?? 'Update failed' })
+    }
+  })
+
+  // DELETE /api/studio/objects/:id
+  fastify.delete('/studio/objects/:id', async (req, reply) => {
+    const deleted = deleteObject(req.params.id)
+    if (!deleted) return reply.code(404).send({ error: 'Studio object not found' })
     return reply.code(204).send()
   })
 }

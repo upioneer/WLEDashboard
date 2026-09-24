@@ -1360,7 +1360,7 @@ export function Settings() {
           <div className={styles.backupRow}>
             <div className={styles.backupRowMeta}>
               <span className={styles.backupRowLabel}>Export Backup</span>
-              <span className={styles.backupRowHint}>Downloads a timestamped JSON file containing all 17 database tables. Safe to run at any time and does not affect live data.</span>
+              <span className={styles.backupRowHint}>Downloads a timestamped JSON file containing all 18 database tables. Safe to run at any time and does not affect live data.</span>
             </div>
             <button
               type="button"

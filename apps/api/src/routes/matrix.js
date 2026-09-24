@@ -16,6 +16,7 @@ const CreateMatrixSchema = z.object({
 })
 
 const SaveDrawingSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(1).max(64).trim(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
@@ -52,8 +53,13 @@ export async function matrixRoutes(fastify) {
   fastify.post('/matrix/drawings', async (req, reply) => {
     const parsed = SaveDrawingSchema.safeParse(req.body)
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
-    const drawing = saveDrawing(parsed.data)
-    return reply.code(201).send(drawing)
+    try {
+      const drawing = saveDrawing(parsed.data)
+      return reply.code(201).send(drawing)
+    } catch (err) {
+      const code = err.statusCode ?? 400
+      return reply.code(code).send({ error: err.message ?? 'Failed to save drawing' })
+    }
   })
 
   // DELETE /api/matrix/drawings/:id

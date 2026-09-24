@@ -22,9 +22,17 @@
   flex-wrap: wrap;
 }
 
+.nameField {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: 1;
+  min-width: 260px;
+}
+
 .nameInput {
   flex: 1;
-  min-width: 220px;
+  min-width: 180px;
   height: 38px;
   padding: 0 var(--sp-3);
   background-color: var(--surface-input);
@@ -34,15 +42,23 @@
   color: var(--text-primary);
 }
 
+.nameInput:focus,
+.nameInput:focus-visible {
+  outline: none;
+  border-color: var(--accent-violet);
+}
+
 .sizeGroup {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  flex-wrap: wrap;
 }
 
 .label {
   font: var(--type-small);
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .sizeSelect {
@@ -53,6 +69,97 @@
   border-radius: var(--radius-s);
   font: var(--type-body);
   color: var(--text-primary);
+  cursor: pointer;
+}
+
+.sizeSelect:focus,
+.sizeSelect:focus-visible {
+  outline: none;
+  border-color: var(--accent-violet);
+}
+
+.customDimGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.dimField {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  padding: 0 8px;
+  height: 38px;
+  transition: border-color 120ms;
+}
+
+.dimField:focus-within {
+  border-color: var(--accent-violet);
+}
+
+.dimLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+.dimInput {
+  width: 38px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: monospace;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.dimInput:focus,
+.dimInput:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.dimInput::-webkit-inner-spin-button,
+.dimInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.dimTimes {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.newDrawingBtn {
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms;
+}
+
+.newDrawingBtn:hover {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
 }
 
 .saveBtn {
@@ -60,10 +167,22 @@
   padding: 0 var(--sp-5);
   background-color: var(--accent-violet);
   color: var(--text-inverse);
+  border: none;
   border-radius: var(--radius-s);
   font: var(--type-small);
   font-weight: 600;
   cursor: pointer;
+  transition: opacity 120ms;
+  white-space: nowrap;
+}
+
+.saveBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .toolsBar {
@@ -73,6 +192,7 @@
   gap: var(--sp-4);
   padding-top: var(--sp-2);
   border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
 }
 
 .paletteSwatches {
@@ -90,7 +210,9 @@
   transition: transform 120ms;
 }
 
-.swatch:hover { transform: scale(1.1); }
+.swatch:hover {
+  transform: scale(1.1);
+}
 
 .swatchActive {
   border-color: var(--text-primary);
@@ -104,6 +226,87 @@
   border: none;
   border-radius: 50%;
   cursor: pointer;
+  background: transparent;
+}
+
+.viewportControls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.zoomControlGroup {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  padding: 2px;
+}
+
+.zoomLabel {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 0 6px;
+  font-weight: 600;
+}
+
+.zoomBtn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background-color 120ms, color 120ms;
+}
+
+.zoomBtn:hover:not(:disabled) {
+  background-color: var(--surface-overlay);
+  color: var(--accent-violet);
+}
+
+.zoomBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.zoomBadge {
+  height: 26px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 120ms, color 120ms;
+}
+
+.zoomBadge:hover {
+  background-color: var(--surface-raised);
+  color: var(--text-primary);
+}
+
+.dimBadge {
+  font-size: 12px;
+  font-family: monospace;
+  color: var(--text-tertiary);
+  padding: 5px 8px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  white-space: nowrap;
 }
 
 .actionBtns {
@@ -112,7 +315,7 @@
 }
 
 .toolBtn {
-  height: 30px;
+  height: 32px;
   padding: 0 var(--sp-3);
   background-color: var(--surface-input);
   border: 1px solid var(--border-default);
@@ -120,29 +323,193 @@
   font: var(--type-small);
   color: var(--text-secondary);
   cursor: pointer;
+  transition: background-color 120ms, color 120ms;
 }
 
-/* ── 2D Matrix Grid Canvas ───────────────────────────────────── */
+.toolBtn:hover {
+  background-color: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+/* ── 2D Matrix Grid Canvas in Scrollable Viewport ──────────────── */
+.canvasViewport {
+  position: relative;
+  overflow: auto;
+  max-height: 560px;
+  min-height: 340px;
+  display: flex;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-m);
+  padding: var(--sp-6);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.canvasViewport::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.canvasViewport::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.canvasViewport::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+
+.canvasViewport::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
 .matrixGrid {
   display: grid;
   gap: 2px;
-  width: 100%;
-  max-width: 480px;
-  aspect-ratio: 1;
-  margin: 0 auto;
-  padding: 8px;
+  margin: auto;
+  padding: 10px;
   background-color: var(--surface-overlay);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-m);
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.6), 0 4px 16px rgba(0, 0, 0, 0.3);
+  width: max-content;
+  height: max-content;
+  box-sizing: border-box;
 }
 
 .pixelCell {
-  width: 100%;
-  height: 100%;
   border-radius: 2px;
   cursor: pointer;
   transition: opacity 80ms;
+  box-sizing: border-box;
 }
 
-.pixelCell:hover { opacity: 0.8; }
+.pixelCell:hover {
+  opacity: 0.85;
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+/* ── Saved Drawings Gallery ───────────────────────────────────── */
+.savedSection {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.savedSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.savedTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.emptySaved {
+  color: var(--text-tertiary);
+  font: var(--type-body);
+  padding: var(--sp-4) 0;
+}
+
+.savedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-4);
+}
+
+.savedCard {
+  background-color: var(--surface-base);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  cursor: pointer;
+  transition: border-color 150ms, box-shadow 150ms, transform 150ms;
+  text-align: left;
+}
+
+.savedCard:hover {
+  border-color: var(--accent-violet);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.savedCardActive {
+  border-color: var(--accent-violet);
+  box-shadow: 0 0 0 1px var(--accent-violet), 0 4px 12px rgba(112, 0, 255, 0.2);
+}
+
+.savedCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.savedCardTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.savedCardName {
+  font: var(--type-body);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.savedCardMeta {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-tertiary);
+}
+
+.deleteDrawingBtn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+  color: var(--text-tertiary);
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+}
+
+.deleteDrawingBtn:hover {
+  color: var(--accent-rose);
+  border-color: var(--accent-rose);
+}
+
+.miniThumbnail {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  max-height: 120px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-s);
+  padding: 4px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.miniCell {
+  width: 100%;
+  height: 100%;
+  border-radius: 1px;
+}

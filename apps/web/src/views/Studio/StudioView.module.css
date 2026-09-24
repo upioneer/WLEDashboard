@@ -50,6 +50,13 @@
   background-color: var(--accent-violet-10);
 }
 
+.stickySimulator {
+  position: sticky;
+  top: 12px;
+  z-index: 25;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
 .tabBar {
   display: flex;
   gap: var(--sp-2);

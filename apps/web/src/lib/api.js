@@ -106,6 +106,12 @@ export const studioApi = {
   listPalettes: () => request('GET', '/studio/palettes'),
   createPalette: (data) => request('POST', '/studio/palettes', data),
   deletePalette: (id) => request('DELETE', `/studio/palettes/${id}`),
+  getShapes: () => request('GET', '/studio/shapes'),
+  previewObject: (data) => request('POST', '/studio/objects/preview', data),
+  listObjects: () => request('GET', '/studio/objects'),
+  createObject: (data) => request('POST', '/studio/objects', data),
+  updateObject: (id, data) => request('PATCH', `/studio/objects/${id}`, data),
+  deleteObject: (id) => request('DELETE', `/studio/objects/${id}`),
 }
 
 // ─── MQTT ─────────────────────────────────────────────────────────────────────
