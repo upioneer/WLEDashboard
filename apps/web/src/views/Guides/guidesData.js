@@ -618,6 +618,16 @@ export const GUIDES = [
         title: "Multi-Step Routine Timelines",
         content: "Routines execute structured chains of actions across multiple controllers with configurable transition delays. For example: turn on patio lights, wait 5 seconds, fade in pathway ground lights, wait 10 seconds, then set living room cove to evening ambient glow.",
       },
+      {
+        title: "Server Time, Host NTP & the Sidebar Clock",
+        content: "Schedules and automations run on server time, which follows the host operating system clock. Docker, Proxmox, and Unraid hosts all synchronize via NTP by default, so no separate NTP setup is needed inside WLEDashboard. If automations fire at the wrong hour, check the host timezone first, not the app. The optional sidebar clock (Settings > Time & Clock) shows live server time in your choice of three styles and any display timezone; it defaults to your browser locale.",
+        steps: [
+          "Docker: the container inherits the host clock automatically. Set the host timezone with timedatectl and restart the container if the zone changed.",
+          "Proxmox LXC: unprivileged containers share the host clock. Keep the Proxmox host on NTP under Datacenter > Options > Timezone and time sync.",
+          "Unraid: the array syncs via NTP under Settings > Date and Time. Containers inherit it with no extra steps.",
+          "Enable the sidebar clock in Settings > Time & Clock to keep server time visible while building schedules.",
+        ],
+      },
     ],
   },
   {

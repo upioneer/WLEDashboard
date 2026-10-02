@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LogoMark } from '../Logo/LogoMark.jsx'
+import { ClockChip } from '../ClockChip/ClockChip.jsx'
 import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
 import styles from './Sidebar.module.css'
 
@@ -114,6 +115,8 @@ export function Sidebar() {
             </span>
           )}
         </NavLink>
+
+        {!collapsed && <ClockChip />}
 
         <button
           className={styles.collapseBtn}

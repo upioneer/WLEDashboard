@@ -160,4 +160,11 @@
 * [ ] NEXT RELEASE: submit Unraid Community Applications template PR to the official channel and track reviewer feedback
 * [ ] NEXT RELEASE: submit Proxmox VE helper script PR to the official channel and track reviewer feedback
 * [ ] LATER: affiliate product links on blueprint shopping lists (disclosed, health checked), once the list format survives real builds
+* [ ] Dashboard clock display showing current time/date (placement to be decided)
+* [ ] Time sync: NTP sync or manual time entry
+* [ ] Automation time source policy: user choice in Settings between sun position/geolocation, manual time, or NTP server time as the driver for automations
+* [ ] DEEP BACKLOG: import WLED firmware segments as first class entities (GH #3 closed as not immediately entertained; a read only mirror or partial happy medium may be worth scoping later)
+* [ ] Studio marquee maker: text input plus color/theme, speed, and standard/custom matrix sizes with live preview and DDP push (friendly wedge before word clock). Row support: user selectable row count with maxRows = floor((H - 2*minPad) / glyphH) at 5x7 font (6px effective), even buffer distribution, per row text inputs; variable fonts and per row colors later
+* [ ] Studio word clock designer: letter grid plus time grammar packs with live preview and DDP push to stock WLED matrices (clean room rewrite inspired by the MIT word clock usermod, no firmware flash required)
+* [ ] Buzzer control surface plus automation action: detect buzzer API capable devices, sound picker with test/stop, routine and schedule chime actions with quiet hours (requires user flashed buzzer build; ship with setup guide)
 

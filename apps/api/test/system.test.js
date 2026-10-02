@@ -33,6 +33,19 @@ test('System routes: health, logs, diagnostics, and actions', async (t) => {
     assert.ok(Array.isArray(data.network_interfaces))
   })
 
+  await t.test('GET /api/system/time returns server clock reference', async () => {
+    const res = await fastify.inject({
+      method: 'GET',
+      url: '/api/system/time',
+    })
+
+    assert.equal(res.statusCode, 200)
+    const data = JSON.parse(res.body)
+    assert.ok(!Number.isNaN(Date.parse(data.serverTime)))
+    assert.ok(typeof data.timezone === 'string' && data.timezone.length > 0)
+    assert.equal(typeof data.utcOffsetMinutes, 'number')
+  })
+
   await t.test('GET /api/system/logs and POST /api/system/logs/clear', async () => {
     const res1 = await fastify.inject({
       method: 'GET',

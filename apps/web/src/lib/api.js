@@ -158,6 +158,7 @@ export const weatherApi = {
 // ─── System / Advanced ───────────────────────────────────────────────────────
 export const systemApi = {
   getHealth: () => request('GET', '/system/health'),
+  getTime: () => request('GET', '/system/time'),
   getLogs: (params) => {
     const q = new URLSearchParams()
     if (params?.level) q.set('level', params.level)

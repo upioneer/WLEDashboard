@@ -19,6 +19,16 @@ export async function systemRoutes(fastify) {
     return getSystemHealth()
   })
 
+  // GET /api/system/time - Server clock for the sidebar chip and automation reference
+  fastify.get('/system/time', async () => {
+    const now = new Date()
+    return {
+      serverTime: now.toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+      utcOffsetMinutes: -now.getTimezoneOffset(),
+    }
+  })
+
   // GET /api/system/logs - Activity stream and error logs
   fastify.get('/system/logs', async (req) => {
     const limit = parseInt(req.query?.limit ?? '150', 10)

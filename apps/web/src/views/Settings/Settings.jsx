@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { settingsApi, mqttApi, spotifyApi, weatherApi, configApi } from '../../lib/api.js'
+import { settingsApi, mqttApi, spotifyApi, weatherApi, configApi, systemApi } from '../../lib/api.js'
+import { TIME_ZONES, TIME_CHIP_STYLES } from '../../components/ClockChip/ClockChip.jsx'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
@@ -27,6 +28,9 @@ const DEFAULTS = {
   spatial_intro_enabled: 'true',
   advanced_mode: 'false',
   demo_mode: '0',
+  time_chip_enabled: '1',
+  time_chip_style: 'compact',
+  time_zone: 'local',
 }
 
 
@@ -36,7 +40,9 @@ const CONTRIBUTORS = [
   { name: 'johnsonflix', platform: 'reddit' },
   { name: 'Netmindz', platform: 'reddit' },
   { name: 'New-Lawyer-2913', platform: 'reddit' },
+  { name: 'patricknusbaum01', platform: 'github' },
   { name: 'pubultrastar', platform: 'reddit' },
+  { name: 'railstop', platform: 'reddit' },
   { name: 'Rev-777', platform: 'reddit' },
   { name: 'shr00mie', platform: 'github' },
   { name: 'sitbon', platform: 'reddit' },
@@ -103,6 +109,12 @@ export function Settings() {
   const [showReplaceConfirm, setShowReplaceConfirm] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState(ALL_RESTORE_CATEGORIES)
   const fileInputRef = useRef(null)
+
+  // ── Server time reference ────────────────────────────────────────────────────
+  const [serverTime, setServerTime] = useState(null)
+  useEffect(() => {
+    systemApi.getTime().then(setServerTime).catch(() => {})
+  }, [])
 
   const debounceTimers = useRef({})
   const saveStatusTimer = useRef(null)
@@ -568,6 +580,75 @@ export function Settings() {
       )}
 
       <div className={styles.sections}>
+        {/* Time & Clock */}
+        <section className={styles.section} aria-labelledby="time-heading">
+          <h2 id="time-heading" className={styles.sectionTitle}>Time & Clock</h2>
+          <p className={styles.sectionDesc}>
+            Schedules and automations run on server time, which follows the host clock (Docker, Proxmox, and Unraid hosts all synchronize via NTP). No separate NTP setup is needed inside WLEDashboard.
+            {serverTime && (
+              <> Server time is currently <strong>{new Date(serverTime.serverTime).toLocaleString()}</strong> ({serverTime.timezone}).</>
+            )}
+          </p>
+          <div className={styles.fields}>
+            <SettingField
+              label="Sidebar Clock"
+              hint="Show a live server clock in the sidebar footer"
+              id="time_chip_enabled"
+            >
+              <div className={styles.unitToggleGroup}>
+                <button
+                  type="button"
+                  className={[styles.unitToggleBtn, settings.time_chip_enabled !== '0' && styles.unitToggleActive].filter(Boolean).join(' ')}
+                  onClick={() => handleImmediateChange('time_chip_enabled', '1')}
+                >
+                  On
+                </button>
+                <button
+                  type="button"
+                  className={[styles.unitToggleBtn, settings.time_chip_enabled === '0' && styles.unitToggleActive].filter(Boolean).join(' ')}
+                  onClick={() => handleImmediateChange('time_chip_enabled', '0')}
+                >
+                  Off
+                </button>
+              </div>
+            </SettingField>
+
+            <SettingField
+              label="Clock Style"
+              hint="How much detail the sidebar clock shows"
+              id="time_chip_style"
+            >
+              <select
+                className={styles.selectInput}
+                value={settings.time_chip_style}
+                onChange={e => handleImmediateChange('time_chip_style', e.target.value)}
+                aria-label="Clock style"
+              >
+                {TIME_CHIP_STYLES.map(s => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </SettingField>
+
+            <SettingField
+              label="Display Time Zone"
+              hint="Local follows this browser. Automations always use server time."
+              id="time_zone"
+            >
+              <select
+                className={styles.selectInput}
+                value={settings.time_zone}
+                onChange={e => handleImmediateChange('time_zone', e.target.value)}
+                aria-label="Display time zone"
+              >
+                {TIME_ZONES.map(z => (
+                  <option key={z} value={z}>{z === 'local' ? 'Local (browser)' : z}</option>
+                ))}
+              </select>
+            </SettingField>
+          </div>
+        </section>
+
         {/* Unit System & Display */}
         <section className={styles.section} aria-labelledby="units-heading">
           <h2 id="units-heading" className={styles.sectionTitle}>Display & Unit System</h2>

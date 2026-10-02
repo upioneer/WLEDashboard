@@ -94,6 +94,12 @@ Restore exactly what you need from any backup with per category opt in checkboxe
 
 ![Selective Backup Restore](project_details/changelog/v0.24.0/screenshots/settings-restore-scope.png)
 
+### Sidebar Clock & Time Settings
+
+Keep server time visible with a live clock in the sidebar footer, configurable in three styles and any display timezone. The Time & Clock settings section shows the server clock that drives schedules and automations, which follow the host NTP synchronized clock on every platform with no separate setup.
+
+![Sidebar Clock & Time Settings](project_details/changelog/v0.25.1/screenshots/settings-time-clock.png)
+
 ---
 
 ## Core Features
