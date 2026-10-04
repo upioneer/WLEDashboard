@@ -513,3 +513,174 @@
   height: 100%;
   border-radius: 1px;
 }
+
+/* ── Draw / Marquee mode tabs ─────────────────────────────────── */
+.modeTabs {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.modeTab {
+  height: 36px;
+  padding: 0 var(--sp-5);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+
+.modeTab:hover {
+  color: var(--text-primary);
+}
+
+.modeTabActive {
+  background-color: var(--accent-violet);
+  border-color: var(--accent-violet);
+  color: var(--text-inverse);
+}
+
+/* ── Marquee maker panel ──────────────────────────────────────── */
+.marqueePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-top: var(--sp-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.marqueeWarn {
+  font: var(--type-body);
+  color: var(--text-secondary);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  padding: var(--sp-4);
+}
+
+.marqueeRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.marqueeTextRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.marqueeRowLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  min-width: 44px;
+}
+
+.marqueeTextInput {
+  flex: 1;
+  min-width: 120px;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+}
+
+.marqueeTextInput:focus,
+.marqueeTextInput:focus-visible {
+  outline: none;
+  border-color: var(--accent-violet);
+}
+
+.marqueeOptions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+
+.marqueeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.marqueeCheck {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+}
+
+.marqueeCheck input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+.speedSlider {
+  width: 120px;
+  accent-color: var(--accent-violet);
+  cursor: pointer;
+}
+
+.marqueePush {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pushBtn {
+  height: 38px;
+  padding: 0 var(--sp-5);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms;
+  white-space: nowrap;
+}
+
+.pushBtn:hover {
+  opacity: 0.9;
+}
+
+.pushBtnActive {
+  background-color: var(--accent-rose);
+}
+
+.pixelCellStatic {
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.kindBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-inverse);
+  background-color: var(--accent-violet);
+  border-radius: var(--radius-s);
+  vertical-align: middle;
+}

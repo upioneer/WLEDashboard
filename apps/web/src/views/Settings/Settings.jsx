@@ -31,6 +31,7 @@ const DEFAULTS = {
   time_chip_enabled: '1',
   time_chip_style: 'compact',
   time_zone: 'local',
+  spatial_swap_mouse: '0',
 }
 
 
@@ -762,6 +763,20 @@ export function Settings() {
                   type="checkbox"
                   checked={settings.spatial_intro_enabled !== 'false' && settings.spatial_intro_enabled !== false}
                   onChange={(e) => handleImmediateChange('spatial_intro_enabled', e.target.checked ? 'true' : 'false')}
+                />
+                <span className={styles.slider}></span>
+              </label>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0' }}>
+              <div>
+                <h4 style={{ margin: '0 0 0.25rem 0', color: 'var(--text-primary)', fontSize: '0.95rem', fontWeight: 600 }}>Swap Mouse Buttons</h4>
+                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.85rem' }}>Left drag rotates and right drag pans, instead of the default left pan and right rotate.</p>
+              </div>
+              <label className={styles.switch}>
+                <input
+                  type="checkbox"
+                  checked={settings.spatial_swap_mouse === '1' || settings.spatial_swap_mouse === true}
+                  onChange={(e) => handleImmediateChange('spatial_swap_mouse', e.target.checked ? '1' : '0')}
                 />
                 <span className={styles.slider}></span>
               </label>

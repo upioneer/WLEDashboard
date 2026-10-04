@@ -23,11 +23,13 @@ export function listDrawings() {
   const rows = getDb().prepare('SELECT * FROM matrix_drawings ORDER BY created_at DESC').all()
   return rows.map(r => ({
     ...r,
+    kind: r.kind || 'drawing',
     pixels: JSON.parse(r.pixels_json || '[]'),
+    params: r.params_json ? JSON.parse(r.params_json) : null,
   }))
 }
 
-export function saveDrawing({ id, name, width = 16, height = 16, pixels = [] }) {
+export function saveDrawing({ id, name, width = 16, height = 16, pixels = [], kind = 'drawing', params = null }) {
   const trimmedName = typeof name === 'string' ? name.trim() : ''
   if (!trimmedName) {
     const err = new Error('Drawing name is required.')
@@ -47,27 +49,29 @@ export function saveDrawing({ id, name, width = 16, height = 16, pixels = [] }) 
   }
 
   const pixelsJson = JSON.stringify(pixels)
+  const safeKind = kind === 'marquee' ? 'marquee' : 'drawing'
+  const paramsJson = params == null ? null : JSON.stringify(params)
 
   if (id) {
     const existing = db.prepare('SELECT id FROM matrix_drawings WHERE id = ?').get(id)
     if (existing) {
       db.prepare(`
         UPDATE matrix_drawings
-        SET name = ?, width = ?, height = ?, pixels_json = ?
+        SET name = ?, width = ?, height = ?, pixels_json = ?, kind = ?, params_json = ?
         WHERE id = ?
-      `).run(trimmedName, width, height, pixelsJson, id)
+      `).run(trimmedName, width, height, pixelsJson, safeKind, paramsJson, id)
       const row = db.prepare('SELECT * FROM matrix_drawings WHERE id = ?').get(id)
-      return { ...row, pixels }
+      return { ...row, kind: row.kind || 'drawing', pixels, params }
     }
   }
 
   const targetId = id || uuidv4()
   db.prepare(`
-    INSERT INTO matrix_drawings (id, name, width, height, pixels_json)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(targetId, trimmedName, width, height, pixelsJson)
+    INSERT INTO matrix_drawings (id, name, width, height, pixels_json, kind, params_json)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(targetId, trimmedName, width, height, pixelsJson, safeKind, paramsJson)
   const row = db.prepare('SELECT * FROM matrix_drawings WHERE id = ?').get(targetId)
-  return { ...row, pixels }
+  return { ...row, kind: row.kind || 'drawing', pixels, params }
 }
 
 export function deleteDrawing(id) {

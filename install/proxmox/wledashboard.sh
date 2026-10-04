@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Copyright (c) 2026 upioneer / WLEDashboard
-# License: MIT
+# Copyright (c) 2026 upioneer / WLEDashboard. All Rights Reserved.
+# Proprietary: see the project LICENSE.md. This standalone installer is not
+# the community-scripts submission; the MIT licensed submission copies live in
+# install/proxmox/community/ (ct/wledashboard.sh + install/wledashboard-install.sh).
 # Proxmox VE Helper Script: WLEDashboard LXC Container Creator
 # Run this script directly on your Proxmox VE host.
 

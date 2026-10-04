@@ -548,9 +548,9 @@ export const GUIDES = [
     id: "studio-timelines-matrix",
     category: "studio",
     title: "Effect Studio, Timelines, 2D Matrix & 3D Objects",
-    summary: "Design custom keyframe animation timelines, browse WLED presets, paint 2D matrix pixel artwork, and construct parametric 3D objects with power math.",
-    readTime: "6 min read",
-    tags: ["studio", "timeline", "keyframes", "presets", "palettes", "matrix", "audio", "3d", "blueprint"],
+    summary: "Design custom keyframe animation timelines, browse WLED presets, paint 2D matrix pixel artwork, scroll marquee text signs, and construct parametric 3D objects with power math.",
+    readTime: "7 min read",
+    tags: ["studio", "timeline", "keyframes", "presets", "palettes", "matrix", "marquee", "audio", "3d", "blueprint"],
     sections: [
       {
         title: "Preset Browser",
@@ -570,6 +570,16 @@ export const GUIDES = [
       {
         title: "2D Matrix Canvas Designer",
         content: "For users with WS2812B or WS2811 LED matrices (e.g. 16x16, 8x32, 64x64), the Matrix Editor provides an interactive pixel grid for drawing custom color artwork, icons, and text patterns with direct preset saving.",
+      },
+      {
+        title: "Marquee Text Scroller",
+        content: "The Marquee tab turns any matrix into a scrolling LED sign. Type up to 10 rows of text with per row colors, pick a background, speed, and scroll direction, then watch the live preview before pushing frames to a real controller over DDP (UDP port 4048). Rows use a crisp 3x5 pixel font at a 6px pitch, so row capacity is floor((H - 2) / 6): an 8px banner fits one row, a 16x16 panel fits two, and a 32px panel fits five. Matrices shorter than 7px cannot fit text. While pushing, the controller shows your marquee as a live override and returns to its previous effect when you stop.",
+        steps: [
+          "Pick a target device that is online on the same LAN as the dashboard server. DDP is UDP: it must be routable from the server, not just from your browser.",
+          "If rows look scrambled on hardware, enable Serpentine wiring so odd rows are transmitted right to left to match zigzag panels.",
+          "Docker bridge networks can send outbound UDP, so pushing works from the default container. Discovery and mDNS are the features that need host networking, not DDP push.",
+          "Save finished signs as marquee presets. They store text, colors, speed, direction, and size, and reload into the Marquee tab from the gallery.",
+        ],
       },
       {
         title: "Audio Visualizer Streaming",

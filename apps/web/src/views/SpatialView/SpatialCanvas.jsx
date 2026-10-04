@@ -668,11 +668,13 @@ export function SpatialCanvas({ unitSystem = 'imperial' }) {
   
   const [introActive, setIntroActive] = useState(null)
   const [controlsEnabled, setControlsEnabled] = useState(true)
+  const [swapMouse, setSwapMouse] = useState(false)
   const sceneRef = useRef(null)
 
   useEffect(() => {
     settingsApi.get().then(s => {
       setIntroActive(s.spatial_intro_enabled !== 'false' && s.spatial_intro_enabled !== false)
+      setSwapMouse(s.spatial_swap_mouse === '1' || s.spatial_swap_mouse === true)
     }).catch(() => {})
   }, [])
 
@@ -740,7 +742,6 @@ export function SpatialCanvas({ unitSystem = 'imperial' }) {
         </group>
 
         {/* Smooth Orbit Camera Controls */}
-        {/* TODO: Consider adding a user preference toggle in Settings/SpatialView to allow customizing/swapping mouse buttons */}
         {!introActive && (
           <OrbitControls
             makeDefault
@@ -751,9 +752,9 @@ export function SpatialCanvas({ unitSystem = 'imperial' }) {
             maxDistance={30}
             maxPolarAngle={Math.PI / 2.1}
             mouseButtons={{
-              LEFT: THREE.MOUSE.PAN,
+              LEFT: swapMouse ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
               MIDDLE: THREE.MOUSE.DOLLY,
-              RIGHT: THREE.MOUSE.ROTATE,
+              RIGHT: swapMouse ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
             }}
           />
         )}

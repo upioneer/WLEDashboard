@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { sendDdpRgbFrame } from '../services/audioService.js'
+import { sendDdpRgbFrame } from '../services/ddpService.js'
 
 const StreamDdpSchema = z.object({
   target_ip: z.string().min(1),

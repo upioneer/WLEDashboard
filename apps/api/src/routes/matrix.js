@@ -7,6 +7,7 @@ import {
   saveDrawing,
   deleteDrawing,
 } from '../services/matrixService.js'
+import { sendDdpRgbFrame } from '../services/ddpService.js'
 
 const CreateMatrixSchema = z.object({
   name: z.string().min(1).max(64).trim(),
@@ -15,12 +16,32 @@ const CreateMatrixSchema = z.object({
   height: z.number().int().positive().optional().default(16),
 })
 
+const MarqueeRowSchema = z.object({
+  text: z.string().max(120),
+  color: z.string().max(16),
+})
+
+const MarqueeParamsSchema = z.object({
+  rows: z.array(MarqueeRowSchema).max(10).optional().default([]),
+  bg: z.string().max(16).optional().default('#000000'),
+  speed: z.number().min(1).max(120).optional().default(12),
+  direction: z.enum(['left', 'right']).optional().default('left'),
+  serpentine: z.boolean().optional().default(false),
+})
+
 const SaveDrawingSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1).max(64).trim(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   pixels: z.array(z.string()),
+  kind: z.enum(['drawing', 'marquee']).optional().default('drawing'),
+  params: MarqueeParamsSchema.nullable().optional(),
+})
+
+const StreamDdpSchema = z.object({
+  target_ip: z.string().min(1),
+  pixels: z.array(z.array(z.number().min(0).max(255)).length(3)),
 })
 
 export async function matrixRoutes(fastify) {
@@ -67,5 +88,14 @@ export async function matrixRoutes(fastify) {
     const deleted = deleteDrawing(req.params.id)
     if (!deleted) return reply.code(404).send({ error: 'Drawing not found' })
     return reply.code(204).send()
+  })
+
+  // POST /api/matrix/stream-ddp
+  fastify.post('/matrix/stream-ddp', async (req, reply) => {
+    const parsed = StreamDdpSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+
+    sendDdpRgbFrame(parsed.data.target_ip, parsed.data.pixels)
+    return reply.code(200).send({ status: 'sent' })
   })
 }

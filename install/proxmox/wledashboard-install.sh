@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (c) 2026 upioneer / WLEDashboard
-# License: MIT
+# Copyright (c) 2026 upioneer / WLEDashboard. All Rights Reserved.
+# Proprietary: see the project LICENSE.md. The MIT licensed community-scripts
+# submission copy lives in install/proxmox/community/install/.
 # WLEDashboard Native LXC Installation Script (runs inside the container)
 
 set -Eeuo pipefail

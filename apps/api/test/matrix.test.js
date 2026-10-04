@@ -152,4 +152,81 @@ test('2D Matrix API: Drawing name requirements and validation', async (t) => {
     await fastify.inject({ method: 'DELETE', url: `/api/matrix/drawings/${initialData.id}` })
     await fastify.inject({ method: 'DELETE', url: `/api/matrix/drawings/${secondId}` })
   })
+
+  await t.test('legacy drawings default to kind drawing with null params', async () => {
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/drawings',
+      payload: {
+        name: 'Legacy Star',
+        width: 8,
+        height: 8,
+        pixels: Array(64).fill('#000000'),
+      },
+    })
+    assert.equal(created.statusCode, 201)
+    const data = JSON.parse(created.body)
+    assert.equal(data.kind, 'drawing')
+    assert.equal(data.params, null)
+
+    const listed = await fastify.inject({ method: 'GET', url: '/api/matrix/drawings' })
+    const found = JSON.parse(listed.body).find((d) => d.id === data.id)
+    assert.equal(found.kind, 'drawing')
+    assert.equal(found.params, null)
+
+    await fastify.inject({ method: 'DELETE', url: `/api/matrix/drawings/${data.id}` })
+  })
+
+  await t.test('marquee presets roundtrip kind and params', async () => {
+    const params = {
+      rows: [{ text: 'HELLO', color: '#ff0000' }],
+      bg: '#000000',
+      speed: 12,
+      direction: 'left',
+      serpentine: true,
+    }
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/drawings',
+      payload: {
+        name: 'Hello Marquee',
+        width: 32,
+        height: 8,
+        pixels: Array(32 * 8).fill('#000000'),
+        kind: 'marquee',
+        params,
+      },
+    })
+    assert.equal(created.statusCode, 201)
+    const data = JSON.parse(created.body)
+    assert.equal(data.kind, 'marquee')
+    assert.deepEqual(data.params, params)
+
+    const listed = await fastify.inject({ method: 'GET', url: '/api/matrix/drawings' })
+    const found = JSON.parse(listed.body).find((d) => d.id === data.id)
+    assert.equal(found.kind, 'marquee')
+    assert.deepEqual(found.params, params)
+
+    await fastify.inject({ method: 'DELETE', url: `/api/matrix/drawings/${data.id}` })
+  })
+
+  await t.test('POST /api/matrix/stream-ddp validates payload and relays frames', async () => {
+    const bad = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/stream-ddp',
+      payload: { target_ip: '', pixels: [[[300, 0, 0]]] },
+    })
+    assert.equal(bad.statusCode, 400)
+
+    const good = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/stream-ddp',
+      payload: {
+        target_ip: '127.0.0.1',
+        pixels: Array(64).fill([255, 0, 0]),
+      },
+    })
+    assert.equal(good.statusCode, 200)
+    assert.deepEqual(JSON.parse(good.body), { status: 'sent' })
+  })
 })

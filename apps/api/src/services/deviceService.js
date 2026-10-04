@@ -134,6 +134,20 @@ export async function fetchDeviceState(device) {
   }
 }
 
+// Per-device command queue: ESP HTTP servers handle one connection at a time,
+// so rapid successive commands must serialize or later ones get refused.
+const commandQueues = new Map()
+const COMMAND_SETTLE_MS = 75
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function enqueueCommand(deviceId, fn) {
+  const tail = commandQueues.get(deviceId) ?? Promise.resolve()
+  const next = tail.then(fn, fn)
+  commandQueues.set(deviceId, next.catch(() => {}))
+  return next
+}
+
 export async function sendDeviceCommand(device, payload) {
   const deviceId = typeof device === 'string' ? device : device?.id
   if (isDemoMode() || deviceId?.startsWith('demo-')) {
@@ -142,18 +156,26 @@ export async function sendDeviceCommand(device, payload) {
     return { ok: true, data: updated }
   }
 
-  // 1. Immediately update backend stateCache and notify WebSocket subscribers
-  const cached = stateCache.get(deviceId) || { on: true, bri: 255 }
-  const merged = { ...cached, ...payload, _ts: Date.now() }
-  stateCache.set(deviceId, merged)
-  notify(deviceId, merged)
+  return enqueueCommand(deviceId, () => deliverCommand(device, deviceId, payload))
+}
 
-  // 2. Also forward command over direct WLED WebSocket if connected
+async function deliverCommand(device, deviceId, payload) {
+  // Fast path: an open WLED WebSocket already delivers in real time,
+  // so skip the redundant HTTP POST and halve ESP load.
+  let wsSent = false
   try {
-    sendWledWebSocketCommand(device.id, payload)
+    wsSent = sendWledWebSocketCommand(device.id, payload)
   } catch {}
+  if (wsSent) {
+    const cached = stateCache.get(deviceId) || { on: true, bri: 255 }
+    const merged = { ...cached, ...payload, _ts: Date.now() }
+    stateCache.set(deviceId, merged)
+    notify(deviceId, merged)
+    await sleep(COMMAND_SETTLE_MS)
+    return { ok: true, data: merged }
+  }
 
-  // 3. Forward HTTP JSON command to WLED device
+  // HTTP JSON command to WLED device
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 2500)
   try {
@@ -166,17 +188,20 @@ export async function sendDeviceCommand(device, payload) {
     clearTimeout(timeout)
     if (res.ok) {
       const data = await res.json()
-      const updated = { ...merged, ...data, _ts: Date.now() }
+      const cached = stateCache.get(deviceId) || { on: true, bri: 255 }
+      const updated = { ...cached, ...data, _ts: Date.now() }
       stateCache.set(device.id, updated)
       notify(device.id, updated)
+      await sleep(COMMAND_SETTLE_MS)
       return { ok: true, data: updated }
     }
   } catch (err) {
     clearTimeout(timeout)
   }
 
-  // Always return updated state object so UI remains fluid and responsive
-  return { ok: true, data: merged }
+  // Honest failure: callers (UI rollback, MCP errors) depend on ok:false.
+  await sleep(COMMAND_SETTLE_MS)
+  return { ok: false, error: 'WLED device did not acknowledge the command' }
 }
 
 import { connectWledWebSocket, sendWledWebSocketCommand, disconnectWledWebSocket } from './wledWsService.js'

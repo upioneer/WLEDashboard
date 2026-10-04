@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { matrixApi } from '../../lib/api.js'
+import { matrixApi, devicesApi } from '../../lib/api.js'
 import { useUIStore } from '../../stores/uiStore.js'
+import {
+  maxRowsForHeight,
+  scrollStripLength,
+  renderMarqueeFrame,
+  applySerpentine,
+  frameToRgbTriplets,
+  buildMarqueeLoopState,
+} from '../../lib/marquee.js'
 import styles from './MatrixEditor.module.css'
 
 const PRESET_PALETTE = ['#ff0055', '#ffaa00', '#00ffcc', '#0099ff', '#7000ff', '#ffffff', '#000000']
@@ -43,6 +51,22 @@ export function MatrixEditor() {
 
   const [pixels, setPixels] = useState(() => Array(16 * 16).fill('#000000'))
 
+  // Marquee maker state
+  const [mode, setMode] = useState('draw')
+  const [marqueeRows, setMarqueeRows] = useState([{ text: 'HELLO', color: '#ff0055' }])
+  const [marqueeBg, setMarqueeBg] = useState('#000000')
+  const [marqueeSpeed, setMarqueeSpeed] = useState(12)
+  const [marqueeDirection, setMarqueeDirection] = useState('left')
+  const [marqueeSerpentine, setMarqueeSerpentine] = useState(false)
+  const [devices, setDevices] = useState([])
+  const [pushDeviceId, setPushDeviceId] = useState('')
+  const [pushing, setPushing] = useState(false)
+  const [marqueeFrame, setMarqueeFrame] = useState([])
+  const marqueeOffsetRef = useRef(0)
+  const marqueeStateRef = useRef({})
+  const devicesRef = useRef([])
+  const pushFailedRef = useRef(false)
+
   useEffect(() => {
     let active = true
     matrixApi.listDrawings()
@@ -78,6 +102,93 @@ export function MatrixEditor() {
     viewport.addEventListener('wheel', handleWheel, { passive: false })
     return () => viewport.removeEventListener('wheel', handleWheel)
   }, [])
+
+  const marqueeMaxRows = maxRowsForHeight(rows)
+
+  // Clamp marquee row count to what the current height can fit
+  useEffect(() => {
+    setMarqueeRows(prev => {
+      if (marqueeMaxRows <= 0) return prev.slice(0, 1)
+      if (prev.length <= marqueeMaxRows) return prev
+      return prev.slice(0, marqueeMaxRows)
+    })
+  }, [marqueeMaxRows])
+
+  // Target devices for DDP push
+  useEffect(() => {
+    let active = true
+    devicesApi.list()
+      .then(list => {
+        if (active && Array.isArray(list)) setDevices(list)
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    devicesRef.current = devices
+  }, [devices])
+
+  marqueeStateRef.current = buildMarqueeLoopState({
+    marqueeRows,
+    bg: marqueeBg,
+    speed: marqueeSpeed,
+    direction: marqueeDirection,
+    serpentine: marqueeSerpentine,
+    pushing,
+    deviceId: pushDeviceId,
+    cols,
+    rows,
+  })
+
+  // Restart the scroll whenever content, size, or direction changes
+  useEffect(() => {
+    if (mode !== 'marquee') return
+    const total = Math.max(...marqueeRows.map(r => scrollStripLength(r.text, cols)), cols)
+    const maxOffset = Math.max(0, total - cols)
+    marqueeOffsetRef.current = marqueeDirection === 'left' ? 0 : maxOffset
+  }, [mode, marqueeRows, cols, rows, marqueeDirection])
+
+  // Marquee preview clock + DDP push loop (10 fps relay)
+  useEffect(() => {
+    if (mode !== 'marquee') return
+    const timer = setInterval(() => {
+      const s = marqueeStateRef.current
+      const total = Math.max(...s.marqueeRows.map(r => scrollStripLength(r.text, s.cols)), s.cols)
+      const maxOffset = Math.max(0, total - s.cols)
+      let next = marqueeOffsetRef.current + (s.direction === 'left' ? 1 : -1) * (s.speed / 10)
+      if (maxOffset === 0) {
+        next = 0
+      } else {
+        if (next > maxOffset) next -= (maxOffset + 1)
+        if (next < 0) next += (maxOffset + 1)
+      }
+      marqueeOffsetRef.current = next
+      const frame = renderMarqueeFrame({
+        width: s.cols,
+        height: s.rows,
+        rows: s.marqueeRows,
+        bg: s.bg,
+        offset: Math.floor(next),
+      })
+      setMarqueeFrame(frame)
+      if (s.pushing && s.deviceId) {
+        const device = devicesRef.current.find(d => d.id === s.deviceId)
+        if (device?.ip_address) {
+          const ordered = s.serpentine ? applySerpentine(frame, s.cols, s.rows) : frame
+          matrixApi.streamDdp({ target_ip: device.ip_address, pixels: frameToRgbTriplets(ordered) })
+            .catch(() => {
+              if (!pushFailedRef.current) {
+                pushFailedRef.current = true
+                setPushing(false)
+                addToast({ message: 'DDP push failed. Check the device is online and reachable.', type: 'error' })
+              }
+            })
+        }
+      }
+    }, 100)
+    return () => clearInterval(timer)
+  }, [mode, addToast])
 
   const handlePixelMouseDown = (index, e) => {
     e?.preventDefault()
@@ -164,16 +275,58 @@ export function MatrixEditor() {
     setPixels(Array(cols * rows).fill(activeColor))
   }
 
+  const handleModeChange = (next) => {
+    if (next === mode) return
+    setPushing(false)
+    pushFailedRef.current = false
+    setMode(next)
+  }
+
+  const handlePushToggle = () => {
+    if (pushing) {
+      setPushing(false)
+      return
+    }
+    const device = devices.find(d => d.id === pushDeviceId)
+    if (!device?.ip_address) {
+      addToast({ message: 'Select a target device before pushing', type: 'error' })
+      return
+    }
+    pushFailedRef.current = false
+    setPushing(true)
+    addToast({ message: `Pushing marquee to ${device.name || device.ip_address}`, type: 'info' })
+  }
+
+  const handleAddMarqueeRow = () => {
+    if (marqueeRows.length >= marqueeMaxRows || marqueeRows.length >= 10) return
+    const fallback = PRESET_PALETTE[marqueeRows.length % PRESET_PALETTE.length]
+    setMarqueeRows(prev => [...prev, { text: '', color: fallback }])
+  }
+
+  const handleRemoveMarqueeRow = (index) => {
+    if (marqueeRows.length <= 1) return
+    setMarqueeRows(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleMarqueeRowChange = (index, patch) => {
+    setMarqueeRows(prev => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)))
+  }
+
   const handleNewDrawing = () => {
     setEditingDrawingId(null)
     setDrawingName('')
-    setPixels(Array(cols * rows).fill('#000000'))
-    addToast({ message: 'Started new drawing', type: 'info' })
+    if (mode === 'marquee') {
+      setMarqueeRows([{ text: '', color: '#ff0055' }])
+      setMarqueeBg('#000000')
+      marqueeOffsetRef.current = 0
+      addToast({ message: 'Started new marquee', type: 'info' })
+    } else {
+      setPixels(Array(cols * rows).fill('#000000'))
+      addToast({ message: 'Started new drawing', type: 'info' })
+    }
   }
 
-  const handleLoadDrawing = (drawing) => {
-    setEditingDrawingId(drawing.id)
-    setDrawingName(drawing.name)
+  const applyLoadedSize = (drawing) => {
     setCols(drawing.width)
     setRows(drawing.height)
     if (['8x8', '16x16', '32x8'].includes(`${drawing.width}x${drawing.height}`)) {
@@ -183,6 +336,29 @@ export function MatrixEditor() {
       setCustomCols(drawing.width)
       setCustomRows(drawing.height)
     }
+  }
+
+  const handleLoadDrawing = (drawing) => {
+    setEditingDrawingId(drawing.id)
+    setDrawingName(drawing.name)
+    applyLoadedSize(drawing)
+    setPushing(false)
+    if (drawing.kind === 'marquee' && drawing.params) {
+      const p = drawing.params
+      const loadedRows = Array.isArray(p.rows) && p.rows.length > 0
+        ? p.rows.slice(0, 10).map(r => ({ text: String(r.text ?? ''), color: r.color || '#ffffff' }))
+        : [{ text: '', color: '#ffffff' }]
+      setMarqueeRows(loadedRows)
+      setMarqueeBg(p.bg || '#000000')
+      setMarqueeSpeed(Number.isFinite(p.speed) ? p.speed : 12)
+      setMarqueeDirection(p.direction === 'right' ? 'right' : 'left')
+      setMarqueeSerpentine(!!p.serpentine)
+      marqueeOffsetRef.current = 0
+      setMode('marquee')
+      addToast({ message: `Loaded marquee "${drawing.name}"`, type: 'info' })
+      return
+    }
+    setMode('draw')
     setPixels(drawing.pixels || Array(drawing.width * drawing.height).fill('#000000'))
     addToast({ message: `Loaded drawing "${drawing.name}"`, type: 'info' })
   }
@@ -203,8 +379,9 @@ export function MatrixEditor() {
 
   const handleSave = async () => {
     const trimmed = drawingName.trim()
+    const label = mode === 'marquee' ? 'marquee' : 'drawing'
     if (!trimmed) {
-      addToast({ message: 'Drawing name is required', type: 'error' })
+      addToast({ message: `${label[0].toUpperCase()}${label.slice(1)} name is required`, type: 'error' })
       return
     }
 
@@ -212,19 +389,44 @@ export function MatrixEditor() {
       d => d.name.trim().toLowerCase() === trimmed.toLowerCase() && d.id !== editingDrawingId
     )
     if (isDuplicate) {
-      addToast({ message: `A drawing named "${trimmed}" already exists`, type: 'error' })
+      addToast({ message: `A saved item named "${trimmed}" already exists`, type: 'error' })
       return
     }
 
     setSaving(true)
     try {
-      const saved = await matrixApi.saveDrawing({
-        id: editingDrawingId || undefined,
-        name: trimmed,
-        width: cols,
-        height: rows,
-        pixels,
-      })
+      const payload = mode === 'marquee'
+        ? {
+            id: editingDrawingId || undefined,
+            name: trimmed,
+            width: cols,
+            height: rows,
+            pixels: marqueeFrame.length === cols * rows
+              ? marqueeFrame
+              : renderMarqueeFrame({
+                  width: cols,
+                  height: rows,
+                  rows: marqueeRows,
+                  bg: marqueeBg,
+                  offset: Math.floor(marqueeOffsetRef.current),
+                }),
+            kind: 'marquee',
+            params: {
+              rows: marqueeRows,
+              bg: marqueeBg,
+              speed: marqueeSpeed,
+              direction: marqueeDirection,
+              serpentine: marqueeSerpentine,
+            },
+          }
+        : {
+            id: editingDrawingId || undefined,
+            name: trimmed,
+            width: cols,
+            height: rows,
+            pixels,
+          }
+      const saved = await matrixApi.saveDrawing(payload)
       if (editingDrawingId) {
         setSavedDrawings(prev => prev.map(d => (d.id === editingDrawingId ? saved : d)))
       } else {
@@ -232,11 +434,11 @@ export function MatrixEditor() {
         setEditingDrawingId(saved.id)
       }
       addToast({
-        message: editingDrawingId ? `Updated drawing "${trimmed}"` : `Saved drawing "${trimmed}"`,
+        message: editingDrawingId ? `Updated ${label} "${trimmed}"` : `Saved ${label} "${trimmed}"`,
         type: 'success',
       })
     } catch (err) {
-      addToast({ message: err.message || 'Failed to save matrix drawing', type: 'error' })
+      addToast({ message: err.message || `Failed to save matrix ${label}`, type: 'error' })
     } finally {
       setSaving(false)
     }
@@ -245,9 +447,32 @@ export function MatrixEditor() {
   const baseCellSize = getBaseCellSize(cols, rows)
   const cellSize = Math.max(MIN_CELL_SIZE, Math.round(baseCellSize * (zoom / 100)))
 
+  const gridPixels = mode === 'marquee' ? marqueeFrame : pixels
+
   return (
     <div className={styles.container}>
       <div className={styles.editorCard}>
+        <div className={styles.modeTabs} role="tablist" aria-label="Matrix editor mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'draw'}
+            className={[styles.modeTab, mode === 'draw' && styles.modeTabActive].filter(Boolean).join(' ')}
+            onClick={() => handleModeChange('draw')}
+          >
+            Draw
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'marquee'}
+            className={[styles.modeTab, mode === 'marquee' && styles.modeTabActive].filter(Boolean).join(' ')}
+            onClick={() => handleModeChange('marquee')}
+          >
+            Marquee
+          </button>
+        </div>
+
         <div className={styles.cardHeader}>
           <div className={styles.nameField}>
             <label className={styles.label}>Name *</label>
@@ -313,7 +538,7 @@ export function MatrixEditor() {
                 className={styles.newDrawingBtn}
                 onClick={handleNewDrawing}
               >
-                New Drawing
+                {mode === 'marquee' ? 'New Marquee' : 'New Drawing'}
               </button>
             )}
             <button
@@ -322,12 +547,15 @@ export function MatrixEditor() {
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? 'Saving...' : editingDrawingId ? 'Update Drawing' : 'Save Drawing'}
+              {saving ? 'Saving...' : editingDrawingId
+                ? (mode === 'marquee' ? 'Update Marquee' : 'Update Drawing')
+                : (mode === 'marquee' ? 'Save Marquee' : 'Save Drawing')}
             </button>
           </div>
         </div>
 
-        {/* Tools & Palette Bar */}
+        {/* Tools & Palette Bar (Draw mode) or Marquee controls (Marquee mode) */}
+        {mode === 'draw' ? (
         <div className={styles.toolsBar}>
           <div className={styles.paletteSwatches}>
             {PRESET_PALETTE.map(c => (
@@ -389,6 +617,130 @@ export function MatrixEditor() {
             </div>
           </div>
         </div>
+        ) : (
+        <div className={styles.marqueePanel}>
+          {marqueeMaxRows === 0 ? (
+            <div className={styles.marqueeWarn}>
+              Text needs a matrix at least 7 pixels tall. Pick a taller size above.
+            </div>
+          ) : (
+          <>
+          <div className={styles.marqueeRows}>
+            {marqueeRows.map((row, i) => (
+              <div key={i} className={styles.marqueeTextRow}>
+                <span className={styles.marqueeRowLabel}>Row {i + 1}</span>
+                <input
+                  type="text"
+                  value={row.text}
+                  onChange={e => handleMarqueeRowChange(i, { text: e.target.value })}
+                  className={styles.marqueeTextInput}
+                  placeholder="SCROLLING TEXT"
+                  maxLength={120}
+                />
+                <input
+                  type="color"
+                  value={row.color}
+                  onChange={e => handleMarqueeRowChange(i, { color: e.target.value })}
+                  className={styles.colorPicker}
+                  title={`Row ${i + 1} color`}
+                />
+                <button
+                  type="button"
+                  className={styles.toolBtn}
+                  onClick={() => handleRemoveMarqueeRow(i)}
+                  disabled={marqueeRows.length <= 1}
+                  title="Remove row"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.marqueeOptions}>
+            <button
+              type="button"
+              className={styles.toolBtn}
+              onClick={handleAddMarqueeRow}
+              disabled={marqueeRows.length >= marqueeMaxRows || marqueeRows.length >= 10}
+              title={`Up to ${marqueeMaxRows} rows fit this height`}
+            >
+              Add Row ({marqueeRows.length}/{marqueeMaxRows})
+            </button>
+
+            <label className={styles.marqueeOption}>
+              <span className={styles.label}>Background</span>
+              <input
+                type="color"
+                value={marqueeBg}
+                onChange={e => setMarqueeBg(e.target.value)}
+                className={styles.colorPicker}
+              />
+            </label>
+
+            <label className={styles.marqueeOption}>
+              <span className={styles.label}>Speed: {marqueeSpeed} px/s</span>
+              <input
+                type="range"
+                min="1"
+                max="60"
+                value={marqueeSpeed}
+                onChange={e => setMarqueeSpeed(Number(e.target.value))}
+                className={styles.speedSlider}
+              />
+            </label>
+
+            <label className={styles.marqueeOption}>
+              <span className={styles.label}>Direction</span>
+              <select
+                value={marqueeDirection}
+                onChange={e => setMarqueeDirection(e.target.value)}
+                className={styles.sizeSelect}
+              >
+                <option value="left">Scroll left</option>
+                <option value="right">Scroll right</option>
+              </select>
+            </label>
+
+            <label className={styles.marqueeCheck}>
+              <input
+                type="checkbox"
+                checked={marqueeSerpentine}
+                onChange={e => setMarqueeSerpentine(e.target.checked)}
+              />
+              <span className={styles.label}>Serpentine wiring</span>
+            </label>
+          </div>
+
+          <div className={styles.marqueePush}>
+            <label className={styles.marqueeOption}>
+              <span className={styles.label}>Target device</span>
+              <select
+                value={pushDeviceId}
+                onChange={e => setPushDeviceId(e.target.value)}
+                className={styles.sizeSelect}
+              >
+                <option value="">Select device...</option>
+                {devices.map(d => (
+                  <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className={[styles.pushBtn, pushing && styles.pushBtnActive].filter(Boolean).join(' ')}
+              onClick={handlePushToggle}
+            >
+              {pushing ? 'Stop Push' : 'Push to Device'}
+            </button>
+            <span className={styles.dimBadge}>
+              {cols} x {rows} ({cols * rows} LEDs)
+            </span>
+          </div>
+          </>
+          )}
+        </div>
+        )}
 
         {/* 2D Matrix Grid Canvas in Scrollable Viewport */}
         <div
@@ -403,17 +755,17 @@ export function MatrixEditor() {
               gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
             }}
           >
-            {pixels.map((color, idx) => (
+            {gridPixels.map((color, idx) => (
               <div
                 key={idx}
-                className={styles.pixelCell}
+                className={mode === 'marquee' ? styles.pixelCellStatic : styles.pixelCell}
                 style={{
                   backgroundColor: color,
                   width: `${cellSize}px`,
                   height: `${cellSize}px`,
                 }}
-                onMouseDown={(e) => handlePixelMouseDown(idx, e)}
-                onMouseEnter={() => handlePixelMouseEnter(idx)}
+                onMouseDown={mode === 'marquee' ? undefined : (e) => handlePixelMouseDown(idx, e)}
+                onMouseEnter={mode === 'marquee' ? undefined : () => handlePixelMouseEnter(idx)}
                 onDragStart={e => e.preventDefault()}
                 onContextMenu={e => e.preventDefault()}
               />
@@ -422,15 +774,15 @@ export function MatrixEditor() {
         </div>
       </div>
 
-      {/* Saved Drawings Gallery */}
-      <section className={styles.savedSection} aria-label="Saved drawings">
+      {/* Saved Designs Gallery */}
+      <section className={styles.savedSection} aria-label="Saved designs">
         <div className={styles.savedSectionHeader}>
-          <h3 className={styles.savedTitle}>Saved Drawings ({savedDrawings.length})</h3>
+          <h3 className={styles.savedTitle}>Saved Designs ({savedDrawings.length})</h3>
         </div>
 
         {savedDrawings.length === 0 ? (
           <div className={styles.emptySaved}>
-            No saved drawings yet. Paint a design and click Save Drawing above.
+            No saved designs yet. Paint a drawing or build a marquee and save it above.
           </div>
         ) : (
           <div className={styles.savedGrid}>
@@ -445,7 +797,10 @@ export function MatrixEditor() {
               >
                 <div className={styles.savedCardHeader}>
                   <div className={styles.savedCardTitleGroup}>
-                    <span className={styles.savedCardName}>{d.name}</span>
+                    <span className={styles.savedCardName}>
+                      {d.name}
+                      {d.kind === 'marquee' && <span className={styles.kindBadge}>Marquee</span>}
+                    </span>
                     <span className={styles.savedCardMeta}>
                       {d.width} x {d.height} ({d.width * d.height} LEDs)
                     </span>

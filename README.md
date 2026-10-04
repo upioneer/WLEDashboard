@@ -100,6 +100,12 @@ Keep server time visible with a live clock in the sidebar footer, configurable i
 
 ![Sidebar Clock & Time Settings](project_details/changelog/v0.25.1/screenshots/settings-time-clock.png)
 
+### Studio Marquee Maker
+
+Turn any LED matrix into a scrolling text sign with up to 10 rows of per row colored text in a crisp 3x5 pixel font, live scroll preview with speed and direction controls, serpentine wiring support for zigzag panels, one click DDP push to real controllers, and savable marquee presets that reload from the gallery.
+
+![Studio Marquee Maker](project_details/changelog/v0.26.0/screenshots/studio_marquee_maker.png)
+
 ---
 
 ## Core Features

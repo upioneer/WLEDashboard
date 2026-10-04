@@ -150,7 +150,7 @@
 
 ## FUTURE BACKLOG (Rainy Day)
 
-* [ ] Consider user preference toggle in Settings / Spatial View to swap mouse button actions (Left Click Pan vs Right Click Rotate)
+* [x] Consider user preference toggle in Settings / Spatial View to swap mouse button actions (Left Click Pan vs Right Click Rotate)
 * [ ] PixelForge support and integration for 2D matrix art and animated GIF assets
 * [ ] Robust WLED strip segment control mastered on the dashboard
 * [ ] Segment control in the 3D spatial visualizer with declared bend angles at specified pixel counts
@@ -160,11 +160,11 @@
 * [ ] NEXT RELEASE: submit Unraid Community Applications template PR to the official channel and track reviewer feedback
 * [ ] NEXT RELEASE: submit Proxmox VE helper script PR to the official channel and track reviewer feedback
 * [ ] LATER: affiliate product links on blueprint shopping lists (disclosed, health checked), once the list format survives real builds
-* [ ] Dashboard clock display showing current time/date (placement to be decided)
-* [ ] Time sync: NTP sync or manual time entry
-* [ ] Automation time source policy: user choice in Settings between sun position/geolocation, manual time, or NTP server time as the driver for automations
+* [x] Dashboard clock display showing current time/date (sidebar footer chip, shipped v0.25.1)
+* [x] Time sync: decided by design, host driven (Docker/Proxmox/Unraid NTP), documented in Guides, no in-app NTP or manual entry
+* [x] Automation time source policy: decided by design, server local time only, surfaced via sidebar clock plus Settings readout (no source switch; schedule timezone selector deferred for lack of demand)
 * [ ] DEEP BACKLOG: import WLED firmware segments as first class entities (GH #3 closed as not immediately entertained; a read only mirror or partial happy medium may be worth scoping later)
-* [ ] Studio marquee maker: text input plus color/theme, speed, and standard/custom matrix sizes with live preview and DDP push (friendly wedge before word clock). Row support: user selectable row count with maxRows = floor((H - 2*minPad) / glyphH) at 5x7 font (6px effective), even buffer distribution, per row text inputs; variable fonts and per row colors later
+* [x] Studio marquee maker: text input plus color/theme, speed, and standard/custom matrix sizes with live preview and DDP push (friendly wedge before word clock). Row support: user selectable row count with maxRows = floor((H - 2) / 6) at 3x5 font (6px pitch) as shipped, even buffer distribution, per row text inputs and per row colors; variable fonts later (shipped v0.26.0)
 * [ ] Studio word clock designer: letter grid plus time grammar packs with live preview and DDP push to stock WLED matrices (clean room rewrite inspired by the MIT word clock usermod, no firmware flash required)
 * [ ] Buzzer control surface plus automation action: detect buzzer API capable devices, sound picker with test/stop, routine and schedule chime actions with quiet hours (requires user flashed buzzer build; ship with setup guide)
 

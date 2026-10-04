@@ -134,6 +134,7 @@ export const matrixApi = {
   listDrawings: () => request('GET', '/matrix/drawings'),
   saveDrawing: (data) => request('POST', '/matrix/drawings', data),
   deleteDrawing: (id) => request('DELETE', `/matrix/drawings/${id}`),
+  streamDdp: (data) => request('POST', '/matrix/stream-ddp', data),
 }
 
 // ─── Health ───────────────────────────────────────────────────────────────────

@@ -48,6 +48,7 @@ function applyMigrations(db) {
     { version: 8, sql: migration_008 },
     { version: 9, sql: migration_009 },
     { version: 10, sql: migration_010 },
+    { version: 11, sql: migration_011 },
   ]
 
   for (const m of migrations) {
@@ -298,4 +299,9 @@ const migration_010 = `
     created_at   TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
   );
+`
+
+const migration_011 = `
+  ALTER TABLE matrix_drawings ADD COLUMN kind TEXT NOT NULL DEFAULT 'drawing';
+  ALTER TABLE matrix_drawings ADD COLUMN params_json TEXT;
 `
