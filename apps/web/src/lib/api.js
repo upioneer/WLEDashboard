@@ -6,13 +6,21 @@
 
 const BASE = '/api'
 
-async function request(method, path, body) {
+async function request(method, path, body, timeoutMs) {
   const isFormData = body instanceof FormData
-  const res = await fetch(`${BASE}${path}`, {
-    method,
-    headers: isFormData ? undefined : (body ? { 'Content-Type': 'application/json' } : undefined),
-    body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
-  })
+  const controller = timeoutMs ? new AbortController() : null
+  const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
+  let res
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      method,
+      headers: isFormData ? undefined : (body ? { 'Content-Type': 'application/json' } : undefined),
+      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
+      signal: controller?.signal,
+    })
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
@@ -31,7 +39,8 @@ export const devicesApi = {
   update: (id, data) => request('PATCH', `/devices/${id}`, data),
   delete: (id) => request('DELETE', `/devices/${id}`),
   reorder: (ids) => request('POST', '/devices/reorder', { ids }),
-  command: (id, payload) => request('POST', `/devices/${id}/command`, payload),
+  command: (id, payload) => request('POST', `/devices/${id}/command`, payload, 10000),
+  refresh: (id) => request('POST', `/devices/${id}/refresh`, undefined, 10000),
   state: (id) => request('GET', `/devices/${id}/state`),
   uploadFirmware: (id, formData) => request('POST', `/devices/${id}/firmware`, formData),
 }
@@ -51,7 +60,7 @@ export const groupsApi = {
   update: (id, data) => request('PATCH', `/groups/${id}`, data),
   delete: (id) => request('DELETE', `/groups/${id}`),
   reorder: (ids) => request('POST', '/groups/reorder', { ids }),
-  command: (id, payload) => request('POST', `/groups/${id}/command`, payload),
+  command: (id, payload) => request('POST', `/groups/${id}/command`, payload, 10000),
 }
 
 // ─── Config (Export/Import) ───────────────────────────────────────────────────

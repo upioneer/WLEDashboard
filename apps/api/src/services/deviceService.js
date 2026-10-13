@@ -134,18 +134,62 @@ export async function fetchDeviceState(device) {
   }
 }
 
-// Per-device command queue: ESP HTTP servers handle one connection at a time,
-// so rapid successive commands must serialize or later ones get refused.
-const commandQueues = new Map()
+// Per-device command chain: ESP HTTP servers handle one connection at a time,
+// so commands serialize. At most one command waits behind the active one:
+// a newer arrival supersedes the waiter, whose caller shares the newer
+// result. The device always converges on the latest intent instead of
+// grinding through abandoned backlog.
+const commandChains = new Map()
 const COMMAND_SETTLE_MS = 75
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function enqueueCommand(deviceId, fn) {
-  const tail = commandQueues.get(deviceId) ?? Promise.resolve()
-  const next = tail.then(fn, fn)
-  commandQueues.set(deviceId, next.catch(() => {}))
-  return next
+  let chain = commandChains.get(deviceId)
+  if (!chain) {
+    chain = { busy: false, waiting: null }
+    commandChains.set(deviceId, chain)
+  }
+  return new Promise((resolve, reject) => {
+    const entry = { fn, followers: [{ resolve, reject }] }
+    if (chain.waiting) {
+      entry.followers.unshift(...chain.waiting.followers)
+    }
+    chain.waiting = entry
+    pumpChain(chain)
+  })
+}
+
+function pumpChain(chain) {
+  if (chain.busy || !chain.waiting) return
+  chain.busy = true
+  const entry = chain.waiting
+  chain.waiting = null
+  Promise.resolve()
+    .then(entry.fn)
+    .then(
+      (value) => { entry.followers.forEach((f) => f.resolve(value)) },
+      (err) => { entry.followers.forEach((f) => f.reject(err)) },
+    )
+    .finally(() => {
+      chain.busy = false
+      pumpChain(chain)
+    })
+}
+
+export async function refreshDeviceState(device) {
+  const deviceId = typeof device === 'string' ? device : device?.id
+  if (isDemoMode() || deviceId?.startsWith('demo-')) {
+    return { ok: true, data: getDemoCachedState(deviceId) }
+  }
+  const target = typeof device === 'string' ? getDevice(device) : device
+  if (!target) return { ok: false, error: 'Device not found' }
+  const result = await fetchDeviceState(target)
+  if (!result.ok) return { ok: false, error: result.error ?? 'Device unreachable' }
+  const combined = { ...result.state, info: result.info, _ts: Date.now() }
+  stateCache.set(target.id, combined)
+  notify(target.id, combined)
+  return { ok: true, data: combined }
 }
 
 export async function sendDeviceCommand(device, payload) {

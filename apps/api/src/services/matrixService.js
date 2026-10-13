@@ -2,17 +2,19 @@ import { v4 as uuidv4 } from 'uuid'
 import { getDb } from '../db/database.js'
 
 export function listMatrices() {
-  return getDb().prepare('SELECT * FROM matrices ORDER BY created_at DESC').all()
+  const rows = getDb().prepare('SELECT * FROM matrices ORDER BY created_at DESC').all()
+  return rows.map(r => ({ ...r, serpentine: r.serpentine === 1 }))
 }
 
-export function createMatrix({ name, device_id = null, width = 16, height = 16 }) {
+export function createMatrix({ name, device_id = null, width = 16, height = 16, serpentine = false }) {
   const db = getDb()
   const id = uuidv4()
   db.prepare(`
-    INSERT INTO matrices (id, name, device_id, width, height)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(id, name, device_id, width, height)
-  return db.prepare('SELECT * FROM matrices WHERE id = ?').get(id)
+    INSERT INTO matrices (id, name, device_id, width, height, serpentine)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(id, name, device_id, width, height, serpentine ? 1 : 0)
+  const row = db.prepare('SELECT * FROM matrices WHERE id = ?').get(id)
+  return { ...row, serpentine: row.serpentine === 1 }
 }
 
 export function deleteMatrix(id) {

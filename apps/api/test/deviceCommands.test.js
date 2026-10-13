@@ -18,6 +18,9 @@ function makeTempDir(prefix) {
 process.env.DATA_DIR = makeTempDir('wled-commands-test-')
 
 const { sendDeviceCommand } = await import('../src/services/deviceService.js')
+const { getDb } = await import('../src/db/database.js')
+const { deviceRoutes } = await import('../src/routes/devices.js')
+const Fastify = (await import('fastify')).default
 
 function startMockWled({ failAfter = Infinity, status = 200 } = {}) {
   const bodies = []
@@ -45,16 +48,33 @@ function startMockWled({ failAfter = Infinity, status = 200 } = {}) {
 }
 
 test('Device command delivery', async (t) => {
-  await t.test('rapid sequential commands all reach the device in order', async () => {
+  await t.test('rapid commands coalesce: first and latest deliver, middle is skipped', async () => {
     const { server, bodies, port } = await startMockWled()
     try {
       const device = { id: 'cmd-order-1', ip_address: `127.0.0.1:${port}` }
-      await Promise.all([
+      const results = await Promise.all([
         sendDeviceCommand(device, { bri: 10 }),
         sendDeviceCommand(device, { bri: 20 }),
         sendDeviceCommand(device, { bri: 30 }),
       ])
-      assert.deepEqual(bodies.map((b) => b.bri), [10, 20, 30])
+      assert.deepEqual(bodies.map((b) => b.bri), [10, 30])
+      // Every caller still resolves: the superseded middle shares the latest result
+      assert.ok(results.every((r) => r.ok))
+    } finally {
+      server.close()
+    }
+  })
+
+  await t.test('commands to different devices do not block each other', async () => {
+    const { server, bodies, port } = await startMockWled()
+    try {
+      const a = { id: 'cmd-iso-a', ip_address: `127.0.0.1:${port}` }
+      const b = { id: 'cmd-iso-b', ip_address: `127.0.0.1:${port}` }
+      await Promise.all([
+        sendDeviceCommand(a, { bri: 11 }),
+        sendDeviceCommand(b, { bri: 22 }),
+      ])
+      assert.deepEqual(bodies.map((x) => x.bri).sort(), [11, 22])
     } finally {
       server.close()
     }
@@ -75,5 +95,44 @@ test('Device command delivery', async (t) => {
     const device = { id: 'cmd-dead-1', ip_address: '127.0.0.1:1' }
     const result = await sendDeviceCommand(device, { bri: 99 })
     assert.equal(result.ok, false)
+  })
+})
+
+test('Device refresh endpoint', async (t) => {
+  const fastify = Fastify({ logger: false })
+  await fastify.register(deviceRoutes, { prefix: '/api' })
+  await fastify.ready()
+
+  t.after(async () => {
+    await fastify.close()
+  })
+
+  await t.test('POST /api/devices/:id/refresh returns live state and updates cache', async () => {
+    const { server, port } = await startMockWled()
+    try {
+      const db = getDb()
+      db.prepare('INSERT INTO devices (id, name, ip_address) VALUES (?, ?, ?)')
+        .run('cmd-refresh-1', 'Refresh Test', `127.0.0.1:${port}`)
+      const res = await fastify.inject({ method: 'POST', url: '/api/devices/cmd-refresh-1/refresh' })
+      assert.equal(res.statusCode, 200)
+      const data = JSON.parse(res.body)
+      assert.equal(data.on, true)
+      assert.ok(typeof data._ts === 'number')
+      db.prepare('DELETE FROM devices WHERE id = ?').run('cmd-refresh-1')
+    } finally {
+      server.close()
+    }
+  })
+
+  await t.test('POST /api/devices/:id/refresh reports 404 and 502 honestly', async () => {
+    const missing = await fastify.inject({ method: 'POST', url: '/api/devices/no-such-device/refresh' })
+    assert.equal(missing.statusCode, 404)
+
+    const db = getDb()
+    db.prepare('INSERT INTO devices (id, name, ip_address) VALUES (?, ?, ?)')
+      .run('cmd-refresh-dead', 'Dead Test', '127.0.0.1:1')
+    const dead = await fastify.inject({ method: 'POST', url: '/api/devices/cmd-refresh-dead/refresh' })
+    assert.equal(dead.statusCode, 502)
+    db.prepare('DELETE FROM devices WHERE id = ?').run('cmd-refresh-dead')
   })
 })

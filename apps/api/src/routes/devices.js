@@ -7,6 +7,7 @@ import {
   deleteDevice,
   reorderDevices,
   sendDeviceCommand,
+  refreshDeviceState,
   getCachedState,
   getAllCachedStates,
 } from '../services/deviceService.js'
@@ -102,6 +103,15 @@ export async function deviceRoutes(fastify) {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
 
     const result = await sendDeviceCommand(device, parsed.data)
+    if (!result.ok) return reply.code(502).send({ error: result.error ?? 'WLED device error' })
+    return result.data
+  })
+
+  // POST /api/devices/:id/refresh - force a live state read, bypassing cache
+  fastify.post('/devices/:id/refresh', async (req, reply) => {
+    const device = getDevice(req.params.id)
+    if (!device) return reply.code(404).send({ error: 'Device not found' })
+    const result = await refreshDeviceState(device)
     if (!result.ok) return reply.code(502).send({ error: result.error ?? 'WLED device error' })
     return result.data
   })

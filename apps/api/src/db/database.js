@@ -49,6 +49,7 @@ function applyMigrations(db) {
     { version: 9, sql: migration_009 },
     { version: 10, sql: migration_010 },
     { version: 11, sql: migration_011 },
+    { version: 12, sql: migration_012 },
   ]
 
   for (const m of migrations) {
@@ -304,4 +305,8 @@ const migration_010 = `
 const migration_011 = `
   ALTER TABLE matrix_drawings ADD COLUMN kind TEXT NOT NULL DEFAULT 'drawing';
   ALTER TABLE matrix_drawings ADD COLUMN params_json TEXT;
+`
+
+const migration_012 = `
+  ALTER TABLE matrices ADD COLUMN serpentine INTEGER NOT NULL DEFAULT 0;
 `

@@ -28,6 +28,10 @@ export const useStudioStore = create((set, get) => ({
   isPlaying: false,
   playheadMs: 0,
 
+  // Studio sandbox: deviceId -> { name, snapshot } captured lazily before
+  // the first Studio-originated command, restored on Studio exit unless kept
+  sandbox: {},
+
   // ── Actions ─────────────────────────────────────────────────────────────────
 
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -122,4 +126,20 @@ export const useStudioStore = create((set, get) => ({
   // Playhead Player Controls
   setPlaying: (isPlaying) => set({ isPlaying }),
   setPlayheadMs: (playheadMs) => set({ playheadMs }),
+
+  // Studio sandbox: first touch wins, snapshots never overwrite each other
+  captureSandboxDevice: (device) => {
+    if (!device?.id || !device.liveState) return
+    set(s => {
+      if (s.sandbox[device.id]) return s
+      let snapshot = null
+      try {
+        snapshot = JSON.parse(JSON.stringify(device.liveState))
+      } catch {
+        return s
+      }
+      return { sandbox: { ...s.sandbox, [device.id]: { name: device.name, snapshot } } }
+    })
+  },
+  clearSandbox: () => set({ sandbox: {} }),
 }))

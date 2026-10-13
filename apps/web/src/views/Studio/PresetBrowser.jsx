@@ -50,6 +50,7 @@ export function PresetBrowser() {
   const groups        = useGroupStore(s => s.groups)
   const sendCommand   = useDeviceStore(s => s.sendCommand)
   const sendGroupCommand = useGroupStore(s => s.sendGroupCommand)
+  const captureSandboxDevice = useStudioStore(s => s.captureSandboxDevice)
   const addToast      = useUIStore(s => s.addToast)
 
   const [activeCategory, setActiveCategory] = useState('All')
@@ -80,6 +81,7 @@ export function PresetBrowser() {
   const handleApplyToDevice = (devId) => {
     const dev = devices.find(d => d.id === devId)
     if (!dev) return
+    captureSandboxDevice(dev)
     sendCommand(dev, {
       on: true,
       seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
@@ -90,6 +92,9 @@ export function PresetBrowser() {
   const handleApplyToGroup = (grpId) => {
     const grp = groups.find(g => g.id === grpId)
     if (!grp) return
+    for (const memberId of grp.device_ids ?? []) {
+      captureSandboxDevice(devices.find(d => d.id === memberId))
+    }
     sendGroupCommand(grp.id, {
       on: true,
       seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
@@ -166,6 +171,7 @@ export function PresetBrowser() {
               ))}
             </select>
           )}
+          <span className={styles.sandboxHint}>Preview freely. Keep it or lose it on exit.</span>
         </div>
       </div>
 

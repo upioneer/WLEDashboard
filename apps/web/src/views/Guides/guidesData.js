@@ -554,7 +554,7 @@ export const GUIDES = [
     sections: [
       {
         title: "Preset Browser",
-        content: "Effect Studio provides access to all 50+ built-in WLED effects and 20 color palettes. You can live-preview effects on an interactive 60-pixel canvas simulator and adjust effect speed (sx) and intensity (ix) with immediate visual feedback.",
+        content: "Effect Studio provides access to all 50+ built-in WLED effects and 20 color palettes. You can live-preview effects on an interactive 60-pixel canvas simulator and adjust effect speed (sx) and intensity (ix) with immediate visual feedback. Studio is a sandbox: applying to a device snapshots its current state, and leaving Studio restores it unless you hit Keep changes.",
       },
       {
         title: "Timeline Animator",
@@ -579,6 +579,7 @@ export const GUIDES = [
           "If rows look scrambled on hardware, enable Serpentine wiring so odd rows are transmitted right to left to match zigzag panels.",
           "Docker bridge networks can send outbound UDP, so pushing works from the default container. Discovery and mDNS are the features that need host networking, not DDP push.",
           "Save finished signs as marquee presets. They store text, colors, speed, direction, and size, and reload into the Marquee tab from the gallery.",
+          "Save reusable matrices for panels you push to often. One click recalls size, target device, and serpentine wiring. Stopping a push, switching tabs, or hiding the browser tab clears the sign instead of freezing it.",
         ],
       },
       {

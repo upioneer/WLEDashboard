@@ -58,6 +58,7 @@ export function ObjectDesigner() {
   const intensity          = useStudioStore(s => s.intensity)
   const selectedPaletteId  = useStudioStore(s => s.selectedPaletteId)
   const previewColor       = useStudioStore(s => s.previewColor)
+  const captureSandboxDevice = useStudioStore(s => s.captureSandboxDevice)
 
   const devices     = useDeviceStore(s => s.devices)
   const sendCommand = useDeviceStore(s => s.sendCommand)
@@ -199,6 +200,7 @@ export function ObjectDesigner() {
       addToast({ message: `${dev.name} reports ${dev.led_count} LEDs but the layout needs ${preview.count}`, type: 'error' })
       return
     }
+    captureSandboxDevice(dev)
     sendCommand(dev, {
       on: true,
       seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
@@ -451,6 +453,7 @@ export function ObjectDesigner() {
                   Apply {effects.find(e => e.id === selectedEffectId)?.name ?? 'effect'}
                 </button>
               </div>
+              <p className={styles.hint}>Sandboxed: your light restores on Studio exit unless you keep it.</p>
             </>
           )}
         </section>

@@ -229,4 +229,57 @@ test('2D Matrix API: Drawing name requirements and validation', async (t) => {
     assert.equal(good.statusCode, 200)
     assert.deepEqual(JSON.parse(good.body), { status: 'sent' })
   })
+
+  await t.test('matrix configs CRUD with serpentine roundtrip', async () => {
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/configs',
+      payload: {
+        name: 'Workshop Banner',
+        device_id: null,
+        width: 32,
+        height: 8,
+        serpentine: true,
+      },
+    })
+    assert.equal(created.statusCode, 201)
+    const data = JSON.parse(created.body)
+    assert.equal(data.name, 'Workshop Banner')
+    assert.equal(data.width, 32)
+    assert.equal(data.height, 8)
+    assert.equal(data.serpentine, true)
+
+    const listed = await fastify.inject({ method: 'GET', url: '/api/matrix/configs' })
+    assert.equal(listed.statusCode, 200)
+    const found = JSON.parse(listed.body).find((m) => m.id === data.id)
+    assert.equal(found.serpentine, true)
+
+    const deleted = await fastify.inject({ method: 'DELETE', url: `/api/matrix/configs/${data.id}` })
+    assert.equal(deleted.statusCode, 204)
+
+    const missing = await fastify.inject({ method: 'DELETE', url: `/api/matrix/configs/${data.id}` })
+    assert.equal(missing.statusCode, 404)
+  })
+
+  await t.test('matrix configs default serpentine to false and reject blank names', async () => {
+    const blank = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/configs',
+      payload: { name: '   ', width: 16, height: 16 },
+    })
+    assert.equal(blank.statusCode, 400)
+
+    const created = await fastify.inject({
+      method: 'POST',
+      url: '/api/matrix/configs',
+      payload: { name: 'Plain Panel' },
+    })
+    assert.equal(created.statusCode, 201)
+    const data = JSON.parse(created.body)
+    assert.equal(data.serpentine, false)
+    assert.equal(data.width, 16)
+    assert.equal(data.height, 16)
+
+    await fastify.inject({ method: 'DELETE', url: `/api/matrix/configs/${data.id}` })
+  })
 })

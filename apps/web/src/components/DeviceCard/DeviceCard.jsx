@@ -31,6 +31,7 @@ function useDebounce(fn, ms) {
 
 export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners, dragRef }) {
   const sendCommand  = useDeviceStore(s => s.sendCommand)
+  const refreshDevice = useDeviceStore(s => s.refreshDevice)
   const removeDevice = useDeviceStore(s => s.removeDevice)
   const updateDevice = useDeviceStore(s => s.updateDevice)
   const uploadFirmware = useDeviceStore(s => s.uploadFirmware)
@@ -309,6 +310,21 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
     }
   }, [device.id, device.name, sendCommand, addToast])
 
+  // Force a live state read, bypassing cache
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
+    try {
+      await refreshDevice(device.id)
+      addToast({ message: `Refreshed "${device.name}"`, type: 'success' })
+    } catch {
+      addToast({ message: `Could not reach "${device.name}"`, type: 'error' })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [isRefreshing, refreshDevice, device.id, device.name, addToast])
+
   // Firmware Update with Dual-Route Fallback
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
@@ -455,6 +471,12 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
       label: 'Copy IP',
       icon: <CopyIcon />,
       onClick: handleCopyIP,
+    },
+    {
+      label: isRefreshing ? 'Refreshing...' : 'Refresh State',
+      icon: <RefreshIcon />,
+      onClick: handleRefresh,
+      disabled: !isOnline || isRefreshing,
     },
     {
       label: 'Restart Controller',
@@ -906,6 +928,15 @@ function RestartIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="1 4 1 10 7 10" />
       <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </svg>
+  )
+}
+
+function RefreshIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="23 4 23 10 17 10" />
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
     </svg>
   )
 }

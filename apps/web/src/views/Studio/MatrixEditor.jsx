@@ -60,6 +60,8 @@ export function MatrixEditor() {
   const [marqueeSerpentine, setMarqueeSerpentine] = useState(false)
   const [devices, setDevices] = useState([])
   const [pushDeviceId, setPushDeviceId] = useState('')
+  const [matrixConfigs, setMatrixConfigs] = useState([])
+  const [selectedConfigId, setSelectedConfigId] = useState('')
   const [pushing, setPushing] = useState(false)
   const [marqueeFrame, setMarqueeFrame] = useState([])
   const marqueeOffsetRef = useRef(0)
@@ -114,12 +116,17 @@ export function MatrixEditor() {
     })
   }, [marqueeMaxRows])
 
-  // Target devices for DDP push
+  // Target devices and saved matrices for DDP push
   useEffect(() => {
     let active = true
     devicesApi.list()
       .then(list => {
         if (active && Array.isArray(list)) setDevices(list)
+      })
+      .catch(() => {})
+    matrixApi.listConfigs()
+      .then(list => {
+        if (active && Array.isArray(list)) setMatrixConfigs(list)
       })
       .catch(() => {})
     return () => { active = false }
@@ -140,6 +147,19 @@ export function MatrixEditor() {
     cols,
     rows,
   })
+
+  // Stop a live push and clear the sign so it never freezes mid scroll
+  const stopPushWithClear = useCallback(() => {
+    const s = marqueeStateRef.current
+    if (s.pushing && s.deviceId) {
+      const device = devicesRef.current.find(d => d.id === s.deviceId)
+      if (device?.ip_address) {
+        const blank = Array(s.cols * s.rows).fill([0, 0, 0])
+        matrixApi.streamDdp({ target_ip: device.ip_address, pixels: blank }).catch(() => {})
+      }
+    }
+    setPushing(false)
+  }, [])
 
   // Restart the scroll whenever content, size, or direction changes
   useEffect(() => {
@@ -187,8 +207,25 @@ export function MatrixEditor() {
         }
       }
     }, 100)
-    return () => clearInterval(timer)
-  }, [mode, addToast])
+    return () => {
+      clearInterval(timer)
+      stopPushWithClear()
+    }
+  }, [mode, addToast, stopPushWithClear])
+
+  // A hidden tab throttles the frame clock, so stop the push instead of
+  // leaving the sign frozen mid scroll
+  useEffect(() => {
+    if (mode !== 'marquee') return
+    const handleVisibility = () => {
+      if (document.hidden && marqueeStateRef.current.pushing) {
+        stopPushWithClear()
+        addToast({ message: 'Marquee push stopped (tab hidden)', type: 'info' })
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [mode, addToast, stopPushWithClear])
 
   const handlePixelMouseDown = (index, e) => {
     e?.preventDefault()
@@ -277,14 +314,14 @@ export function MatrixEditor() {
 
   const handleModeChange = (next) => {
     if (next === mode) return
-    setPushing(false)
+    stopPushWithClear()
     pushFailedRef.current = false
     setMode(next)
   }
 
   const handlePushToggle = () => {
     if (pushing) {
-      setPushing(false)
+      stopPushWithClear()
       return
     }
     const device = devices.find(d => d.id === pushDeviceId)
@@ -310,6 +347,48 @@ export function MatrixEditor() {
 
   const handleMarqueeRowChange = (index, patch) => {
     setMarqueeRows(prev => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)))
+  }
+
+  const handleApplyMatrixConfig = (id) => {
+    setSelectedConfigId(id)
+    if (!id) return
+    const config = matrixConfigs.find(m => m.id === id)
+    if (!config) return
+    applyLoadedSize(config)
+    setPushDeviceId(config.device_id || '')
+    setMarqueeSerpentine(!!config.serpentine)
+    addToast({ message: `Applied matrix "${config.name}"`, type: 'info' })
+  }
+
+  const handleSaveMatrixConfig = async () => {
+    const name = drawingName.trim() || `${cols}x${rows} Matrix`
+    try {
+      const saved = await matrixApi.createConfig({
+        name,
+        device_id: pushDeviceId || null,
+        width: cols,
+        height: rows,
+        serpentine: marqueeSerpentine,
+      })
+      setMatrixConfigs(prev => [saved, ...prev])
+      setSelectedConfigId(saved.id)
+      addToast({ message: `Saved matrix "${saved.name}"`, type: 'success' })
+    } catch (err) {
+      addToast({ message: err.message || 'Failed to save matrix', type: 'error' })
+    }
+  }
+
+  const handleDeleteMatrixConfig = async () => {
+    if (!selectedConfigId) return
+    const config = matrixConfigs.find(m => m.id === selectedConfigId)
+    try {
+      await matrixApi.deleteConfig(selectedConfigId)
+      setMatrixConfigs(prev => prev.filter(m => m.id !== selectedConfigId))
+      setSelectedConfigId('')
+      addToast({ message: `Deleted matrix "${config?.name ?? ''}"`, type: 'success' })
+    } catch {
+      addToast({ message: 'Failed to delete matrix', type: 'error' })
+    }
   }
 
   const handleNewDrawing = () => {
@@ -342,7 +421,7 @@ export function MatrixEditor() {
     setEditingDrawingId(drawing.id)
     setDrawingName(drawing.name)
     applyLoadedSize(drawing)
-    setPushing(false)
+    stopPushWithClear()
     if (drawing.kind === 'marquee' && drawing.params) {
       const p = drawing.params
       const loadedRows = Array.isArray(p.rows) && p.rows.length > 0
@@ -712,6 +791,39 @@ export function MatrixEditor() {
             </label>
           </div>
 
+          <div className={styles.marqueeConfigs}>
+            <label className={styles.marqueeOption}>
+              <span className={styles.label}>Saved matrix</span>
+              <select
+                value={selectedConfigId}
+                onChange={e => handleApplyMatrixConfig(e.target.value)}
+                className={styles.sizeSelect}
+              >
+                <option value="">Manual setup...</option>
+                {matrixConfigs.map(m => (
+                  <option key={m.id} value={m.id}>{m.name} ({m.width}x{m.height})</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className={styles.toolBtn}
+              onClick={handleSaveMatrixConfig}
+              title="Save current size, device, and wiring as a reusable matrix"
+            >
+              Save Current
+            </button>
+            {selectedConfigId && (
+              <button
+                type="button"
+                className={styles.toolBtn}
+                onClick={handleDeleteMatrixConfig}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+
           <div className={styles.marqueePush}>
             <label className={styles.marqueeOption}>
               <span className={styles.label}>Target device</span>
@@ -724,6 +836,9 @@ export function MatrixEditor() {
                 {devices.map(d => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
                 ))}
+                {pushDeviceId && !devices.some(d => d.id === pushDeviceId) && (
+                  <option value={pushDeviceId}>Unknown device (unbound)</option>
+                )}
               </select>
             </label>
             <button

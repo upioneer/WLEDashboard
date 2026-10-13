@@ -635,6 +635,13 @@
   cursor: pointer;
 }
 
+.marqueeConfigs {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
 .marqueePush {
   display: flex;
   align-items: center;

@@ -90,6 +90,13 @@
   cursor: pointer;
 }
 
+.sandboxHint {
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 /* ── Filter & Search Bar ────────────────────────────────────────── */
 .filterBar {
   display: flex;

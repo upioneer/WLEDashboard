@@ -106,6 +106,24 @@ Turn any LED matrix into a scrolling text sign with up to 10 rows of per row col
 
 ![Studio Marquee Maker](project_details/changelog/v0.26.0/screenshots/studio_marquee_maker.png)
 
+### Studio Sandbox Mode
+
+Preview freely without fear. Studio snapshots every touched light before your first change and restores it when you leave, unless you hit Keep changes. A banner names the sandboxed devices with one click Keep or Restore now, so experimenting with effects never strands your real setup.
+
+![Studio Sandbox Mode](project_details/changelog/v0.27.0/screenshots/studio-sandbox.png)
+
+### Refresh State Control
+
+Force a live state read past every cache with one click from any device card menu. The new refresh endpoint polls the controller directly and resyncs the dashboard, with honest feedback when a device is unreachable.
+
+![Refresh State Control](project_details/changelog/v0.27.0/screenshots/dashboard-refresh.png)
+
+### Saved Matrix Recall
+
+Store reusable LED panels with size, target device, and serpentine wiring, then recall the whole setup in one click from the marquee tab. Saved matrices make pushing scrolling signs to known hardware instant, with honest unbound states when a device is removed.
+
+![Saved Matrix Recall](project_details/changelog/v0.27.0/screenshots/studio-saved-matrix.png)
+
 ---
 
 ## Core Features

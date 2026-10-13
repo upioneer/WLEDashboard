@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devicesApi } from '../lib/api.js'
+import { nextCommandSeq, isStaleResponse } from '../lib/commands.js'
 
 /**
  * Device store: source of truth for all registered WLED devices and their
@@ -98,6 +99,12 @@ export const useDeviceStore = create((set, get) => ({
     return await devicesApi.uploadFirmware(id, formData)
   },
 
+  refreshDevice: async (id) => {
+    const data = await devicesApi.refresh(id)
+    get().patchLiveState(id, data)
+    return data
+  },
+
   reorderDevices: async (orderedIds) => {
     const prev = get().devices
     const indexMap = Object.fromEntries(orderedIds.map((id, i) => [id, i]))
@@ -148,6 +155,8 @@ export const useDeviceStore = create((set, get) => ({
       return merged
     }
 
+    const seq = nextCommandSeq(deviceId)
+
     // Optimistic: merge payload into liveState
     set(s => ({
       devices: s.devices.map(d => d.id === deviceId
@@ -158,6 +167,8 @@ export const useDeviceStore = create((set, get) => ({
 
     try {
       const result = await devicesApi.command(deviceId, payload)
+      // A newer command already moved on: never let a stale response win
+      if (isStaleResponse(deviceId, seq)) return
       // Merge actual response
       set(s => ({
         devices: s.devices.map(d => d.id === deviceId
@@ -166,6 +177,8 @@ export const useDeviceStore = create((set, get) => ({
         )
       }))
     } catch {
+      // Stale failures must not roll back newer optimistic state
+      if (isStaleResponse(deviceId, seq)) return
       // Rollback with bouncy preset signal for UI (UI reads this flag)
       set(s => ({
         devices: s.devices.map(d => d.id === deviceId

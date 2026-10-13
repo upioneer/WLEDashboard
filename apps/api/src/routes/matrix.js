@@ -10,10 +10,11 @@ import {
 import { sendDdpRgbFrame } from '../services/ddpService.js'
 
 const CreateMatrixSchema = z.object({
-  name: z.string().min(1).max(64).trim(),
+  name: z.string().trim().min(1).max(64),
   device_id: z.string().nullable().optional(),
   width: z.number().int().positive().optional().default(16),
   height: z.number().int().positive().optional().default(16),
+  serpentine: z.boolean().optional().default(false),
 })
 
 const MarqueeRowSchema = z.object({

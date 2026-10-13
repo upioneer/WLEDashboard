@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
+import { useDeviceStore } from '../../stores/deviceStore.js'
+import { useUIStore } from '../../stores/uiStore.js'
+import { snapshotToCommand } from '../../lib/commands.js'
 import { PixelStripCanvas } from '../../components/PixelStripCanvas/PixelStripCanvas.jsx'
 import { PresetBrowser } from './PresetBrowser.jsx'
 import { TimelineEditor } from './TimelineEditor.jsx'
@@ -16,10 +19,45 @@ export default function StudioView() {
   const fetchStudioData  = useStudioStore(s => s.fetchStudioData)
   const loading          = useStudioStore(s => s.loading)
   const error            = useStudioStore(s => s.error)
+  const sandbox          = useStudioStore(s => s.sandbox)
+  const clearSandbox     = useStudioStore(s => s.clearSandbox)
+  const addToast         = useUIStore(s => s.addToast)
 
   useEffect(() => {
     fetchStudioData()
   }, [fetchStudioData])
+
+  // Studio is non-destructive: leaving with unkept previews restores them
+  useEffect(() => {
+    return () => {
+      const pending = useStudioStore.getState().sandbox
+      const ids = Object.keys(pending)
+      if (ids.length === 0) return
+      const { sendCommand } = useDeviceStore.getState()
+      Promise.allSettled(ids.map(id => {
+        const cmd = snapshotToCommand(pending[id].snapshot)
+        return cmd ? sendCommand(id, cmd) : Promise.resolve()
+      }))
+      useStudioStore.getState().clearSandbox()
+    }
+  }, [])
+
+  const sandboxEntries = Object.entries(sandbox)
+
+  const handleKeepSandbox = () => {
+    clearSandbox()
+    addToast({ message: 'Studio changes kept', type: 'success' })
+  }
+
+  const handleRestoreSandbox = () => {
+    const { sendCommand } = useDeviceStore.getState()
+    Promise.allSettled(sandboxEntries.map(([id, { snapshot }]) => {
+      const cmd = snapshotToCommand(snapshot)
+      return cmd ? sendCommand(id, cmd) : Promise.resolve()
+    }))
+    clearSandbox()
+    addToast({ message: 'Studio changes restored', type: 'info' })
+  }
 
   if (loading) return <StudioSkeleton />
   if (error) return <StudioError message={error} onRetry={fetchStudioData} />
@@ -88,6 +126,24 @@ export default function StudioView() {
             3D Objects
           </button>
         </div>
+
+        {/* Sandbox banner: Studio previews restore on exit unless kept */}
+        {sandboxEntries.length > 0 && (
+          <div className={styles.sandboxBanner} role="status">
+            <span className={styles.sandboxText}>
+              <strong>Sandbox mode.</strong>
+              {' '}Leaving Studio restores {sandboxEntries.map(([, e]) => e.name).join(', ')}.
+            </span>
+            <div className={styles.sandboxActions}>
+              <button type="button" className={styles.sandboxKeepBtn} onClick={handleKeepSandbox}>
+                Keep changes
+              </button>
+              <button type="button" className={styles.sandboxRestoreBtn} onClick={handleRestoreSandbox}>
+                Restore now
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Active Tab Panel */}
         <div className={styles.tabContent}>
