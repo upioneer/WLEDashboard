@@ -124,6 +124,12 @@ Store reusable LED panels with size, target device, and serpentine wiring, then 
 
 ![Saved Matrix Recall](project_details/changelog/v0.27.0/screenshots/studio-saved-matrix.png)
 
+### Studio Preview Target Picker
+
+Aim effects with a Device/Group toggle, a single target dropdown, and an explicit Apply button that stays clickable for re applies after every tweak. A Reset preview button restores sandboxed lights and clears the target in one click, while delivery honest toasts confirm success or say plainly when a device does not respond.
+
+![Studio Preview Target Picker](project_details/changelog/v0.28.0/screenshots/studio-target-picker.png)
+
 ---
 
 ## Core Features
