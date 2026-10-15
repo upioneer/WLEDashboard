@@ -59,6 +59,8 @@ export function ObjectDesigner() {
   const selectedPaletteId  = useStudioStore(s => s.selectedPaletteId)
   const previewColor       = useStudioStore(s => s.previewColor)
   const captureSandboxDevice = useStudioStore(s => s.captureSandboxDevice)
+  const sandboxCount = useStudioStore(s => Object.keys(s.sandbox).length)
+  const restoreSandbox = useStudioStore(s => s.restoreSandbox)
 
   const devices     = useDeviceStore(s => s.devices)
   const sendCommand = useDeviceStore(s => s.sendCommand)
@@ -190,7 +192,7 @@ export function ObjectDesigner() {
     }
   }
 
-  const handlePushToDevice = () => {
+  const handlePushToDevice = async () => {
     const dev = devices.find(d => d.id === deviceId)
     if (!dev) {
       addToast({ message: 'Select a target device first', type: 'error' })
@@ -201,11 +203,16 @@ export function ObjectDesigner() {
       return
     }
     captureSandboxDevice(dev)
-    sendCommand(dev, {
+    const res = await sendCommand(dev, {
       on: true,
       seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
     })
-    addToast({ message: `Applied effect to ${dev.name}`, type: 'success' })
+    if (res.stale) return
+    if (res.ok) {
+      addToast({ message: `Applied effect to ${dev.name}`, type: 'success' })
+    } else {
+      addToast({ message: `"${dev.name}" did not respond to the effect`, type: 'error' })
+    }
   }
 
   const handleLoad = (obj) => {
@@ -451,6 +458,22 @@ export function ObjectDesigner() {
                 </label>
                 <button type="button" className={styles.secondaryBtn} onClick={handlePushToDevice}>
                   Apply {effects.find(e => e.id === selectedEffectId)?.name ?? 'effect'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  disabled={sandboxCount === 0}
+                  title="Restore sandboxed devices and clear the target"
+                  onClick={async () => {
+                    setDeviceId('')
+                    const count = await restoreSandbox()
+                    addToast({
+                      message: count > 0 ? 'Preview reset. Devices restored.' : 'Nothing to reset.',
+                      type: 'info',
+                    })
+                  }}
+                >
+                  Reset preview
                 </button>
               </div>
               <p className={styles.hint}>Sandboxed: your light restores on Studio exit unless you keep it.</p>

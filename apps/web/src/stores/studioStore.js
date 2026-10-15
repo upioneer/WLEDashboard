@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { studioApi } from '../lib/api.js'
+import { snapshotToCommand } from '../lib/commands.js'
+import { useDeviceStore } from './deviceStore.js'
 
 export const useStudioStore = create((set, get) => ({
   // ── State ───────────────────────────────────────────────────────────────────
@@ -142,4 +144,17 @@ export const useStudioStore = create((set, get) => ({
     })
   },
   clearSandbox: () => set({ sandbox: {} }),
+  // Send every snapshot back through the normal command path, then clear.
+  // Returns the number of devices restored.
+  restoreSandbox: async () => {
+    const entries = Object.entries(get().sandbox)
+    if (entries.length === 0) return 0
+    const { sendCommand } = useDeviceStore.getState()
+    await Promise.allSettled(entries.map(([id, { snapshot }]) => {
+      const cmd = snapshotToCommand(snapshot)
+      return cmd ? sendCommand(id, cmd) : Promise.resolve()
+    }))
+    set({ sandbox: {} })
+    return entries.length
+  },
 }))

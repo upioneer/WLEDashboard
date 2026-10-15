@@ -97,6 +97,58 @@
   white-space: nowrap;
 }
 
+.targetToggle {
+  display: flex;
+  gap: var(--sp-1);
+}
+
+.applyBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms;
+  white-space: nowrap;
+}
+
+.applyBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.applyBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.resetBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+  white-space: nowrap;
+}
+
+.resetBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.resetBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ── Filter & Search Bar ────────────────────────────────────────── */
 .filterBar {
   display: flex;

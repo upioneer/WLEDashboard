@@ -1,9 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
-import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
-import { snapshotToCommand } from '../../lib/commands.js'
 import { PixelStripCanvas } from '../../components/PixelStripCanvas/PixelStripCanvas.jsx'
 import { PresetBrowser } from './PresetBrowser.jsx'
 import { TimelineEditor } from './TimelineEditor.jsx'
@@ -21,6 +19,7 @@ export default function StudioView() {
   const error            = useStudioStore(s => s.error)
   const sandbox          = useStudioStore(s => s.sandbox)
   const clearSandbox     = useStudioStore(s => s.clearSandbox)
+  const restoreSandbox   = useStudioStore(s => s.restoreSandbox)
   const addToast         = useUIStore(s => s.addToast)
 
   useEffect(() => {
@@ -30,15 +29,7 @@ export default function StudioView() {
   // Studio is non-destructive: leaving with unkept previews restores them
   useEffect(() => {
     return () => {
-      const pending = useStudioStore.getState().sandbox
-      const ids = Object.keys(pending)
-      if (ids.length === 0) return
-      const { sendCommand } = useDeviceStore.getState()
-      Promise.allSettled(ids.map(id => {
-        const cmd = snapshotToCommand(pending[id].snapshot)
-        return cmd ? sendCommand(id, cmd) : Promise.resolve()
-      }))
-      useStudioStore.getState().clearSandbox()
+      useStudioStore.getState().restoreSandbox()
     }
   }, [])
 
@@ -49,13 +40,8 @@ export default function StudioView() {
     addToast({ message: 'Studio changes kept', type: 'success' })
   }
 
-  const handleRestoreSandbox = () => {
-    const { sendCommand } = useDeviceStore.getState()
-    Promise.allSettled(sandboxEntries.map(([id, { snapshot }]) => {
-      const cmd = snapshotToCommand(snapshot)
-      return cmd ? sendCommand(id, cmd) : Promise.resolve()
-    }))
-    clearSandbox()
+  const handleRestoreSandbox = async () => {
+    await restoreSandbox()
     addToast({ message: 'Studio changes restored', type: 'info' })
   }
 

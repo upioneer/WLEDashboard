@@ -135,11 +135,13 @@ export const useDeviceStore = create((set, get) => ({
     }))
   },
 
-  // Optimistic command: update local state, fire API, rollback on failure
+  // Optimistic command: update local state, fire API, rollback on failure.
+  // Reports { ok, stale } so callers can toast honestly. Stale means a newer
+  // command superseded this one and owns the user feedback.
   sendCommand: async (deviceOrId, payload) => {
     const deviceId = typeof deviceOrId === 'object' && deviceOrId !== null ? deviceOrId.id : deviceOrId
     const device = get().devices.find(d => d.id === deviceId)
-    if (!device) return
+    if (!device) return { ok: false, stale: false }
 
     const prevState = device.liveState
 
@@ -168,7 +170,7 @@ export const useDeviceStore = create((set, get) => ({
     try {
       const result = await devicesApi.command(deviceId, payload)
       // A newer command already moved on: never let a stale response win
-      if (isStaleResponse(deviceId, seq)) return
+      if (isStaleResponse(deviceId, seq)) return { ok: true, stale: true }
       // Merge actual response
       set(s => ({
         devices: s.devices.map(d => d.id === deviceId
@@ -176,9 +178,10 @@ export const useDeviceStore = create((set, get) => ({
           : d
         )
       }))
+      return { ok: true, stale: false }
     } catch {
       // Stale failures must not roll back newer optimistic state
-      if (isStaleResponse(deviceId, seq)) return
+      if (isStaleResponse(deviceId, seq)) return { ok: true, stale: true }
       // Rollback with bouncy preset signal for UI (UI reads this flag)
       set(s => ({
         devices: s.devices.map(d => d.id === deviceId
@@ -186,6 +189,7 @@ export const useDeviceStore = create((set, get) => ({
           : d
         )
       }))
+      return { ok: false, stale: false }
     }
   },
 }))

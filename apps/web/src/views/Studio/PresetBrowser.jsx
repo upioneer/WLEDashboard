@@ -78,28 +78,57 @@ export function PresetBrowser() {
     })
   }, [effects, activeCategory, searchQuery])
 
-  const handleApplyToDevice = (devId) => {
-    const dev = devices.find(d => d.id === devId)
-    if (!dev) return
-    captureSandboxDevice(dev)
-    sendCommand(dev, {
-      on: true,
-      seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
-    })
-    addToast({ message: `Applied effect "${effects.find(e => e.id === selectedEffectId)?.name}" to ${dev.name}`, type: 'success' })
+  const [targetKind, setTargetKind] = useState('device')
+  const [targetId, setTargetId] = useState('')
+  const sandboxCount = useStudioStore(s => Object.keys(s.sandbox).length)
+  const restoreSandbox = useStudioStore(s => s.restoreSandbox)
+
+  const handleTargetKindChange = (kind) => {
+    setTargetKind(kind)
+    setTargetId('')
   }
 
-  const handleApplyToGroup = (grpId) => {
-    const grp = groups.find(g => g.id === grpId)
-    if (!grp) return
-    for (const memberId of grp.device_ids ?? []) {
-      captureSandboxDevice(devices.find(d => d.id === memberId))
+  const buildEffectPayload = () => ({
+    on: true,
+    seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
+  })
+
+  const handleApply = async () => {
+    if (!targetId) return
+    if (targetKind === 'group') {
+      const grp = groups.find(g => g.id === targetId)
+      if (!grp) return
+      for (const memberId of grp.device_ids ?? []) {
+        captureSandboxDevice(devices.find(d => d.id === memberId))
+      }
+      try {
+        await sendGroupCommand(grp.id, buildEffectPayload())
+        addToast({ message: `Applied effect to group "${grp.name}"`, type: 'success' })
+      } catch {
+        addToast({ message: `Group "${grp.name}" did not respond to the effect`, type: 'error' })
+      }
+      return
     }
-    sendGroupCommand(grp.id, {
-      on: true,
-      seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
+    const dev = devices.find(d => d.id === targetId)
+    if (!dev) return
+    captureSandboxDevice(dev)
+    const effectName = effects.find(e => e.id === selectedEffectId)?.name
+    const res = await sendCommand(dev, buildEffectPayload())
+    if (res.stale) return
+    if (res.ok) {
+      addToast({ message: `Applied effect "${effectName}" to ${dev.name}`, type: 'success' })
+    } else {
+      addToast({ message: `"${dev.name}" did not respond to the effect`, type: 'error' })
+    }
+  }
+
+  const handleResetPreview = async () => {
+    setTargetId('')
+    const count = await restoreSandbox()
+    addToast({
+      message: count > 0 ? 'Preview reset. Devices restored.' : 'Nothing to reset.',
+      type: 'info',
     })
-    addToast({ message: `Applied effect to group "${grp.name}"`, type: 'success' })
   }
 
   const isCurrentSelectionVisible = filteredEffects.some(e => e.id === selectedEffectId)
@@ -155,22 +184,56 @@ export function PresetBrowser() {
 
         {/* Quick Apply Bar */}
         <div className={styles.applyBar}>
-          <span className={styles.applyText}>Apply Live Config to Target:</span>
-          <select className={styles.applySelect} onChange={e => e.target.value && handleApplyToDevice(e.target.value)} defaultValue="">
-            <option value="" disabled>Device...</option>
-            {devices.map(d => (
-              <option key={d.id} value={d.id}>{d.name}</option>
+          <span className={styles.applyText}>Preview on:</span>
+          {groups.length > 0 && (
+            <div className={styles.targetToggle} role="tablist" aria-label="Preview target type">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={targetKind === 'device'}
+                className={[styles.pill, targetKind === 'device' && styles.pillActive].filter(Boolean).join(' ')}
+                onClick={() => handleTargetKindChange('device')}
+              >
+                Device
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={targetKind === 'group'}
+                className={[styles.pill, targetKind === 'group' && styles.pillActive].filter(Boolean).join(' ')}
+                onClick={() => handleTargetKindChange('group')}
+              >
+                Group
+              </button>
+            </div>
+          )}
+          <select
+            className={styles.applySelect}
+            value={targetId}
+            onChange={e => setTargetId(e.target.value)}
+          >
+            <option value="" disabled>{targetKind === 'group' ? 'Group...' : 'Device...'}</option>
+            {(targetKind === 'group' ? groups : devices).map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-
-          {groups.length > 0 && (
-            <select className={styles.applySelect} onChange={e => e.target.value && handleApplyToGroup(e.target.value)} defaultValue="">
-              <option value="" disabled>Group...</option>
-              {groups.map(g => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </select>
-          )}
+          <button
+            type="button"
+            className={styles.applyBtn}
+            onClick={handleApply}
+            disabled={!targetId}
+          >
+            Apply
+          </button>
+          <button
+            type="button"
+            className={styles.resetBtn}
+            onClick={handleResetPreview}
+            disabled={sandboxCount === 0}
+            title="Restore sandboxed devices and clear the target"
+          >
+            Reset preview
+          </button>
           <span className={styles.sandboxHint}>Preview freely. Keep it or lose it on exit.</span>
         </div>
       </div>
