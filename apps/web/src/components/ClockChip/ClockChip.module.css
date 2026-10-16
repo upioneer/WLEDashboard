@@ -8,6 +8,27 @@
   white-space: nowrap;
 }
 
+.chipVisible {
+  animation: clockFadeIn 320ms var(--ease-out-expo);
+}
+
+@keyframes clockFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chipVisible {
+    animation: none;
+  }
+}
+
 .primary {
   font-size: 0.9rem;
   font-weight: 700;

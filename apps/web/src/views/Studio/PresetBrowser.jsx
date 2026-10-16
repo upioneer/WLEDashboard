@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
@@ -6,6 +7,7 @@ import { useUIStore } from '../../stores/uiStore.js'
 import { Slider } from '../../components/Slider/Slider.jsx'
 import { sortedByName } from '../../lib/sort.js'
 import { buildPreviewPayload } from '../../lib/commands.js'
+import { resolveTargetSlot } from '../../lib/targetSlots.js'
 import styles from './PresetBrowser.module.css'
 
 const CATEGORIES = ['All', 'Basic', 'Dynamic', 'Fire', 'Festive', 'Nature']
@@ -49,7 +51,13 @@ export function PresetBrowser() {
   const setPreviewColor   = useStudioStore(s => s.setPreviewColor)
 
   const devices       = useDeviceStore(s => s.devices)
+  const devicesError  = useDeviceStore(s => s.error)
+  const fetchDevices  = useDeviceStore(s => s.fetchDevices)
   const groups        = useGroupStore(s => s.groups)
+  const groupsLoading = useGroupStore(s => s.loading)
+  const groupsError   = useGroupStore(s => s.error)
+  const fetchGroups   = useGroupStore(s => s.fetchGroups)
+  const targetSlot    = resolveTargetSlot({ groupCount: groups.length, groupsLoading, groupsError, devicesError })
   const sendCommand   = useDeviceStore(s => s.sendCommand)
   const sendGroupCommand = useGroupStore(s => s.sendGroupCommand)
   const captureSandboxDevice = useStudioStore(s => s.captureSandboxDevice)
@@ -225,7 +233,22 @@ export function PresetBrowser() {
         {/* Quick Apply Bar */}
         <div className={styles.applyBar}>
           <span className={styles.applyText}>Preview on:</span>
-          {groups.length > 0 && (
+          {targetSlot === 'error' && (
+            <button
+              type="button"
+              className={styles.targetRetry}
+              onClick={() => { fetchDevices(); fetchGroups() }}
+              title={groupsError ?? devicesError ?? 'Target load failed'}
+            >
+              Targets failed to load. Retry
+            </button>
+          )}
+          {targetSlot === 'empty' && (
+            <Link to="/groups" className={styles.targetEmpty}>
+              No groups yet. Create one
+            </Link>
+          )}
+          {targetSlot === 'toggle' && (
             <div className={styles.targetToggle} role="tablist" aria-label="Preview target type">
               <button
                 type="button"

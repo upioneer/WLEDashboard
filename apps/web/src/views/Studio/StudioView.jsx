@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
+import { useDeviceStore } from '../../stores/deviceStore.js'
+import { useGroupStore } from '../../stores/groupStore.js'
 import { PixelStripCanvas } from '../../components/PixelStripCanvas/PixelStripCanvas.jsx'
 import { PresetBrowser } from './PresetBrowser.jsx'
 import { TimelineEditor } from './TimelineEditor.jsx'
@@ -20,6 +22,18 @@ export default function StudioView() {
   useEffect(() => {
     fetchStudioData()
   }, [fetchStudioData])
+
+  // Studio reads both target stores but never loaded them: a refresh or
+  // deep link straight into /studio left every target picker empty with no
+  // path to groups. Refetch-on-empty also self heals a failed first load.
+  useEffect(() => {
+    if (useDeviceStore.getState().devices.length === 0) {
+      useDeviceStore.getState().fetchDevices()
+    }
+    if (useGroupStore.getState().groups.length === 0) {
+      useGroupStore.getState().fetchGroups()
+    }
+  }, [])
 
   // Studio is non-destructive: leaving with unkept previews restores them
   useEffect(() => {

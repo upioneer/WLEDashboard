@@ -86,7 +86,7 @@ export function ClockChip({ hidden = false }) {
 
   return (
     <div
-      className={styles.chip}
+      className={`${styles.chip} ${styles.chipVisible}`}
       role="status"
       aria-label={`Server time ${primary}${secondary ? ` ${secondary}` : ''}`}
       title="Server time (automations reference)"
