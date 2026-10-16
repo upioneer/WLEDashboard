@@ -1,9 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useStudioStore } from '../../stores/studioStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { Slider } from '../../components/Slider/Slider.jsx'
+import { sortedByName } from '../../lib/sort.js'
+import { buildPreviewPayload } from '../../lib/commands.js'
 import styles from './PresetBrowser.module.css'
 
 const CATEGORIES = ['All', 'Basic', 'Dynamic', 'Fire', 'Festive', 'Nature']
@@ -71,64 +73,102 @@ export function PresetBrowser() {
   }
 
   const filteredEffects = useMemo(() => {
-    return effects.filter(e => {
+    return sortedByName(effects.filter(e => {
       const matchesCat = activeCategory === 'All' || e.category === activeCategory
       const matchesSearch = e.name.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesCat && matchesSearch
-    })
+    }))
   }, [effects, activeCategory, searchQuery])
 
   const [targetKind, setTargetKind] = useState('device')
   const [targetId, setTargetId] = useState('')
-  const sandboxCount = useStudioStore(s => Object.keys(s.sandbox).length)
+  const sandbox = useStudioStore(s => s.sandbox)
+  const sandboxCount = Object.keys(sandbox).length
+  const sandboxNames = Object.values(sandbox).map(e => e.name).join(', ')
   const restoreSandbox = useStudioStore(s => s.restoreSandbox)
+  const clearSandbox = useStudioStore(s => s.clearSandbox)
 
   const handleTargetKindChange = (kind) => {
     setTargetKind(kind)
     setTargetId('')
   }
 
-  const buildEffectPayload = () => ({
-    on: true,
-    seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
-  })
-
-  const handleApply = async () => {
-    if (!targetId) return
-    if (targetKind === 'group') {
-      const grp = groups.find(g => g.id === targetId)
+  // Immediate apply: every effect, color, and parameter change pushes to
+  // the selected target right away. Success is silent (the hardware is the
+  // feedback); failures always toast so a dead target never looks live.
+  const applyPreview = async (overrides = {}) => {
+    const kind = overrides.kind ?? targetKind
+    const id = overrides.id ?? targetId
+    if (!id) return
+    const payload = buildPreviewPayload({
+      effectId: overrides.effectId ?? selectedEffectId,
+      speed: overrides.speed ?? speed,
+      intensity: overrides.intensity ?? intensity,
+      paletteId: overrides.paletteId ?? selectedPaletteId,
+      color: overrides.color ?? previewColor,
+    })
+    if (kind === 'group') {
+      const grp = groups.find(g => g.id === id)
       if (!grp) return
       for (const memberId of grp.device_ids ?? []) {
         captureSandboxDevice(devices.find(d => d.id === memberId))
       }
       try {
-        await sendGroupCommand(grp.id, buildEffectPayload())
-        addToast({ message: `Applied effect to group "${grp.name}"`, type: 'success' })
+        await sendGroupCommand(grp.id, payload)
       } catch {
         addToast({ message: `Group "${grp.name}" did not respond to the effect`, type: 'error' })
       }
       return
     }
-    const dev = devices.find(d => d.id === targetId)
+    const dev = devices.find(d => d.id === id)
     if (!dev) return
     captureSandboxDevice(dev)
-    const effectName = effects.find(e => e.id === selectedEffectId)?.name
-    const res = await sendCommand(dev, buildEffectPayload())
+    const res = await sendCommand(dev, payload)
     if (res.stale) return
-    if (res.ok) {
-      addToast({ message: `Applied effect "${effectName}" to ${dev.name}`, type: 'success' })
-    } else {
+    if (!res.ok) {
       addToast({ message: `"${dev.name}" did not respond to the effect`, type: 'error' })
     }
   }
 
+  // Color pickers fire continuously while dragging; trailing-edge debounce
+  // keeps one preview per gesture instead of one per tick.
+  const previewTimer = useRef(null)
+  const queuePreview = (overrides = {}) => {
+    clearTimeout(previewTimer.current)
+    previewTimer.current = setTimeout(() => applyPreview(overrides), 250)
+  }
+
+  const handleSelectEffect = (id) => {
+    setEffect(id)
+    applyPreview({ effectId: id })
+  }
+
+  const handleTargetChange = (id) => {
+    setTargetId(id)
+    if (id) applyPreview({ kind: targetKind, id })
+  }
+
   const handleResetPreview = async () => {
     setTargetId('')
+    const solid = effects.find(e => e.id === 0) ?? effects.find(e => e.name?.toLowerCase() === 'solid')
+    if (solid) setEffect(solid.id)
     const count = await restoreSandbox()
     addToast({
-      message: count > 0 ? 'Preview reset. Devices restored.' : 'Nothing to reset.',
+      message: count > 0
+        ? `Preview reset${solid ? ' to Solid' : ''}. Devices restored.`
+        : (solid ? 'Preview reset to Solid.' : 'Nothing to reset.'),
       type: 'info',
     })
+  }
+
+  const handleKeepSandbox = () => {
+    clearSandbox()
+    addToast({ message: 'Studio changes kept', type: 'success' })
+  }
+
+  const handleRestoreSandbox = async () => {
+    await restoreSandbox()
+    addToast({ message: 'Studio changes restored', type: 'info' })
   }
 
   const isCurrentSelectionVisible = filteredEffects.some(e => e.id === selectedEffectId)
@@ -143,7 +183,7 @@ export function PresetBrowser() {
             <Slider
               id="studio-speed"
               value={Math.round((speed / 255) * 100)}
-              onCommit={pct => setSpeed(Math.round((pct / 100) * 255))}
+              onCommit={pct => { const v = Math.round((pct / 100) * 255); setSpeed(v); applyPreview({ speed: v }) }}
               label={`Effect Speed (${speed})`}
             />
           </div>
@@ -151,7 +191,7 @@ export function PresetBrowser() {
             <Slider
               id="studio-intensity"
               value={Math.round((intensity / 255) * 100)}
-              onCommit={pct => setIntensity(Math.round((pct / 100) * 255))}
+              onCommit={pct => { const v = Math.round((pct / 100) * 255); setIntensity(v); applyPreview({ intensity: v }) }}
               label={`Effect Intensity (${intensity})`}
             />
           </div>
@@ -161,10 +201,10 @@ export function PresetBrowser() {
             <label className={styles.selectLabel}>WLED Palette</label>
             <select
               value={selectedPaletteId}
-              onChange={e => setPalette(Number(e.target.value))}
+              onChange={e => { const id = Number(e.target.value); setPalette(id); applyPreview({ paletteId: id }) }}
               className={styles.paletteSelect}
             >
-              {paletteCatalog.map(p => (
+              {sortedByName(paletteCatalog).map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
@@ -176,7 +216,7 @@ export function PresetBrowser() {
             <input
               type="color"
               value={previewColor}
-              onChange={e => setPreviewColor(e.target.value)}
+              onChange={e => { setPreviewColor(e.target.value); queuePreview({ color: e.target.value }) }}
               className={styles.colorInput}
             />
           </div>
@@ -210,32 +250,40 @@ export function PresetBrowser() {
           <select
             className={styles.applySelect}
             value={targetId}
-            onChange={e => setTargetId(e.target.value)}
+            onChange={e => handleTargetChange(e.target.value)}
           >
             <option value="" disabled>{targetKind === 'group' ? 'Group...' : 'Device...'}</option>
-            {(targetKind === 'group' ? groups : devices).map(t => (
+            {sortedByName(targetKind === 'group' ? groups : devices).map(t => (
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
           <button
             type="button"
-            className={styles.applyBtn}
-            onClick={handleApply}
-            disabled={!targetId}
-          >
-            Apply
-          </button>
-          <button
-            type="button"
             className={styles.resetBtn}
             onClick={handleResetPreview}
-            disabled={sandboxCount === 0}
-            title="Restore sandboxed devices and clear the target"
+            disabled={sandboxCount === 0 && !targetId}
+            title="Select Solid, restore sandboxed devices, and clear the target"
           >
             Reset preview
           </button>
-          <span className={styles.sandboxHint}>Preview freely. Keep it or lose it on exit.</span>
+          <span className={styles.sandboxHint}>Pick a target, then click any effect to preview it live.</span>
         </div>
+
+        {sandboxCount > 0 && (
+          <div className={styles.sandboxRow}>
+            <span className={styles.sandboxNames}>
+              Sandbox: {sandboxNames}. Leaving Studio restores them.
+            </span>
+            <div className={styles.sandboxActions}>
+              <button type="button" className={styles.keepBtn} onClick={handleKeepSandbox}>
+                Keep changes
+              </button>
+              <button type="button" className={styles.resetBtn} onClick={handleRestoreSandbox}>
+                Restore now
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter, Search & View Toggle Bar */}
@@ -297,7 +345,7 @@ export function PresetBrowser() {
               <div
                 key={fx.id}
                 className={[styles.effectCard, isSelected && styles.effectCardSelected].filter(Boolean).join(' ')}
-                onClick={() => setEffect(fx.id)}
+                onClick={() => handleSelectEffect(fx.id)}
               >
                 <div className={styles.cardHeader}>
                   <span className={styles.fxName}>{fx.name}</span>
@@ -323,7 +371,7 @@ export function PresetBrowser() {
               value={isCurrentSelectionVisible ? selectedEffectId : ''}
               onChange={e => {
                 if (e.target.value !== '') {
-                  setEffect(Number(e.target.value))
+                  handleSelectEffect(Number(e.target.value))
                 }
               }}
               className={styles.effectDropdown}
@@ -368,11 +416,11 @@ export function PresetBrowser() {
                   aria-selected={isSelected}
                   tabIndex={0}
                   className={[styles.effectRow, isSelected && styles.effectRowSelected].filter(Boolean).join(' ')}
-                  onClick={() => setEffect(fx.id)}
+                  onClick={() => handleSelectEffect(fx.id)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault()
-                      setEffect(fx.id)
+                      handleSelectEffect(fx.id)
                     }
                   }}
                 >

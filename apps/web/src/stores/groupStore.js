@@ -80,7 +80,12 @@ export const useGroupStore = create((set, get) => ({
     })
 
     try {
-      await groupsApi.command(groupId, payload)
+      const res = await groupsApi.command(groupId, payload)
+      // The route always answers 200 with a receipt: member failures and
+      // empty (all offline) fan-outs surface as ok:false / count:0.
+      if (!res?.ok || res?.count === 0) {
+        throw new Error(`Group command not acknowledged (ok=${res?.ok}, count=${res?.count})`)
+      }
     } catch (err) {
       // Re-fetch devices to restore actual state
       deviceStore.fetchDevices()

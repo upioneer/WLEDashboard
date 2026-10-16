@@ -7,6 +7,8 @@
  * bounds hung requests so optimistic updates always settle.
  */
 
+import { hexToRgb } from './colors.js'
+
 const deviceSeq = new Map()
 
 export function nextCommandSeq(deviceId) {
@@ -51,4 +53,15 @@ export function snapshotToCommand(snapshot) {
   if (Array.isArray(snapshot.seg)) cmd.seg = snapshot.seg.map((s) => ({ ...s }))
   if (Object.keys(cmd).length === 0) return null
   return cmd
+}
+
+/**
+ * Build the WLED command payload for a Studio live preview. The primary
+ * color rides along so hardware matches the on-screen simulator.
+ */
+export function buildPreviewPayload({ effectId = 0, speed = 128, intensity = 128, paletteId = 0, color = '#ffffff' } = {}) {
+  return {
+    on: true,
+    seg: [{ fx: effectId, sx: speed, ix: intensity, pal: paletteId, col: [hexToRgb(color)] }],
+  }
 }

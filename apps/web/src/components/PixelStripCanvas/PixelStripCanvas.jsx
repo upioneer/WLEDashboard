@@ -30,6 +30,24 @@ export function PixelStripCanvas() {
       baseB = parseInt(previewColor.slice(5, 7), 16)
     }
 
+    // Dynamic (FX 7) keeps stepped per-pixel hues like WLED mode_dynamic:
+    // every LED gets a random color-wheel color, then each cycle re-rolls
+    // an intensity-driven fraction of them. No motion, no gradient.
+    const dynamicHues = Array.from({ length: PIXEL_COUNT }, () => Math.random() * 360)
+    let dynamicLastRoll = performance.now()
+
+    // Android (FX 26): primary-color window sliding over a static palette
+    // gradient, breathing in width between 2 and the intensity-set max.
+    let androidStart = 0
+    let androidSize = 2
+    let androidDir = 1
+
+    // Chase Random (FX 28): fixed-color comet; the background behind the
+    // head is the new random color, ahead of it the previous one.
+    let chaseAux0 = Math.random() * 360
+    let chaseAux1 = Math.random() * 360
+    let chaseLastA = 0
+
     const render = () => {
       // Speed multiplier (0..255)
       const speedMult = Math.max(0.05, (speed / 128) * 0.8)
@@ -51,6 +69,35 @@ export function PixelStripCanvas() {
 
       // Intensity factor (0..1)
       const intFact = intensity / 255
+
+      // Dynamic re-roll cycle matches firmware: 50 + (255 - speed) * 15 ms
+      if (selectedEffectId === 7 && speed > 0) {
+        const now = performance.now()
+        if (now - dynamicLastRoll >= 50 + (255 - speed) * 15) {
+          dynamicLastRoll = now
+          for (let h = 0; h < PIXEL_COUNT; h++) {
+            if (Math.random() <= intFact) dynamicHues[h] = Math.random() * 360
+          }
+        }
+      }
+
+      if (selectedEffectId === 26) {
+        const maxSize = Math.max(4, (intensity / 255) * PIXEL_COUNT)
+        const step = Math.max(0.04, (speed / 255) * 0.9)
+        androidStart = (androidStart + step) % PIXEL_COUNT
+        androidSize += androidDir * step * 0.4
+        if (androidSize >= maxSize) { androidSize = maxSize; androidDir = -1 }
+        if (androidSize <= 2) { androidSize = 2; androidDir = 1 }
+      }
+
+      if (selectedEffectId === 28) {
+        const aNow = (frame * 0.65) % PIXEL_COUNT
+        if (aNow < chaseLastA) {
+          chaseAux1 = chaseAux0
+          chaseAux0 = Math.random() * 360
+        }
+        chaseLastA = aNow
+      }
 
       for (let i = 0; i < PIXEL_COUNT; i++) {
         // Sample color from active palette or base previewColor
@@ -110,9 +157,10 @@ export function PixelStripCanvas() {
             alpha = Math.max(0.06, 1 - dist / beamWidth)
             break
           }
-          case 7: { // Dynamic
-            const noise = Math.sin(i * 0.25 + frame * 0.05) * Math.cos(i * 0.12 - frame * 0.04)
-            alpha = 0.2 + 0.8 * ((noise + 1) / 2)
+          case 7: { // Dynamic: stepped random rainbow, firmware-faithful
+            const [dyR, dyG, dyB] = hslToRgb(dynamicHues[i] / 360, 0.95, 0.55)
+            r = dyR; g = dyG; b = dyB
+            alpha = 1
             break
           }
           case 8: { // Colorloop
@@ -162,14 +210,16 @@ export function PixelStripCanvas() {
             alpha = (i + tStep) % 3 === 0 ? 1 : 0.06
             break
           }
-          case 15: { // Running
-            const runVal = Math.sin((i / PIXEL_COUNT) * 12 - frame * 0.15)
+          case 15: { // Running: sine brightness waves, firmware wave count
+            const waves = Math.max(1, (PIXEL_COUNT * (intensity >> 2)) / 256)
+            const runVal = Math.sin((i / PIXEL_COUNT) * waves * Math.PI * 2 - frame * 0.15)
             alpha = 0.08 + 0.92 * ((runVal + 1) / 2)
             break
           }
-          case 16: { // Saw
-            const sawPos = ((i - frame * 0.5) % 15 + 15) % 15
-            alpha = 0.05 + 0.95 * (sawPos / 15)
+          case 16: { // Saw: same engine, sawtooth ramps instead of sine
+            const sawPeriod = Math.max(4, 256 / Math.max(1, intensity >> 2))
+            const sawPos = (((i - frame * 0.5) % sawPeriod) + sawPeriod) % sawPeriod
+            alpha = 0.05 + 0.95 * (sawPos / sawPeriod)
             break
           }
           case 17: { // Twinkle
@@ -239,11 +289,24 @@ export function PixelStripCanvas() {
             alpha = bOn ? 1 : 0.04
             break
           }
-          case 26: { // Android
-            const aPos = ((Math.sin(frame * 0.04) + 1) / 2) * (PIXEL_COUNT - 1)
-            const aDist = Math.abs(i - aPos)
-            r = 0; g = 235; b = 215
-            alpha = Math.max(0.04, 1 - aDist / 5.5)
+          case 26: { // Android: primary window over static palette gradient
+            const winEnd = androidStart + androidSize
+            const inWindow = androidSize >= PIXEL_COUNT || (winEnd <= PIXEL_COUNT
+              ? (i >= androidStart && i < winEnd)
+              : (i >= androidStart || i < winEnd % PIXEL_COUNT))
+            if (inWindow) {
+              r = baseR; g = baseG; b = baseB
+              alpha = 1
+            } else if ([6, 7, 8, 9, 10, 11, 12, 13, 18, 19].includes(selectedPaletteId)) {
+              const [abR, abG, abB] = samplePalette(selectedPaletteId, i / PIXEL_COUNT, [baseR, baseG, baseB])
+              r = abR; g = abG; b = abB
+              alpha = 1
+            } else {
+              // Default palette blends primary toward secondary (dark here)
+              const [abR, abG, abB] = lerpColor([baseR, baseG, baseB], [0, 0, 0], i / PIXEL_COUNT)
+              r = abR; g = abG; b = abB
+              alpha = 1
+            }
             break
           }
           case 27: { // Chase
@@ -253,13 +316,18 @@ export function PixelStripCanvas() {
             alpha = cDist < cLen ? Math.pow(1 - cDist / cLen, 1.8) : 0.04
             break
           }
-          case 28: { // Chase Random
-            const lap = Math.floor((frame * 0.65) / PIXEL_COUNT)
-            const [crdR, crdG, crdB] = hslToRgb(((lap * 83) % 360) / 360, 0.95, 0.55)
-            r = crdR; g = crdG; b = crdB
+          case 28: { // Chase Random: fixed comet, background steps per sweep
             const cHead = (frame * 0.65) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
-            alpha = cDist < 9 ? Math.pow(1 - cDist / 9, 1.5) : 0.04
+            const cLen = 5 + intFact * 12
+            if (cDist < cLen) {
+              r = baseR; g = baseG; b = baseB
+              alpha = Math.pow(1 - cDist / cLen, 1.5)
+            } else {
+              const [crR, crG, crB] = hslToRgb((i < cHead ? chaseAux0 : chaseAux1) / 360, 0.95, 0.55)
+              r = crR; g = crG; b = crB
+              alpha = 0.9
+            }
             break
           }
           case 29: { // Chase Rainbow

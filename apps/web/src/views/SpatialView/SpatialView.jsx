@@ -9,6 +9,7 @@ import { SpatialCanvas } from './SpatialCanvas.jsx'
 import { Slider } from '../../components/Slider/Slider.jsx'
 import { Toggle } from '../../components/Toggle/Toggle.jsx'
 import { extractDominantColor, wledBriToPct, pctToWledBri } from '../../lib/colors.js'
+import { sortedByName } from '../../lib/sort.js'
 import styles from './SpatialView.module.css'
 
 function SpatialSetupWizard({ onComplete }) {
@@ -586,7 +587,7 @@ export function SpatialView() {
                         defaultValue=""
                       >
                         <option value="" disabled>Move to room...</option>
-                        {allRooms.map(r => (
+                        {sortedByName(allRooms).map(r => (
                           <option key={r.id} value={r.id}>
                             {r.name}
                           </option>
@@ -825,7 +826,7 @@ export function SpatialView() {
                   className={styles.modalSelect}
                 >
                   <option value="">None (Unbound)</option>
-                  {devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  {sortedByName(devices).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
               </label>
 
@@ -864,7 +865,7 @@ export function SpatialView() {
                     className={styles.modalSelect}
                   >
                     <option value="">Unbound</option>
-                    {devices.map(d => (
+                    {sortedByName(devices).map(d => (
                       <option key={d.id} value={d.id}>
                         {d.name}
                       </option>
@@ -879,7 +880,7 @@ export function SpatialView() {
                     onChange={e => setEditingAnchor({ ...editingAnchor, room_id: e.target.value })}
                     className={styles.modalSelect}
                   >
-                    {allRooms.map(r => (
+                    {sortedByName(allRooms).map(r => (
                       <option key={r.id} value={r.id}>
                         {r.name}
                       </option>

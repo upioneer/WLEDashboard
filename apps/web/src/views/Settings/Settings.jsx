@@ -78,6 +78,7 @@ export function Settings() {
   const setAdvancedMode = useUIStore(s => s.setAdvancedMode)
   const demoMode = useUIStore(s => s.demoMode)
   const setDemoMode = useUIStore(s => s.setDemoMode)
+  const setClockSettings = useUIStore(s => s.setClockSettings)
   const { showInstallButton, openModal: openInstallModal } = usePWAInstall()
   const [settings, setSettings] = useState(DEFAULTS)
   const [loading, setLoading]   = useState(true)
@@ -183,8 +184,13 @@ export function Settings() {
     }
     delete pendingUpdates.current[key]
     setSettings(s => ({ ...s, [key]: value }))
+    // Push clock display keys into shared state so the sidebar chip
+    // reflects the change instantly without a remount.
+    if (key === 'time_chip_enabled') setClockSettings({ enabled: value !== '0' })
+    if (key === 'time_chip_style') setClockSettings({ style: value })
+    if (key === 'time_zone') setClockSettings({ timeZone: value })
     performSave({ [key]: value })
-  }, [performSave])
+  }, [performSave, setClockSettings])
 
   const handleDebouncedChange = useCallback((key, value) => {
     setSettings(s => ({ ...s, [key]: value }))

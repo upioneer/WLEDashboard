@@ -7,6 +7,7 @@ import {
   resetCommandSeq,
   fetchWithTimeout,
   snapshotToCommand,
+  buildPreviewPayload,
 } from './commands.js'
 
 test('command sequences detect stale responses per device', () => {
@@ -78,4 +79,18 @@ test('snapshotToCommand clones segments and rejects empty snapshots', () => {
   assert.equal(snapshotToCommand({}), null)
   assert.equal(snapshotToCommand({ info: {}, _ts: 1 }), null)
   assert.equal(snapshotToCommand([]), null)
+})
+
+test('buildPreviewPayload maps effect, params, palette, and color', () => {
+  assert.deepEqual(
+    buildPreviewPayload({ effectId: 42, speed: 200, intensity: 100, paletteId: 6, color: '#ff0000' }),
+    { on: true, seg: [{ fx: 42, sx: 200, ix: 100, pal: 6, col: [[255, 0, 0]] }] }
+  )
+})
+
+test('buildPreviewPayload falls back to safe defaults', () => {
+  assert.deepEqual(
+    buildPreviewPayload(),
+    { on: true, seg: [{ fx: 0, sx: 128, ix: 128, pal: 0, col: [[255, 255, 255]] }] }
+  )
 })

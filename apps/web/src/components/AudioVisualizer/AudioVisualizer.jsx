@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { audioApi } from '../../lib/api.js'
+import { sortedByName } from '../../lib/sort.js'
 import styles from './AudioVisualizer.module.css'
 
 export function AudioVisualizer() {
@@ -171,7 +172,7 @@ export function AudioVisualizer() {
               className={styles.select}
             >
               <option value="">None (Preview Canvas Only)</option>
-              {devices.map(d => (
+              {sortedByName(devices).map(d => (
                 <option key={d.id} value={d.ip_address}>
                   {d.name} ({d.ip_address})
                 </option>

@@ -106,12 +106,6 @@ Turn any LED matrix into a scrolling text sign with up to 10 rows of per row col
 
 ![Studio Marquee Maker](project_details/changelog/v0.26.0/screenshots/studio_marquee_maker.png)
 
-### Studio Sandbox Mode
-
-Preview freely without fear. Studio snapshots every touched light before your first change and restores it when you leave, unless you hit Keep changes. A banner names the sandboxed devices with one click Keep or Restore now, so experimenting with effects never strands your real setup.
-
-![Studio Sandbox Mode](project_details/changelog/v0.27.0/screenshots/studio-sandbox.png)
-
 ### Refresh State Control
 
 Force a live state read past every cache with one click from any device card menu. The new refresh endpoint polls the controller directly and resyncs the dashboard, with honest feedback when a device is unreachable.
@@ -124,11 +118,29 @@ Store reusable LED panels with size, target device, and serpentine wiring, then 
 
 ![Saved Matrix Recall](project_details/changelog/v0.27.0/screenshots/studio-saved-matrix.png)
 
-### Studio Preview Target Picker
+### Studio Instant Preview
 
-Aim effects with a Device/Group toggle, a single target dropdown, and an explicit Apply button that stays clickable for re applies after every tweak. A Reset preview button restores sandboxed lights and clears the target in one click, while delivery honest toasts confirm success or say plainly when a device does not respond.
+Pick a device or group target once, then click any effect card, row, palette, color, or slider to preview it on real hardware immediately with no Apply step. The primary color rides along so lights match the simulator, Keep changes and Restore now live beside the picker with the sandboxed device names, and Reset preview reselects Solid while restoring every touched light.
 
-![Studio Preview Target Picker](project_details/changelog/v0.28.0/screenshots/studio-target-picker.png)
+![Studio Instant Preview](project_details/changelog/v0.29.0/screenshots/studio-immediate-apply.png)
+
+### Alphabetical Effect Browser
+
+Every effect card grid, compact row list, dropdown, palette, device, group, and timezone picker now sorts A to Z with natural number ordering, so Strip 2 lands before Strip 10 and large collections stay scannable.
+
+![Alphabetical Effect Browser](project_details/changelog/v0.29.0/screenshots/studio-effects-sorted.png)
+
+### Firmware Faithful Effect Simulations
+
+The 60 pixel simulator now matches real WLED firmware behavior verified against upstream source. Dynamic renders stepped random rainbow confetti, Android shows its primary window over a palette gradient, Chase Random steps its background per sweep, and Running and Saw use exact wave counts.
+
+![Firmware Faithful Effect Simulations](project_details/changelog/v0.29.0/screenshots/studio-dynamic-sim.png)
+
+### 3D Objects Designer Refresh
+
+The 3D Objects tab now speaks the same design language as the rest of the app, with standard cards, inputs, violet primary actions, and a spring Toggle for the structure guide, wrapped around the same live LED layout preview and power blueprint.
+
+![3D Objects Designer Refresh](project_details/changelog/v0.29.0/screenshots/studio-objects-restyled.png)
 
 ---
 

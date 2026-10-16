@@ -6,6 +6,8 @@ import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { studioApi } from '../../lib/api.js'
 import { Slider } from '../../components/Slider/Slider.jsx'
+import { Toggle } from '../../components/Toggle/Toggle.jsx'
+import { sortedByName, compareText } from '../../lib/sort.js'
 import styles from './ObjectDesigner.module.css'
 
 const SHAPE_LABELS = {
@@ -274,7 +276,7 @@ export function ObjectDesigner() {
             <label className={styles.field}>
               <span>Shape</span>
               <select value={shape} onChange={e => changeShape(e.target.value)}>
-                {(objectShapes.length ? objectShapes : Object.keys(SHAPE_LABELS)).map(s => (
+                {[...(objectShapes.length ? objectShapes : Object.keys(SHAPE_LABELS))].sort((a, b) => compareText(SHAPE_LABELS[a] ?? a, SHAPE_LABELS[b] ?? b)).map(s => (
                   <option key={s} value={s}>{SHAPE_LABELS[s] ?? s}</option>
                 ))}
               </select>
@@ -282,7 +284,7 @@ export function ObjectDesigner() {
             <label className={styles.field}>
               <span>Layout strategy</span>
               <select value={strategy} onChange={e => setStrategy(e.target.value)}>
-                {strategies.map(s => (
+                {[...strategies].sort((a, b) => compareText(a.replace(/_/g, ' '), b.replace(/_/g, ' '))).map(s => (
                   <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
                 ))}
               </select>
@@ -366,12 +368,12 @@ export function ObjectDesigner() {
           <label className={styles.field}>
             <span>LED chip (sets power math)</span>
             <select value={chip} onChange={e => setChip(e.target.value)}>
-              {Object.entries(objectChips).map(([key, ref]) => (
+              {Object.entries(objectChips).sort(([, a], [, b]) => compareText(a.label, b.label)).map(([key, ref]) => (
                 <option key={key} value={key}>{ref.label} ({ref.voltage}V)</option>
               ))}
             </select>
           </label>
-          <p className={styles.hint}>Chip and voltage are always entered by hand. WLED firmware cannot report what is wired to it.</p>
+          <p className={styles.note}>Chip and voltage are always entered by hand. WLED firmware cannot report what is wired to it.</p>
 
           <div className={styles.actions}>
             <button
@@ -395,14 +397,9 @@ export function ObjectDesigner() {
         <section className={styles.card} aria-label="Preview and blueprint">
           <div className={styles.cardHeaderRow}>
             <h3 className={styles.cardTitle}>Live Preview & Blueprint</h3>
-            <label className={styles.guideToggle}>
-              <input
-                type="checkbox"
-                checked={showWireframe}
-                onChange={e => setShowWireframe(e.target.checked)}
-              />
-              <span>Structure guide</span>
-            </label>
+            <div className={styles.guideToggle}>
+              <Toggle checked={showWireframe} onChange={setShowWireframe} id="object-wireframe" label="Structure guide" />
+            </div>
           </div>
 
           {!preview && previewing && <p className={styles.hint}>Computing layout preview...</p>}
@@ -425,7 +422,7 @@ export function ObjectDesigner() {
                 <div><dt>Supply</dt><dd>{preview.power.psuWatts}W {preview.power.voltage}V ({preview.power.psuAmps}A with headroom)</dd></div>
                 <div><dt>Power injection</dt><dd>{preview.power.injectionPoints} extra feed{preview.power.injectionPoints === 1 ? '' : 's'} (every {preview.power.injectionEveryN} LEDs)</dd></div>
               </dl>
-              <p className={styles.hint}>{preview.power.disclaimer || powerDisclaimer}</p>
+              <p className={styles.note}>{preview.power.disclaimer || powerDisclaimer}</p>
 
               <h4 className={styles.subTitle}>Cut list (per run)</h4>
               <table className={styles.cutTable}>
@@ -451,7 +448,7 @@ export function ObjectDesigner() {
                   <span>Target device</span>
                   <select value={deviceId} onChange={e => setDeviceId(e.target.value)}>
                     <option value="">Select...</option>
-                    {devices.map(d => (
+                    {sortedByName(devices).map(d => (
                       <option key={d.id} value={d.id}>{d.name}{d.led_count ? ` (${d.led_count})` : ''}</option>
                     ))}
                   </select>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
+import { sortedByName, sortedByLabel } from '../../lib/sort.js'
 import styles from './ScheduleEditorModal.module.css'
 
 const TRIGGER_TYPES = [
@@ -150,7 +151,7 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
                 onChange={e => setTriggerValue(e.target.value)}
                 className={styles.selectInput}
               >
-                {WEATHER_CONDITIONS.map(wc => (
+                {sortedByLabel(WEATHER_CONDITIONS).map(wc => (
                   <option key={wc.value} value={wc.value}>{wc.label}</option>
                 ))}
               </select>
@@ -184,9 +185,9 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
                 required
               >
                 {targetType === 'device' ? (
-                  devices.map(d => <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>)
+                  sortedByName(devices).map(d => <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>)
                 ) : (
-                  groups.map(g => <option key={g.id} value={g.id}>{g.name} ({g.type})</option>)
+                  sortedByName(groups).map(g => <option key={g.id} value={g.id}>{g.name} ({g.type})</option>)
                 )}
               </select>
             </div>

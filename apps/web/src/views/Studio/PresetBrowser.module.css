@@ -102,7 +102,7 @@
   gap: var(--sp-1);
 }
 
-.applyBtn {
+.keepBtn {
   height: 32px;
   padding: 0 var(--sp-4);
   background-color: var(--accent-violet);
@@ -116,13 +116,27 @@
   white-space: nowrap;
 }
 
-.applyBtn:hover:not(:disabled) {
+.keepBtn:hover {
   opacity: 0.9;
 }
 
-.applyBtn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.sandboxRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding-top: var(--sp-3);
+}
+
+.sandboxNames {
+  font: var(--type-small);
+  color: var(--text-secondary);
+}
+
+.sandboxActions {
+  display: flex;
+  gap: var(--sp-2);
 }
 
 .resetBtn {

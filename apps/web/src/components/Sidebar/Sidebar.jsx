@@ -116,7 +116,7 @@ export function Sidebar() {
           )}
         </NavLink>
 
-        {!collapsed && <ClockChip />}
+        <ClockChip hidden={collapsed} />
 
         <button
           className={styles.collapseBtn}

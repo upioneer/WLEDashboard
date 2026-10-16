@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
+import { sortedByName } from '../../lib/sort.js'
 import styles from './RoutineEditorModal.module.css'
 
 export function RoutineEditorModal({ routine = null, onClose, onSave }) {
@@ -154,9 +155,9 @@ export function RoutineEditorModal({ routine = null, onClose, onSave }) {
                           className={styles.selectInput}
                         >
                           {step.target_type === 'device' ? (
-                            devices.map(d => <option key={d.id} value={d.id}>{d.name}</option>)
+                            sortedByName(devices).map(d => <option key={d.id} value={d.id}>{d.name}</option>)
                           ) : (
-                            groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)
+                            sortedByName(groups).map(g => <option key={g.id} value={g.id}>{g.name}</option>)
                           )}
                         </select>
 

@@ -53,6 +53,11 @@ export const useUIStore = create((set, get) => ({
   demoMode: false,
   setDemoMode: (val) => set({ demoMode: !!val }),
 
+  // ── Sidebar clock display ───────────────────────────────────────────────────
+  // Shared so Settings changes reflect in the chip instantly without remount.
+  clockSettings: { enabled: true, style: 'compact', timeZone: 'local' },
+  setClockSettings: (patch) => set(s => ({ clockSettings: { ...s.clockSettings, ...patch } })),
+
   // ── Spotify State ───────────────────────────────────────────────────────────
   spotifyState: { is_playing: false },
   setSpotifyState: (state) => set({ spotifyState: state }),

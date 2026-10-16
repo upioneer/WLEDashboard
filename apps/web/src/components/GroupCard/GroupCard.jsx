@@ -59,20 +59,26 @@ export function GroupCard({ group, onEdit }) {
     }
   }, [avgBriPct])
 
+  const quietGroupCommand = useCallback((id, payload) => {
+    sendGroupCommand(id, payload).catch(() => {
+      addToast({ message: `Group "${group.name}" did not respond`, type: 'error' })
+    })
+  }, [group.name, sendGroupCommand, addToast])
+
   const commitBrightness = useCallback((pct) => {
     isDragging.current = false
     const wledBri = pctToWledBri(pct)
-    sendGroupCommand(group.id, {
+    quietGroupCommand(group.id, {
       bri: wledBri,
       on: pct > 0,
       lor: 0,
       seg: [{ id: 0, bri: wledBri }],
     })
-  }, [group.id, sendGroupCommand])
+  }, [group.id, quietGroupCommand])
 
   const debouncedBrightness = useDebounce((pct) => {
     const wledBri = pctToWledBri(pct)
-    sendGroupCommand(group.id, {
+    quietGroupCommand(group.id, {
       bri: wledBri,
       on: pct > 0,
       lor: 0,
@@ -92,8 +98,8 @@ export function GroupCard({ group, onEdit }) {
     const r = parseInt(hex.slice(1, 3), 16)
     const g = parseInt(hex.slice(3, 5), 16)
     const b = parseInt(hex.slice(5, 7), 16)
-    sendGroupCommand(group.id, { seg: [{ col: [[r, g, b]] }] })
-  }, [group.id, sendGroupCommand])
+    quietGroupCommand(group.id, { seg: [{ col: [[r, g, b]] }] })
+  }, [group.id, quietGroupCommand])
 
   const debouncedColor = useDebounce(commitColor, DEBOUNCE_MS)
 
@@ -103,8 +109,8 @@ export function GroupCard({ group, onEdit }) {
   }, [debouncedColor])
 
   const handlePowerToggle = useCallback((on) => {
-    sendGroupCommand(group.id, { on })
-  }, [group.id, sendGroupCommand])
+    quietGroupCommand(group.id, { on })
+  }, [group.id, quietGroupCommand])
 
   const handleDelete = useCallback(async () => {
     try {

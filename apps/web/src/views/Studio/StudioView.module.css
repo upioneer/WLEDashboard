@@ -91,67 +91,6 @@
   width: 100%;
 }
 
-.sandboxBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-  flex-wrap: wrap;
-  padding: var(--sp-3) var(--sp-4);
-  background-color: var(--accent-violet-10);
-  border: 1px solid hsl(262, 68%, 62%, 0.3);
-  border-radius: var(--radius-m);
-}
-
-.sandboxText {
-  font: var(--type-small);
-  color: var(--text-secondary);
-}
-
-.sandboxText strong {
-  color: var(--accent-violet);
-}
-
-.sandboxActions {
-  display: flex;
-  gap: var(--sp-2);
-}
-
-.sandboxKeepBtn {
-  height: 32px;
-  padding: 0 var(--sp-4);
-  background-color: var(--accent-violet);
-  color: var(--text-inverse);
-  border: none;
-  border-radius: var(--radius-s);
-  font: var(--type-small);
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 120ms;
-}
-
-.sandboxKeepBtn:hover {
-  opacity: 0.9;
-}
-
-.sandboxRestoreBtn {
-  height: 32px;
-  padding: 0 var(--sp-4);
-  background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-s);
-  font: var(--type-small);
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 120ms, border-color 120ms;
-}
-
-.sandboxRestoreBtn:hover {
-  color: var(--text-primary);
-  border-color: var(--text-tertiary);
-}
-
 .skeletonHeader {
   width: 300px;
   height: 48px;

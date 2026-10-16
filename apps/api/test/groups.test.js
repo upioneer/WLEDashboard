@@ -114,3 +114,40 @@ test('Groups & Devices Spotify & Weather sync toggle functionality', async (t) =
 
   await fastify.close()
 })
+
+test('Group command receipt reports member failures honestly', async (t) => {
+  const db = getDb()
+  const fastify = Fastify({ logger: false })
+  await fastify.register(groupRoutes)
+  await fastify.ready()
+
+  t.after(async () => {
+    await fastify.close()
+  })
+
+  db.prepare('INSERT INTO devices (id, name, ip_address) VALUES (?, ?, ?)')
+    .run('grp-dead-1', 'Dead Member', '127.0.0.1:1')
+  const created = await fastify.inject({
+    method: 'POST',
+    url: '/groups',
+    payload: { name: 'Receipt Group', type: 'zone' },
+  })
+  assert.equal(created.statusCode, 201)
+  const group = JSON.parse(created.body)
+  db.prepare('INSERT INTO group_members (group_id, device_id) VALUES (?, ?)').run(group.id, 'grp-dead-1')
+
+  // The route always answers 200: clients must read the receipt body.
+  const res = await fastify.inject({
+    method: 'POST',
+    url: `/groups/${group.id}/command`,
+    payload: { on: true },
+  })
+  assert.equal(res.statusCode, 200)
+  const body = JSON.parse(res.body)
+  assert.equal(body.ok, false)
+  assert.equal(body.count, 1)
+
+  db.prepare('DELETE FROM group_members WHERE group_id = ?').run(group.id)
+  db.prepare('DELETE FROM groups WHERE id = ?').run(group.id)
+  db.prepare('DELETE FROM devices WHERE id = ?').run('grp-dead-1')
+})

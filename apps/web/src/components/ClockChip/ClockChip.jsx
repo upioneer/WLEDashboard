@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { settingsApi, systemApi } from '../../lib/api.js'
+import { formatClock } from '../../lib/clock.js'
+import { useUIStore } from '../../stores/uiStore.js'
 import styles from './ClockChip.module.css'
 
 export const TIME_CHIP_STYLES = [
@@ -8,63 +10,34 @@ export const TIME_CHIP_STYLES = [
   { value: 'minimal', label: 'Minimal (time only)' },
 ]
 
+// 'local' stays pinned first as the default; the rest are alphabetical.
 export const TIME_ZONES = [
   'local',
-  'UTC',
-  'America/New_York',
+  'America/Anchorage',
   'America/Chicago',
   'America/Denver',
   'America/Los_Angeles',
-  'America/Anchorage',
-  'Pacific/Honolulu',
-  'America/Toronto',
+  'America/New_York',
   'America/Sao_Paulo',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'Europe/Athens',
+  'America/Toronto',
   'Asia/Dubai',
   'Asia/Kolkata',
   'Asia/Singapore',
   'Asia/Tokyo',
   'Australia/Sydney',
+  'Europe/Athens',
+  'Europe/Berlin',
+  'Europe/London',
+  'Europe/Paris',
   'Pacific/Auckland',
+  'Pacific/Honolulu',
+  'UTC',
 ]
 
-function formatClock(date, timeZone, style) {
-  const zone = timeZone === 'local' ? undefined : timeZone
-  try {
-    const time = new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      ...(style === 'full' ? { second: '2-digit' } : {}),
-      hour12: false,
-      ...(zone ? { timeZone: zone } : {}),
-    }).format(date)
-    if (style === 'minimal') return { primary: time, secondary: null }
-    if (style === 'compact') {
-      const abbr = new Intl.DateTimeFormat('en-US', {
-        timeZoneName: 'short',
-        ...(zone ? { timeZone: zone } : {}),
-      }).formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? ''
-      return { primary: time, secondary: abbr }
-    }
-    const day = new Intl.DateTimeFormat('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      ...(zone ? { timeZone: zone } : {}),
-    }).format(date)
-    return { primary: time, secondary: day }
-  } catch {
-    return { primary: '--:--', secondary: null }
-  }
-}
-
-export function ClockChip() {
-  const [enabled, setEnabled] = useState(true)
-  const [style, setStyle] = useState('compact')
-  const [timeZone, setTimeZone] = useState('local')
+export function ClockChip({ hidden = false }) {
+  const clockSettings = useUIStore(s => s.clockSettings)
+  const setClockSettings = useUIStore(s => s.setClockSettings)
+  const { enabled, style, timeZone } = clockSettings
   const [deltaMs, setDeltaMs] = useState(0)
   const [now, setNow] = useState(() => new Date())
   const [loaded, setLoaded] = useState(false)
@@ -75,9 +48,11 @@ export function ClockChip() {
       try {
         const [s, t] = await Promise.all([settingsApi.get(), systemApi.getTime()])
         if (cancelled) return
-        setEnabled(s.time_chip_enabled !== '0')
-        setStyle(s.time_chip_style || 'compact')
-        setTimeZone(s.time_zone || 'local')
+        setClockSettings({
+          enabled: s.time_chip_enabled !== '0',
+          style: s.time_chip_style || 'compact',
+          timeZone: s.time_zone || 'local',
+        })
         setDeltaMs(Date.parse(t.serverTime) - Date.now())
         setLoaded(true)
       } catch {
@@ -92,9 +67,19 @@ export function ClockChip() {
       clearInterval(resync)
       clearInterval(tick)
     }
-  }, [])
+  }, [setClockSettings])
 
-  if (!loaded || !enabled) return null
+  if (loaded && !enabled) return null
+
+  // Invisible same-size chip keeps footer height stable while settings load
+  // and while the sidebar is collapsed, so the icons never shift.
+  if (!loaded || hidden) {
+    return (
+      <div className={styles.chip} aria-hidden="true" style={{ visibility: 'hidden' }}>
+        <span className={styles.primary}>00:00:00</span>
+      </div>
+    )
+  }
 
   const serverNow = new Date(now.getTime() + deltaMs)
   const { primary, secondary } = formatClock(serverNow, timeZone, style)

@@ -9,6 +9,7 @@ import {
   frameToRgbTriplets,
   buildMarqueeLoopState,
 } from '../../lib/marquee.js'
+import { sortedByName } from '../../lib/sort.js'
 import styles from './MatrixEditor.module.css'
 
 const PRESET_PALETTE = ['#ff0055', '#ffaa00', '#00ffcc', '#0099ff', '#7000ff', '#ffffff', '#000000']
@@ -800,7 +801,7 @@ export function MatrixEditor() {
                 className={styles.sizeSelect}
               >
                 <option value="">Manual setup...</option>
-                {matrixConfigs.map(m => (
+                {sortedByName(matrixConfigs).map(m => (
                   <option key={m.id} value={m.id}>{m.name} ({m.width}x{m.height})</option>
                 ))}
               </select>
@@ -833,7 +834,7 @@ export function MatrixEditor() {
                 className={styles.sizeSelect}
               >
                 <option value="">Select device...</option>
-                {devices.map(d => (
+                {sortedByName(devices).map(d => (
                   <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
                 ))}
                 {pushDeviceId && !devices.some(d => d.id === pushDeviceId) && (

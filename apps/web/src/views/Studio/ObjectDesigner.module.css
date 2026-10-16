@@ -1,13 +1,13 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-6);
 }
 
 .grid {
   display: grid;
   grid-template-columns: minmax(300px, 380px) 1fr;
-  gap: var(--sp-4);
+  gap: var(--sp-6);
   align-items: start;
 }
 
@@ -20,11 +20,11 @@
 .card {
   background-color: var(--surface-raised);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-m);
-  padding: var(--sp-4);
+  border-radius: var(--radius-l);
+  padding: var(--sp-6);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--sp-5);
 }
 
 .cardHeaderRow {
@@ -35,8 +35,7 @@
 }
 
 .cardTitle {
-  font-size: 1rem;
-  font-weight: 700;
+  font: var(--type-h3);
   color: var(--text-primary);
   margin: 0;
 }
@@ -44,21 +43,16 @@
 .guideToggle {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: var(--sp-2);
+  font: var(--type-small);
   color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
 }
 
-.guideToggle input {
-  cursor: pointer;
-  accent-color: var(--accent-amber);
-}
-
 .subTitle {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font: var(--type-small);
+  font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -68,20 +62,26 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
+  gap: var(--sp-2);
   min-width: 0;
+}
+
+.field > span {
+  font: var(--type-micro);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
 }
 
 .field input,
 .field select {
+  height: 36px;
+  padding: 0 var(--sp-3);
   background-color: var(--surface-input);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-s);
+  font: var(--type-body);
   color: var(--text-primary);
-  padding: 8px 10px;
-  font-size: 0.875rem;
 }
 
 .row {
@@ -95,14 +95,20 @@
 }
 
 .hint {
-  font-size: 0.8rem;
+  font: var(--type-small);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.note {
+  font: var(--type-body);
   color: var(--text-secondary);
-  line-height: 1.4;
   margin: 0;
 }
 
 .error {
-  font-size: 0.85rem;
+  font: var(--type-small);
+  font-weight: 600;
   color: var(--accent-rose, #f43f5e);
   margin: 0;
 }
@@ -113,35 +119,50 @@
 }
 
 .primaryBtn {
-  background-color: var(--accent-amber);
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-violet);
   color: var(--text-inverse);
   border: none;
   border-radius: var(--radius-s);
-  padding: 9px 16px;
-  font-weight: 700;
-  font-size: 0.875rem;
+  font: var(--type-small);
+  font-weight: 600;
   cursor: pointer;
+  transition: opacity 120ms;
+  white-space: nowrap;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
 .primaryBtn:disabled {
-  opacity: 0.55;
-  cursor: default;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .secondaryBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
   background-color: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-s);
-  padding: 9px 16px;
+  font: var(--type-small);
   font-weight: 600;
-  font-size: 0.875rem;
   cursor: pointer;
+  transition: color 120ms, border-color 120ms;
+  white-space: nowrap;
+}
+
+.secondaryBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
 }
 
 .secondaryBtn:disabled {
-  opacity: 0.55;
-  cursor: default;
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .viewport {
@@ -167,49 +188,52 @@
 }
 
 .blueprint dt {
-  font-size: 0.7rem;
+  font: var(--type-micro);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
 }
 
 .blueprint dd {
-  font-size: 1rem;
-  font-weight: 700;
+  font: var(--type-h3);
   color: var(--text-primary);
-  margin: 2px 0 0;
+  margin: var(--sp-1) 0 0;
 }
 
 .cutTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font: var(--type-small);
+  text-align: left;
 }
 
-.cutTable th,
+.cutTable th {
+  background-color: var(--surface-sunken, rgba(0, 0, 0, 0.2));
+  color: var(--text-secondary);
+  padding: 10px 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
 .cutTable td {
-  text-align: left;
-  padding: 6px 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
 }
 
-.cutTable th {
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.cutTable tr:last-child td {
+  border-bottom: none;
 }
 
 .safety {
   margin: 0;
-  padding-left: 20px;
-  font-size: 0.82rem;
+  padding-left: var(--sp-5);
+  font: var(--type-small);
   color: var(--text-secondary);
-  line-height: 1.5;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--sp-1);
 }
 
 .savedList {
@@ -218,7 +242,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 .savedList li {
@@ -230,24 +254,33 @@
 .savedName {
   background: none;
   border: none;
-  color: var(--accent-cyan);
-  font-size: 0.9rem;
+  padding: 0;
+  color: var(--accent-violet);
+  font: var(--type-body);
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+}
+
+.savedName:hover {
+  text-decoration: underline;
 }
 
 .savedMeta {
-  font-size: 0.8rem;
+  font: var(--type-small);
   color: var(--text-secondary);
 }
 
 .dangerLink {
   background: none;
   border: none;
+  padding: 0;
   color: var(--accent-rose, #f43f5e);
-  font-size: 0.8rem;
+  font: var(--type-small);
+  font-weight: 600;
   cursor: pointer;
   margin-left: auto;
-  padding: 0;
+}
+
+.dangerLink:hover {
+  text-decoration: underline;
 }
