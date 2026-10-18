@@ -48,6 +48,7 @@ const CONTRIBUTORS = [
   { name: 'piiotre', platform: 'github' },
   { name: 'pubultrastar', platform: 'reddit' },
   { name: 'railstop', platform: 'github' },
+  { name: 'railstop', platform: 'reddit' },
   { name: 'Rev-777', platform: 'reddit' },
   { name: 'shr00mie', platform: 'github' },
   { name: 'sitbon', platform: 'reddit' },
