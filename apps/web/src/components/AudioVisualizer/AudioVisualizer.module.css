@@ -44,6 +44,17 @@
   background-color: var(--accent-rose);
 }
 
+.micBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.micNotice {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 .controlsRow {
   display: flex;
   align-items: center;

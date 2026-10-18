@@ -4,6 +4,7 @@ import { Sidebar } from '../components/Sidebar/Sidebar.jsx'
 import { MobileNav } from '../components/MobileNav/MobileNav.jsx'
 import { InstallAppModal } from '../components/InstallAppModal/InstallAppModal.jsx'
 import { ToastContainer } from '../components/Toast/Toast.jsx'
+import { AmbientBackground } from '../components/AmbientBackground/AmbientBackground.jsx'
 import { SpotifyPlayer } from '../components/SpotifyPlayer/SpotifyPlayer.jsx'
 import { useUIStore } from '../stores/uiStore.js'
 import { useDeviceStore } from '../stores/deviceStore.js'
@@ -63,6 +64,7 @@ export function AppLayout() {
 
   return (
     <div className={styles.shell}>
+      <AmbientBackground />
       <Sidebar />
       <div className={styles.content}>
         {/* Demo Mode Ambient Banner */}

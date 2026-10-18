@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
+import { useUIStore } from '../../stores/uiStore.js'
 import { audioApi } from '../../lib/api.js'
 import { sortedByName } from '../../lib/sort.js'
+import { checkMicrophoneSupport, describeMicError } from '../../lib/media.js'
 import styles from './AudioVisualizer.module.css'
 
 export function AudioVisualizer() {
   const devices = useDeviceStore(s => s.devices)
+  const addToast = useUIStore(s => s.addToast)
+  const [micSupport] = useState(() => checkMicrophoneSupport(
+    typeof window === 'undefined'
+      ? {}
+      : { isSecureContext: window.isSecureContext, mediaDevices: navigator.mediaDevices },
+  ))
   const [isListening, setIsListening] = useState(false)
   const [selectedDevIp, setSelectedDevIp] = useState('')
   const [mode, setMode] = useState('bars') // 'bars' | 'pulse' | 'waveform'
@@ -41,6 +49,7 @@ export function AudioVisualizer() {
       setIsListening(true)
     } catch (err) {
       console.error('Failed to access microphone:', err)
+      addToast({ message: describeMicError(err), type: 'error' })
     }
   }
 
@@ -157,10 +166,16 @@ export function AudioVisualizer() {
         <button
           className={[styles.micBtn, isListening && styles.micBtnActive].filter(Boolean).join(' ')}
           onClick={toggleAudio}
+          disabled={!micSupport.supported}
+          title={micSupport.supported ? undefined : micSupport.message}
         >
           {isListening ? 'Stop Listening' : 'Start Microphone'}
         </button>
       </div>
+
+      {!micSupport.supported && (
+        <p className={styles.micNotice} role="status">{micSupport.message}</p>
+      )}
 
       {isListening && (
         <div className={styles.controlsRow}>

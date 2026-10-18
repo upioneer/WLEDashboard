@@ -41,6 +41,7 @@ export const devicesApi = {
   reorder: (ids) => request('POST', '/devices/reorder', { ids }),
   command: (id, payload) => request('POST', `/devices/${id}/command`, payload, 10000),
   refresh: (id) => request('POST', `/devices/${id}/refresh`, undefined, 10000),
+  syncNames: (ids) => request('POST', '/devices/sync-names', { ids }, 30000),
   state: (id) => request('GET', `/devices/${id}/state`),
   uploadFirmware: (id, formData) => request('POST', `/devices/${id}/firmware`, formData),
 }

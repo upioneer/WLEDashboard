@@ -8,6 +8,7 @@ import {
   reorderDevices,
   sendDeviceCommand,
   refreshDeviceState,
+  syncDeviceNames,
   getCachedState,
   getAllCachedStates,
 } from '../services/deviceService.js'
@@ -39,6 +40,10 @@ const UpdateDeviceSchema = z.object({
 
 const ReorderSchema = z.object({
   ids: z.array(z.string()),
+})
+
+const SyncNamesSchema = z.object({
+  ids: z.array(z.string()).optional(),
 })
 
 const CommandSchema = z.record(z.unknown())
@@ -93,6 +98,13 @@ export async function deviceRoutes(fastify) {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
     reorderDevices(parsed.data.ids)
     return { ok: true }
+  })
+
+  // POST /api/devices/sync-names - pull friendly names from controllers
+  fastify.post('/devices/sync-names', async (req, reply) => {
+    const parsed = SyncNamesSchema.safeParse(req.body ?? {})
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+    return await syncDeviceNames(parsed.data.ids)
   })
 
   // POST /api/devices/:id/command - proxy command to WLED device

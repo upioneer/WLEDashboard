@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { settingsApi, mqttApi, spotifyApi, weatherApi, configApi, systemApi } from '../../lib/api.js'
+import { settingsApi, mqttApi, spotifyApi, weatherApi, configApi, systemApi, devicesApi } from '../../lib/api.js'
 import { TIME_ZONES, TIME_CHIP_STYLES } from '../../components/ClockChip/ClockChip.jsx'
 import { useUIStore } from '../../stores/uiStore.js'
 import { LocationMapPicker } from '../../components/LocationMapPicker/LocationMapPicker.jsx'
 import { useUpdateCheck } from '../../hooks/useUpdateCheck.js'
 import { copyToClipboard } from '../../lib/clipboard.js'
+import { BACKGROUND_PATTERNS, BACKGROUND_MODES } from '../../lib/background.js'
+import { checkGeolocationSupport, describeGeoError } from '../../lib/geolocation.js'
+import { sortedByName } from '../../lib/sort.js'
 import styles from './Settings.module.css'
 
 import { useAutomationStore } from '../../stores/automationStore.js'
@@ -79,6 +82,10 @@ export function Settings() {
   const demoMode = useUIStore(s => s.demoMode)
   const setDemoMode = useUIStore(s => s.setDemoMode)
   const setClockSettings = useUIStore(s => s.setClockSettings)
+  const background = useUIStore(s => s.background)
+  const setBackground = useUIStore(s => s.setBackground)
+  const devices = useDeviceStore(s => s.devices)
+  const groups = useGroupStore(s => s.groups)
   const { showInstallButton, openModal: openInstallModal } = usePWAInstall()
   const [settings, setSettings] = useState(DEFAULTS)
   const [loading, setLoading]   = useState(true)
@@ -101,6 +108,15 @@ export function Settings() {
   const [testingCondition, setTestingCondition] = useState(null)
   const [showMappingEditor, setShowMappingEditor] = useState(false)
   const [customMappings, setCustomMappings] = useState(null)
+  // ── Device name sync state (everything selected unless deselected) ───────────
+  const [nameSyncDeselected, setNameSyncDeselected] = useState(() => new Set())
+  const [nameSyncing, setNameSyncing] = useState(false)
+  const [nameSyncResult, setNameSyncResult] = useState(null)
+  const [geoSupport] = useState(() => checkGeolocationSupport(
+    typeof window === 'undefined'
+      ? {}
+      : { isSecureContext: window.isSecureContext, geolocation: navigator.geolocation },
+  ))
   const { updateAvailable } = useUpdateCheck(__APP_VERSION__)
 
   // ── Backup & Restore state ───────────────────────────────────────────────────
@@ -116,6 +132,13 @@ export function Settings() {
   const [serverTime, setServerTime] = useState(null)
   useEffect(() => {
     systemApi.getTime().then(setServerTime).catch(() => {})
+  }, [])
+
+  // Device Names needs the list even on direct navigation (other views fetch on mount).
+  useEffect(() => {
+    if (useDeviceStore.getState().devices.length === 0) {
+      useDeviceStore.getState().fetchDevices()
+    }
   }, [])
 
   const debounceTimers = useRef({})
@@ -330,6 +353,37 @@ export function Settings() {
       addToast({ message: 'Failed to copy update command', type: 'error' })
     }
   }, [updatePlatform, addToast])
+
+  // ── Device Name Sync ─────────────────────────────────────────────────────────
+  const handleNameSync = useCallback(async () => {
+    const ids = sortedByName(devices).filter(d => !nameSyncDeselected.has(d.id)).map(d => d.id)
+    if (ids.length === 0 || nameSyncing) return
+    setNameSyncing(true)
+    setNameSyncResult(null)
+    try {
+      const out = await devicesApi.syncNames(ids)
+      await useDeviceStore.getState().fetchDevices()
+      setNameSyncResult(out)
+      if (out.failed === 0) {
+        addToast({ message: `Device names synced: ${out.updated} updated, ${out.unchanged} unchanged`, type: 'success' })
+      } else {
+        addToast({ message: `Name sync finished with ${out.failed} failure${out.failed === 1 ? '' : 's'}`, type: 'error' })
+      }
+    } catch (err) {
+      addToast({ message: `Name sync failed: ${err.message}`, type: 'error' })
+    } finally {
+      setNameSyncing(false)
+    }
+  }, [devices, nameSyncDeselected, nameSyncing, addToast])
+
+  const toggleNameSyncDevice = useCallback((id) => {
+    setNameSyncDeselected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
 
   // ── Backup Export ────────────────────────────────────────────────────────────
   const handleBackupExport = useCallback(async () => {
@@ -752,6 +806,109 @@ export function Settings() {
           </div>
         </section>
 
+        {/* Background & Ambiance */}
+        <section className={styles.section} aria-labelledby="background-heading">
+          <h2 id="background-heading" className={styles.sectionTitle}>Background & Ambiance</h2>
+          <p className={styles.sectionDesc}>
+            Dress the app shell with a subtle pattern. Pick a fixed color or follow the live output of a device or group.
+          </p>
+          <div className={styles.fields}>
+            <SettingField
+              label="Pattern"
+              hint="Subtle shell dressing behind every view"
+              id="bg_pattern"
+            >
+              <select
+                className={styles.selectInput}
+                value={background.pattern}
+                onChange={e => setBackground({ pattern: e.target.value })}
+                aria-label="Background pattern"
+              >
+                {BACKGROUND_PATTERNS.map(p => (
+                  <option key={p.id} value={p.id}>{p.label}</option>
+                ))}
+              </select>
+            </SettingField>
+
+            {background.pattern !== 'none' && (
+              <SettingField
+                label="Color Source"
+                hint="Fixed color or live light output"
+                id="bg_mode"
+              >
+                <div className={styles.unitToggleGroup}>
+                  {BACKGROUND_MODES.map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={[styles.unitToggleBtn, background.mode === m.id && styles.unitToggleActive].filter(Boolean).join(' ')}
+                      onClick={() => setBackground({ mode: m.id, targetId: null })}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </SettingField>
+            )}
+
+            {background.pattern !== 'none' && background.mode === 'custom' && (
+              <SettingField
+                label="Pattern Color"
+                hint="Tint for the pattern"
+                id="bg_color"
+              >
+                <input
+                  type="color"
+                  value={background.color}
+                  onChange={e => setBackground({ color: e.target.value })}
+                  className={styles.mappingColorInput}
+                  aria-label="Pattern color"
+                />
+              </SettingField>
+            )}
+
+            {background.pattern !== 'none' && background.mode === 'device' && (
+              <SettingField
+                label="Follow Device"
+                hint="Pattern follows this light in real time"
+                id="bg_device"
+              >
+                <select
+                  className={styles.selectInput}
+                  value={background.targetId ?? ''}
+                  onChange={e => setBackground({ targetId: e.target.value || null })}
+                  aria-label="Background device"
+                >
+                  <option value="">Select a device...</option>
+                  {sortedByName(devices).map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </SettingField>
+            )}
+
+            {background.pattern !== 'none' && background.mode === 'group' && (
+              <SettingField
+                label="Follow Group"
+                hint="Pattern follows the blended group output"
+                id="bg_group"
+              >
+                <select
+                  className={styles.selectInput}
+                  value={background.targetId ?? ''}
+                  onChange={e => setBackground({ targetId: e.target.value || null })}
+                  aria-label="Background group"
+                >
+                  <option value="">Select a group...</option>
+                  {sortedByName(groups).map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </SettingField>
+            )}
+          </div>
+        </section>
+
         {/* Spatial View Options */}
         <section className={styles.section} aria-labelledby="spatial-heading">
           <h2 id="spatial-heading" className={styles.sectionTitle}>Spatial View</h2>
@@ -832,6 +989,81 @@ export function Settings() {
               />
             </SettingField>
           </div>
+        </section>
+
+        {/* Device Names */}
+        <section className={styles.section} aria-labelledby="names-heading">
+          <h2 id="names-heading" className={styles.sectionTitle}>Device Names</h2>
+          <p className={styles.sectionDesc}>
+            Pull the friendly name stored on each controller (the Name field in
+            the WLED Config UI) and save it here. Select specific devices or
+            sync them all.
+          </p>
+          {devices.length === 0 ? (
+            <p className={styles.sectionDesc}>No devices registered yet.</p>
+          ) : (
+            <>
+              <div className={styles.nameSyncToolbar}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setNameSyncDeselected(new Set())}
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setNameSyncDeselected(new Set(devices.map(d => d.id)))}
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  className={styles.syncNowBtn}
+                  disabled={nameSyncing || devices.every(d => nameSyncDeselected.has(d.id))}
+                  onClick={handleNameSync}
+                >
+                  {nameSyncing ? 'Syncing...' : 'Sync Now'}
+                </button>
+              </div>
+              <div className={styles.nameSyncList} role="group" aria-label="Devices to sync">
+                {sortedByName(devices).map(dev => {
+                  const selected = !nameSyncDeselected.has(dev.id)
+                  return (
+                    <label
+                      key={dev.id}
+                      className={[styles.nameSyncItem, selected && styles.nameSyncItemActive].filter(Boolean).join(' ')}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleNameSyncDevice(dev.id)}
+                        className={styles.nameSyncCheckbox}
+                      />
+                      <span className={[styles.nameSyncDot, dev.is_online ? styles.nameSyncDotOnline : styles.nameSyncDotOffline].join(' ')} />
+                      <span className={styles.nameSyncTitle}>{dev.name}</span>
+                      <span className={styles.nameSyncSub}>{dev.ip_address}</span>
+                    </label>
+                  )
+                })}
+              </div>
+              {nameSyncResult && (
+                <div className={styles.nameSyncResult} role="status">
+                  <span>
+                    {nameSyncResult.updated} updated, {nameSyncResult.unchanged} unchanged, {nameSyncResult.failed} failed
+                  </span>
+                  {nameSyncResult.results.some(r => !r.ok) && (
+                    <ul className={styles.nameSyncFailures}>
+                      {nameSyncResult.results.filter(r => !r.ok).map(r => (
+                        <li key={r.id}>{r.name ?? r.id}: {r.error}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </>
+          )}
         </section>
 
         {/* Media Sync */}
@@ -1362,6 +1594,8 @@ export function Settings() {
               <button
                 type="button"
                 className={styles.detectBtn}
+                disabled={!geoSupport.supported}
+                title={geoSupport.supported ? undefined : geoSupport.message}
                 onClick={() => {
                   if (!navigator.geolocation) {
                     addToast({ message: 'Browser geolocation not supported', type: 'error' })
@@ -1375,13 +1609,16 @@ export function Settings() {
                       addToast({ message: `Location detected: ${lat}, ${lng}`, type: 'success' })
                     },
                     (err) => {
-                      addToast({ message: `Location error: ${err.message}`, type: 'error' })
+                      addToast({ message: describeGeoError(err), type: 'error' })
                     }
                   )
                 }}
               >
                 Auto-Detect Location (Browser GPS)
               </button>
+              {!geoSupport.supported && (
+                <p className={styles.updateTip} role="status">{geoSupport.message}</p>
+              )}
             </div>
           </div>
         </section>

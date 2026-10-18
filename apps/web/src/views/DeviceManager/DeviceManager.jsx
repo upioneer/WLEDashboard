@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
 import { IpChip } from '../../components/IpChip/IpChip.jsx'
 import { isDeviceFirmwareOutdated, getEffectiveLatestVersion } from '../../lib/firmware.js'
+import { sortDevices } from '../../lib/sort.js'
 import styles from './DeviceManager.module.css'
 
 function ExternalLinkIcon() {
@@ -18,6 +19,8 @@ function ExternalLinkIcon() {
 export function DeviceManager() {
   const { devices, addDevice, removeDevice, updateDevice, latestFirmwareVersion, fetchDevices } = useDeviceStore()
   const addToast = useUIStore(s => s.addToast)
+  const sortMode = useUIStore(s => s.deviceManagerSortMode)
+  const setSortMode = useUIStore(s => s.setDeviceManagerSortMode)
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId]     = useState(null)
@@ -28,6 +31,14 @@ export function DeviceManager() {
   }, [fetchDevices])
 
   const effectiveLatestVersion = getEffectiveLatestVersion(devices, latestFirmwareVersion)
+  const outdatedIds = useMemo(
+    () => devices.filter(d => isDeviceFirmwareOutdated(d, effectiveLatestVersion)).map(d => d.id),
+    [devices, effectiveLatestVersion]
+  )
+  const sortedDevices = useMemo(
+    () => sortDevices(devices, sortMode, outdatedIds),
+    [devices, sortMode, outdatedIds]
+  )
 
   return (
     <main className={styles.page} id="main-content">
@@ -38,13 +49,29 @@ export function DeviceManager() {
             {devices.length} device{devices.length !== 1 ? 's' : ''} registered
           </p>
         </div>
-        <button
-          className={styles.addBtn}
-          onClick={() => setShowAddForm(v => !v)}
-          aria-expanded={showAddForm}
-        >
-          {showAddForm ? 'Cancel' : 'Add Device'}
-        </button>
+        <div className={styles.headerRight}>
+          <select
+            value={sortMode}
+            onChange={e => setSortMode(e.target.value)}
+            className={styles.sortSelect}
+            title="Sort Devices"
+            aria-label="Sort devices"
+          >
+            <option value="manual">Manual Order</option>
+            <option value="az">Alphabetical (A-Z)</option>
+            <option value="za">Alphabetical (Z-A)</option>
+            <option value="online">Online First</option>
+            <option value="updates">Updates First</option>
+            <option value="date">Date Added</option>
+          </select>
+          <button
+            className={styles.addBtn}
+            onClick={() => setShowAddForm(v => !v)}
+            aria-expanded={showAddForm}
+          >
+            {showAddForm ? 'Cancel' : 'Add Device'}
+          </button>
+        </div>
       </header>
 
       {showAddForm && (
@@ -62,10 +89,10 @@ export function DeviceManager() {
       )}
 
       <section className={styles.list} aria-label="Registered devices">
-        {devices.length === 0 ? (
+        {sortedDevices.length === 0 ? (
           <div className={styles.emptyRow}>No devices registered yet.</div>
         ) : (
-          devices.map(device => (
+          sortedDevices.map(device => (
             <DeviceRow
               key={device.id}
               device={device}

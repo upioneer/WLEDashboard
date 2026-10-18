@@ -192,6 +192,46 @@ export async function refreshDeviceState(device) {
   return { ok: true, data: combined }
 }
 
+// Pull the friendly name (/json/info -> name) from each target controller and
+// persist it. Empty/omitted ids means all devices. Unknown ids and demo
+// devices are reported per entry, never thrown.
+export async function syncDeviceNames(ids) {
+  const filter = Array.isArray(ids) && ids.length > 0 ? new Set(ids) : null
+  const targets = filter ? [...filter].map(getDevice).filter(Boolean) : listDevices()
+  const unknown = filter ? [...filter].filter((id) => !getDevice(id)) : []
+  const results = await Promise.all(targets.map(async (device) => {
+    if (isDemoMode() || device.id.startsWith('demo-')) {
+      return { id: device.id, name: device.name, ok: true, changed: false, demo: true }
+    }
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 4000)
+    try {
+      const res = await fetch(`http://${device.ip_address}/json/info`, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (!res.ok) return { id: device.id, name: device.name, ok: false, error: `HTTP ${res.status}` }
+      const info = await res.json()
+      const name = typeof info?.name === 'string' ? info.name.trim() : ''
+      if (!name) return { id: device.id, name: device.name, ok: false, error: 'Device reported an empty name' }
+      const changed = name !== device.name
+      if (changed) updateDevice(device.id, { name })
+      return { id: device.id, name, ok: true, changed }
+    } catch (err) {
+      clearTimeout(timeout)
+      const error = err?.name === 'AbortError' ? 'Request timed out' : err.message
+      return { id: device.id, name: device.name, ok: false, error }
+    }
+  }))
+  for (const id of unknown) {
+    results.push({ id, name: null, ok: false, error: 'Unknown device' })
+  }
+  return {
+    updated: results.filter((r) => r.ok && r.changed).length,
+    unchanged: results.filter((r) => r.ok && !r.changed).length,
+    failed: results.filter((r) => !r.ok).length,
+    results,
+  }
+}
+
 export async function sendDeviceCommand(device, payload) {
   const deviceId = typeof device === 'string' ? device : device?.id
   if (isDemoMode() || deviceId?.startsWith('demo-')) {

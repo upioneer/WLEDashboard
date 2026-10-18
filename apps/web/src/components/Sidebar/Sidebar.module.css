@@ -8,6 +8,7 @@
   position: sticky;
   top: 0;
   flex-shrink: 0;
+  z-index: 1;
   transition: width 280ms var(--ease-out-expo);
   overflow: hidden;
 }

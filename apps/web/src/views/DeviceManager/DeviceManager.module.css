@@ -27,6 +27,30 @@
   margin-top: var(--sp-1);
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.sortSelect {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: 4px var(--sp-3);
+  font: var(--type-small);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  height: 32px;
+  transition: border-color 120ms;
+}
+
+.sortSelect:hover,
+.sortSelect:focus {
+  border-color: var(--border-default);
+}
+
 .addBtn {
   height: 36px;
   padding: 0 var(--sp-5);

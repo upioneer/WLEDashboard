@@ -93,6 +93,25 @@ export const useUIStore = create((set, get) => ({
     set({ dashboardFilter: filter })
   },
 
+  deviceManagerSortMode: (() => { try { return localStorage.getItem('wled_device_manager_sort') || 'az' } catch { return 'az' } })(),
+  setDeviceManagerSortMode: (mode) => {
+    try { localStorage.setItem('wled_device_manager_sort', mode) } catch {}
+    set({ deviceManagerSortMode: mode })
+  },
+
+  background: (() => {
+    try {
+      const raw = localStorage.getItem('wled_background')
+      if (raw) return { pattern: 'none', mode: 'custom', color: '#8b5cf6', targetId: null, ...JSON.parse(raw) }
+    } catch {}
+    return { pattern: 'none', mode: 'custom', color: '#8b5cf6', targetId: null }
+  })(),
+  setBackground: (patch) => set(s => {
+    const next = { ...s.background, ...patch }
+    try { localStorage.setItem('wled_background', JSON.stringify(next)) } catch {}
+    return { background: next }
+  }),
+
   // ── Advanced Mode ───────────────────────────────────────────────────────────
   advancedMode: (() => {
     try {

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import { isNewerVersion, pickLatestTag } from '../lib/updates.js'
+
+const REPO = 'upioneer/WLEDashboard'
 
 export function useUpdateCheck(currentVersion) {
   const [updateAvailable, setUpdateAvailable] = useState(null)
@@ -7,28 +10,20 @@ export function useUpdateCheck(currentVersion) {
   useEffect(() => {
     async function checkUpdate() {
       try {
-        const res = await fetch('https://api.github.com/repos/upioneer/WLEDashboard/releases/latest')
-        if (!res.ok) throw new Error('Failed to fetch release')
-        const data = await res.json()
-        const latestVersion = data.tag_name?.replace(/^v/, '') // remove 'v' if present
-        
-        // Simple semver compare (assuming format x.y.z)
-        const currentParts = currentVersion.split('.').map(Number)
-        const latestParts = latestVersion.split('.').map(Number)
-
-        let hasUpdate = false
-        for (let i = 0; i < 3; i++) {
-          const cur = currentParts[i] || 0
-          const lat = latestParts[i] || 0
-          if (lat > cur) {
-            hasUpdate = true
-            break
-          } else if (lat < cur) {
-            break
-          }
+        // Published Releases first; fall back to git tags since the
+        // project ships version tags without Release entries.
+        let latestVersion = null
+        const rel = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`)
+        if (rel.ok) {
+          const data = await rel.json()
+          latestVersion = data.tag_name?.replace(/^v/i, '') ?? null
+        } else {
+          const tagsRes = await fetch(`https://api.github.com/repos/${REPO}/tags?per_page=20`)
+          if (!tagsRes.ok) throw new Error('Failed to fetch tags')
+          latestVersion = pickLatestTag(await tagsRes.json())
         }
 
-        if (hasUpdate) {
+        if (isNewerVersion(currentVersion, latestVersion)) {
           setUpdateAvailable(latestVersion)
         }
       } catch (err) {
@@ -37,10 +32,10 @@ export function useUpdateCheck(currentVersion) {
         setLoading(false)
       }
     }
-    
+
     // Check on mount
     checkUpdate()
-    
+
     // Then check every 12 hours
     const interval = setInterval(checkUpdate, 12 * 60 * 60 * 1000)
     return () => clearInterval(interval)
