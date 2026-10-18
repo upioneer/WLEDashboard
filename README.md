@@ -142,6 +142,18 @@ The 3D Objects tab now speaks the same design language as the rest of the app, w
 
 ![3D Objects Designer Refresh](project_details/changelog/v0.29.0/screenshots/studio-objects-restyled.png)
 
+### Ambient Background Patterns
+
+Dress the whole dashboard shell in one of seven subtle ambient patterns, from Aurora glow to Matrix rain. Color follows a custom pick or live device and group state, motion respects reduced motion settings, and the treatment shows on every view including Studio.
+
+![Ambient Background Patterns](project_details/changelog/v0.30.0/screenshots/dashboard-bg.png)
+
+### Device Name Sync
+
+Pull the friendly name stored on each WLED controller into the dashboard with one click. Select specific devices or sync them all from the new Settings section, with honest per device reporting when a controller is unreachable or returns an empty name.
+
+![Device Name Sync](project_details/changelog/v0.30.0/screenshots/settings-names.png)
+
 ---
 
 ## Core Features
