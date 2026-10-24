@@ -50,6 +50,7 @@ function applyMigrations(db) {
     { version: 10, sql: migration_010 },
     { version: 11, sql: migration_011 },
     { version: 12, sql: migration_012 },
+    { version: 13, sql: migration_013 },
   ]
 
   for (const m of migrations) {
@@ -309,4 +310,18 @@ const migration_011 = `
 
 const migration_012 = `
   ALTER TABLE matrices ADD COLUMN serpentine INTEGER NOT NULL DEFAULT 0;
+`
+
+const migration_013 = `
+  CREATE TABLE IF NOT EXISTS virtual_strips (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    members_json TEXT NOT NULL DEFAULT '[]',
+    total_leds INTEGER NOT NULL DEFAULT 0,
+    fallback_json TEXT NOT NULL DEFAULT '{}',
+    last_play_json TEXT,
+    auto_resume INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `

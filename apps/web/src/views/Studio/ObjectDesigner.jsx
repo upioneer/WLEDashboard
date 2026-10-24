@@ -56,6 +56,7 @@ export function ObjectDesigner() {
   const deleteStudioObject = useStudioStore(s => s.deleteStudioObject)
   const effects            = useStudioStore(s => s.effects)
   const selectedEffectId   = useStudioStore(s => s.selectedEffectId)
+  const selectedEffectName = useStudioStore(s => s.selectedEffectName)
   const speed              = useStudioStore(s => s.speed)
   const intensity          = useStudioStore(s => s.intensity)
   const selectedPaletteId  = useStudioStore(s => s.selectedPaletteId)
@@ -207,7 +208,7 @@ export function ObjectDesigner() {
     captureSandboxDevice(dev)
     const res = await sendCommand(dev, {
       on: true,
-      seg: [{ fx: selectedEffectId, sx: speed, ix: intensity, pal: selectedPaletteId }],
+      seg: [{ fx: selectedEffectId, fxName: selectedEffectName, sx: speed, ix: intensity, pal: selectedPaletteId }],
     })
     if (res.stale) return
     if (res.ok) {

@@ -42,6 +42,8 @@ export const devicesApi = {
   command: (id, payload) => request('POST', `/devices/${id}/command`, payload, 10000),
   refresh: (id) => request('POST', `/devices/${id}/refresh`, undefined, 10000),
   syncNames: (ids) => request('POST', '/devices/sync-names', { ids }, 30000),
+  syncLedCounts: (ids) => request('POST', '/devices/sync-led-counts', { ids }, 30000),
+  effects: (id) => request('GET', `/devices/${id}/effects`),
   state: (id) => request('GET', `/devices/${id}/state`),
   uploadFirmware: (id, formData) => request('POST', `/devices/${id}/firmware`, formData),
 }
@@ -62,6 +64,17 @@ export const groupsApi = {
   delete: (id) => request('DELETE', `/groups/${id}`),
   reorder: (ids) => request('POST', '/groups/reorder', { ids }),
   command: (id, payload) => request('POST', `/groups/${id}/command`, payload, 10000),
+}
+
+export const stripsApi = {
+  list: () => request('GET', '/virtual-strips'),
+  get: (id) => request('GET', `/virtual-strips/${id}`),
+  create: (data) => request('POST', '/virtual-strips', data),
+  update: (id, data) => request('PATCH', `/virtual-strips/${id}`, data),
+  delete: (id) => request('DELETE', `/virtual-strips/${id}`),
+  play: (id, data) => request('POST', `/virtual-strips/${id}/play`, data, 15000),
+  stop: (id) => request('POST', `/virtual-strips/${id}/stop`, undefined, 15000),
+  status: (id) => request('GET', `/virtual-strips/${id}/status`),
 }
 
 // ─── Config (Export/Import) ───────────────────────────────────────────────────

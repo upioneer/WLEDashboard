@@ -48,7 +48,6 @@
 .toggle:has(.input:checked) .track {
   background-color: var(--accent-emerald);
   border-color: transparent;
-  box-shadow: 0 0 12px hsl(158, 64%, 42%, 0.35);
 }
 
 .toggle:has(.input:not(:checked)) .track {

@@ -12,14 +12,14 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--sp-4, 16px);
+  gap: var(--sp-6, 24px);
   flex-wrap: wrap;
 }
 
 .headerLeft {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1, 4px);
+  gap: var(--sp-2, 8px);
 }
 
 .titleRow {
@@ -51,7 +51,7 @@
   font: var(--type-body);
   color: var(--text-secondary);
   margin: 0;
-  max-width: 700px;
+  max-width: 540px;
 }
 
 .headerActions {

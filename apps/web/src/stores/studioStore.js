@@ -14,12 +14,13 @@ export const useStudioStore = create((set, get) => ({
   objectChips: {},
   powerDisclaimer: '',
   studioObjects: [],
-  activeTab: 'presets', // 'presets' | 'timeline' | 'palette' | 'audio' | 'matrix' | 'objects'
+  activeTab: 'presets', // 'presets' | 'timeline' | 'palette' | 'audio' | 'matrix' | 'objects' | 'strips'
   loading: true,
   error: null,
 
   // Active Live Preview State
   selectedEffectId: 0,
+  selectedEffectName: 'Solid',
   selectedPaletteId: 0,
   speed: 128,
   intensity: 128,
@@ -67,7 +68,10 @@ export const useStudioStore = create((set, get) => ({
     }
   },
 
-  setEffect: (id) => set({ selectedEffectId: id }),
+  setEffect: (id, name = null) => set({
+    selectedEffectId: id,
+    ...(typeof name === 'string' ? { selectedEffectName: name } : {}),
+  }),
   setPalette: (id) => set({ selectedPaletteId: id }),
   setSpeed: (speed) => set({ speed }),
   setIntensity: (intensity) => set({ intensity }),

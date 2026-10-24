@@ -7,9 +7,9 @@ import { isDeviceFirmwareOutdated } from '../../lib/firmware.js'
 import {
   extractDominantColor,
   extractAllSegmentColors,
+  hexToRgb,
   wledBriToPct,
   pctToWledBri,
-  briToGlow,
 } from '../../lib/colors.js'
 import { Toggle } from '../Toggle/Toggle.jsx'
 import { Slider } from '../Slider/Slider.jsx'
@@ -499,13 +499,17 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
     },
   ]
 
-  // Card shadow with dynamic glow
+  // Flat hairline: depth shadow only, no colored outer glow. Lit cards get a
+  // 1px border tinted with the dominant color; offline cards go dashed via CSS.
+  const borderTint = (() => {
+    if (!isOn || !isOnline || !dominantColor) return undefined
+    const [r, g, b] = hexToRgb(dominantColor)
+    return `rgba(${r}, ${g}, ${b}, 0.38)`
+  })()
   const cardStyle = {
     transform: `translateY(${cardVals.y}px)`,
-    boxShadow: [
-      cardVals.shadowLevel > 0.5 ? 'var(--shadow-3)' : 'var(--shadow-2)',
-      isOn && dominantColor ? `0 0 32px -4px ${dominantColor}55` : null,
-    ].filter(Boolean).join(', '),
+    boxShadow: cardVals.shadowLevel > 0.5 ? 'var(--shadow-3)' : 'var(--shadow-2)',
+    borderColor: borderTint,
   }
 
   const statusDotClass = !isOnline ? styles.offlineDot : isOn ? styles.onlineDot : styles.standbyDot
@@ -605,24 +609,22 @@ export function DeviceCard({ device, isManualSort, dragAttributes, dragListeners
         {/* Live visual preview strip */}
         <div className={styles.previewStrip} aria-hidden>
           {segments.length > 1 ? (
-            <div className={styles.multiSegmentStrip}>
+            <div className={[styles.multiSegmentStrip, !isOnline && styles.stripAnts].filter(Boolean).join(' ')}>
               {segments.map((c, i) => (
                 <div
                   key={i}
                   className={styles.stripSegment}
                   style={{
-                    backgroundColor: isOn ? (c.color || c) : 'var(--surface-input)',
-                    boxShadow: isOn ? briToGlow(bri, c.color || c) : 'none',
+                    backgroundColor: !isOnline ? undefined : (isOn ? (c.color || c) : 'var(--surface-input)'),
                   }}
                 />
               ))}
             </div>
           ) : (
             <div
-              className={styles.singleStrip}
+              className={[styles.singleStrip, !isOnline && styles.stripAnts].filter(Boolean).join(' ')}
               style={{
-                backgroundColor: isOn && dominantColor ? dominantColor : 'var(--surface-input)',
-                boxShadow: isOn && dominantColor ? briToGlow(bri, dominantColor) : 'none',
+                backgroundColor: !isOnline ? undefined : (isOn && dominantColor ? dominantColor : 'var(--surface-input)'),
               }}
             />
           )}

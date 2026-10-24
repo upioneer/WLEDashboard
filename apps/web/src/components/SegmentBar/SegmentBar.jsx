@@ -36,7 +36,6 @@ export function SegmentBar({ segments = [], isOn = true, fallbackColor = '#8b5cf
           className={styles.segmentSingle}
           style={{
             background: `linear-gradient(to right, ${color}cc, ${color})`,
-            boxShadow: `0 0 10px ${color}66`,
           }}
         />
       </div>
@@ -57,7 +56,6 @@ export function SegmentBar({ segments = [], isOn = true, fallbackColor = '#8b5cf
             style={{
               width: `${width}%`,
               backgroundColor: color,
-              boxShadow: `0 0 8px ${color}55`,
             }}
             title={`Segment ${i + 1}: ${color}`}
           />

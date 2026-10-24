@@ -111,6 +111,16 @@
   box-shadow: 0 0 0 3px hsl(262, 68%, 62%, 0.15);
 }
 
+.colorInput {
+  width: 56px;
+  height: 38px;
+  padding: 2px;
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+}
+
 .checkboxLabel {
   display: flex;
   align-items: center;

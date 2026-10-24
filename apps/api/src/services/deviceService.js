@@ -232,6 +232,65 @@ export async function syncDeviceNames(ids) {
   }
 }
 
+// Pull the configured LED count (/json/info -> leds.count, falling back to the
+// highest /json/state segment stop) from each target controller and persist it.
+// Empty/omitted ids means all devices. Unknown ids and demo devices are
+// reported per entry, never thrown. Mirrors syncDeviceNames.
+export async function syncDeviceLedCounts(ids) {
+  const filter = Array.isArray(ids) && ids.length > 0 ? new Set(ids) : null
+  const targets = filter ? [...filter].map(getDevice).filter(Boolean) : listDevices()
+  const unknown = filter ? [...filter].filter((id) => !getDevice(id)) : []
+  const results = await Promise.all(targets.map(async (device) => {
+    if (isDemoMode() || device.id.startsWith('demo-')) {
+      return { id: device.id, name: device.name, led_count: device.led_count ?? null, ok: true, changed: false, demo: true }
+    }
+    const fail = (error) => ({ id: device.id, name: device.name, led_count: device.led_count ?? null, ok: false, error })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 4000)
+    try {
+      const res = await fetch(`http://${device.ip_address}/json/info`, { signal: controller.signal })
+      if (!res.ok) {
+        clearTimeout(timeout)
+        return fail(`HTTP ${res.status}`)
+      }
+      const info = await res.json()
+      let count = toPositiveInt(info?.leds?.count)
+      if (count == null) {
+        const stateRes = await fetch(`http://${device.ip_address}/json/state`, { signal: controller.signal })
+        clearTimeout(timeout)
+        if (!stateRes.ok) return fail(`HTTP ${stateRes.status}`)
+        const state = await stateRes.json()
+        const stops = Array.isArray(state?.seg) ? state.seg.map((s) => toPositiveInt(s?.stop)).filter((n) => n != null) : []
+        count = stops.length > 0 ? Math.max(...stops) : null
+      } else {
+        clearTimeout(timeout)
+      }
+      if (count == null) return fail('Device reported no LED count')
+      const changed = count !== device.led_count
+      if (changed) updateDevice(device.id, { led_count: count })
+      return { id: device.id, name: device.name, led_count: count, ok: true, changed }
+    } catch (err) {
+      clearTimeout(timeout)
+      const error = err?.name === 'AbortError' ? 'Request timed out' : err.message
+      return fail(error)
+    }
+  }))
+  for (const id of unknown) {
+    results.push({ id, name: null, led_count: null, ok: false, error: 'Unknown device' })
+  }
+  return {
+    updated: results.filter((r) => r.ok && r.changed).length,
+    unchanged: results.filter((r) => r.ok && !r.changed).length,
+    failed: results.filter((r) => !r.ok).length,
+    results,
+  }
+}
+
+function toPositiveInt(value) {
+  const n = Number(value)
+  return Number.isInteger(n) && n > 0 ? n : null
+}
+
 export async function sendDeviceCommand(device, payload) {
   const deviceId = typeof device === 'string' ? device : device?.id
   if (isDemoMode() || deviceId?.startsWith('demo-')) {
@@ -240,7 +299,86 @@ export async function sendDeviceCommand(device, payload) {
     return { ok: true, data: updated }
   }
 
-  return enqueueCommand(deviceId, () => deliverCommand(device, deviceId, payload))
+  const resolved = await resolvePayloadFxNames(device, payload)
+  return enqueueCommand(deviceId, () => deliverCommand(device, deviceId, resolved))
+}
+
+// ─── Effect name resolution ──────────────────────────────────────────────
+// Static effect ids drift across firmware (Candle is 41 on old builds, 88 on
+// 0.16.x), so senders attach the stable name as seg.fxName and the backend
+// resolves it against the target's live /json/eff list. Bare numeric fx
+// values are explicit user intent (MQTT, manual entry) and pass through.
+
+/** @type {Map<string, string[]>} deviceId -> live effect names */
+const effectsCache = new Map()
+
+// Old catalog names that WLED renamed in later firmware.
+const EFFECT_ALIASES = {
+  'Dual Scan': 'Scan Dual',
+  'Mega Strobe': 'Strobe Mega',
+  'Chase Flash Random': 'Chase Flash Rnd',
+  'Dual Scanner': 'Scanner Dual',
+  'Flicker': 'Fire Flicker',
+}
+
+const warnedUnresolved = new Set()
+
+export async function getDeviceEffects(device, { refresh = false } = {}) {
+  const deviceId = typeof device === 'string' ? device : device?.id
+  if (!refresh && effectsCache.has(deviceId)) return effectsCache.get(deviceId)
+  const target = typeof device === 'string' ? getDevice(device) : device
+  if (!target) return effectsCache.get(deviceId) ?? null
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 4000)
+  try {
+    const res = await fetch(`http://${target.ip_address}/json/eff`, { signal: controller.signal })
+    clearTimeout(timeout)
+    if (!res.ok) return effectsCache.get(deviceId) ?? null
+    const list = await res.json()
+    if (!Array.isArray(list) || !list.every((e) => typeof e === 'string')) {
+      return effectsCache.get(deviceId) ?? null
+    }
+    effectsCache.set(deviceId, list)
+    return list
+  } catch {
+    clearTimeout(timeout)
+    return effectsCache.get(deviceId) ?? null
+  }
+}
+
+function resolveFxIndex(name, effects) {
+  let idx = effects.indexOf(name)
+  if (idx < 0 && EFFECT_ALIASES[name]) idx = effects.indexOf(EFFECT_ALIASES[name])
+  return idx
+}
+
+export async function resolvePayloadFxNames(device, payload) {
+  const segs = payload?.seg
+  if (!Array.isArray(segs) || !segs.some((s) => s && typeof s.fxName === 'string')) return payload
+  const deviceId = typeof device === 'string' ? device : device?.id
+  let effects = await getDeviceEffects(device)
+  if (effects && segs.some((s) => s && typeof s.fxName === 'string' && resolveFxIndex(s.fxName, effects) < 0)) {
+    // A firmware upgrade may have reshuffled the list: one refresh, then commit.
+    effects = await getDeviceEffects(device, { refresh: true })
+  }
+  const out = { ...payload, seg: segs.map((s) => ({ ...s })) }
+  for (const s of out.seg) {
+    if (!s || typeof s.fxName !== 'string') continue
+    const name = s.fxName
+    delete s.fxName
+    if (!effects) continue // Unreachable: the numeric fallback rides through.
+    const idx = resolveFxIndex(name, effects)
+    if (idx >= 0) {
+      s.fx = idx
+    } else {
+      const key = `${deviceId}:${name}`
+      if (!warnedUnresolved.has(key)) {
+        warnedUnresolved.add(key)
+        logEvent('warn', 'effects', `Effect "${name}" not found on device; numeric fx fallback sent`, { deviceId, name })
+      }
+    }
+  }
+  return out
 }
 
 async function deliverCommand(device, deviceId, payload) {
@@ -393,6 +531,7 @@ export function startAllPolling() {
 
 export function clearStateCache() {
   stateCache.clear()
+  effectsCache.clear()
   logEvent('info', 'system', 'Device state cache cleared')
 }
 

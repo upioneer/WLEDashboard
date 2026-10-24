@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useStudioStore } from '../../stores/studioStore.js'
 import { useUIStore } from '../../stores/uiStore.js'
+import { useStripStore } from '../../stores/stripStore.js'
+import { sortedByName } from '../../lib/sort.js'
+import { hexToRgb } from '../../lib/colors.js'
+import { STRIP_PATTERNS } from '../../lib/stripPatterns.js'
 import styles from './TimelineEditor.module.css'
 
 export function TimelineEditor() {
@@ -12,9 +16,21 @@ export function TimelineEditor() {
   const setPlaying        = useStudioStore(s => s.setPlaying)
   const setPlayheadMs     = useStudioStore(s => s.setPlayheadMs)
   const selectedEffectId  = useStudioStore(s => s.selectedEffectId)
+  const selectedEffectName = useStudioStore(s => s.selectedEffectName)
   const speed             = useStudioStore(s => s.speed)
   const intensity         = useStudioStore(s => s.intensity)
   const previewColor      = useStudioStore(s => s.previewColor)
+  const strips            = useStripStore(s => s.strips)
+  const fetchStrips       = useStripStore(s => s.fetchStrips)
+  // Optional virtual strip target per keyframe. Data shape only: timeline
+  // playback to hardware does not exist yet, so the player hook that will
+  // consume { strip_id, strip_pattern, strip_params } is still to come.
+  const [kfStripId, setKfStripId] = useState('')
+  const [kfPattern, setKfPattern] = useState('solid')
+
+  useEffect(() => {
+    fetchStrips()
+  }, [fetchStrips])
   const addToast          = useUIStore(s => s.addToast)
 
   const [animName, setAnimName]           = useState('Custom Wave Sequence')
@@ -52,8 +68,14 @@ export function TimelineEditor() {
       bri: 255,
       col: previewColor,
       fx: selectedEffectId,
+      fxName: selectedEffectName,
       sx: speed,
       ix: intensity,
+      ...(kfStripId ? {
+        strip_id: kfStripId,
+        strip_pattern: kfPattern,
+        strip_params: { color1: hexToRgb(previewColor) },
+      } : {}),
     }
     const updated = [...keyframes, newKf].sort((a, b) => a.time_ms - b.time_ms)
     setKeyframes(updated)
@@ -129,6 +151,25 @@ export function TimelineEditor() {
             Time: <strong>{Math.round(playheadMs)}ms</strong> / {durationMs}ms
           </div>
 
+          <select
+            value={kfStripId}
+            onChange={e => setKfStripId(e.target.value)}
+            className={styles.stripSelect}
+            title="Virtual strip target (optional)"
+          >
+            <option value="">No strip</option>
+            {sortedByName(strips).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          {kfStripId && (
+            <select
+              value={kfPattern}
+              onChange={e => setKfPattern(e.target.value)}
+              className={styles.stripSelect}
+              title="Strip pattern"
+            >
+              {STRIP_PATTERNS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+          )}
           <button className={styles.addKfBtn} onClick={handleAddKeyframe}>
             + Keyframe @ {Math.round(playheadMs)}ms
           </button>
@@ -181,6 +222,11 @@ export function TimelineEditor() {
                 <span className={styles.colorDot} style={{ backgroundColor: kf.col || '#8b5cf6' }} />
                 <span className={styles.kfTimeText}>{kf.time_ms}ms</span>
                 <span className={styles.kfDetail}>Effect #{kf.fx || 0} • Speed {kf.sx || 128}</span>
+                {kf.strip_id && (
+                  <span className={styles.kfDetail}>
+                    Strip: {strips.find(s => s.id === kf.strip_id)?.name ?? kf.strip_id} ({kf.strip_pattern})
+                  </span>
+                )}
               </div>
 
               <button className={styles.deleteKfBtn} onClick={() => handleDeleteKeyframe(i)}>

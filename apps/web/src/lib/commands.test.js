@@ -94,3 +94,11 @@ test('buildPreviewPayload falls back to safe defaults', () => {
     { on: true, seg: [{ fx: 0, sx: 128, ix: 128, pal: 0, col: [[255, 255, 255]] }] }
   )
 })
+
+test('buildPreviewPayload tags the stable effect name when provided', () => {
+  const withName = buildPreviewPayload({ effectId: 41, effectName: 'Candle' })
+  assert.equal(withName.seg[0].fx, 41)
+  assert.equal(withName.seg[0].fxName, 'Candle')
+  const withoutName = buildPreviewPayload({ effectId: 41 })
+  assert.equal('fxName' in withoutName.seg[0], false)
+})

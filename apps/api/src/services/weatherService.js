@@ -12,6 +12,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Thunderstorm',
     description: 'Lightning strobe flashes with cool blue ambience',
     fx: 44, // Lightning
+    fxName: 'Lightning',
     sx: 160,
     ix: 200,
     col: [[220, 220, 255], [0, 0, 0], [255, 255, 255]],
@@ -20,6 +21,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Drizzle',
     description: 'Gentle water droplets with cyan glow',
     fx: 43, // Rain
+    fxName: 'Rain',
     sx: 64,
     ix: 96,
     col: [[0, 160, 255], [60, 210, 255], [0, 0, 0]],
@@ -28,6 +30,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Rain',
     description: 'Dynamic rainfall with deep azure ripples',
     fx: 43, // Rain
+    fxName: 'Rain',
     sx: 112,
     ix: 160,
     col: [[0, 90, 255], [0, 190, 255], [0, 0, 0]],
@@ -35,7 +38,8 @@ export const DEFAULT_WEATHER_MAPPINGS = {
   snow: {
     name: 'Snow',
     description: 'Sparkling winter white & glacial highlights',
-    fx: 71, // Glint
+    fx: 71,
+    fxName: 'Glitter',
     sx: 96,
     ix: 140,
     col: [[255, 255, 255], [190, 225, 255], [0, 0, 0]],
@@ -44,6 +48,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Atmosphere (Mist / Fog)',
     description: 'Muted slow breathing haze',
     fx: 12, // Breathe
+    fxName: 'Breathe',
     sx: 48,
     ix: 64,
     col: [[170, 175, 190], [120, 125, 140], [0, 0, 0]],
@@ -52,6 +57,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Clear Day',
     description: 'Warm golden sunlight glow',
     fx: 0, // Solid
+    fxName: 'Solid',
     sx: 128,
     ix: 128,
     col: [[255, 210, 110], [0, 0, 0], [0, 0, 0]],
@@ -60,6 +66,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Clear Night',
     description: 'Starlit deep indigo & moonlight',
     fx: 0, // Solid
+    fxName: 'Solid',
     sx: 128,
     ix: 128,
     col: [[70, 90, 190], [0, 0, 0], [0, 0, 0]],
@@ -68,6 +75,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Cloudy / Overcast',
     description: 'Soft silver-slate diffuse light',
     fx: 0, // Solid
+    fxName: 'Solid',
     sx: 128,
     ix: 128,
     col: [[180, 190, 210], [0, 0, 0], [0, 0, 0]],
@@ -76,6 +84,7 @@ export const DEFAULT_WEATHER_MAPPINGS = {
     name: 'Extreme Weather Alert',
     description: 'High energy pulsing alert glow',
     fx: 1, // Blink
+    fxName: 'Blink',
     sx: 180,
     ix: 180,
     col: [[255, 60, 40], [0, 0, 0], [0, 0, 0]],
@@ -125,6 +134,7 @@ export function buildWledPayloadFromCondition(conditionKey) {
     seg: [
       {
         fx: config.fx ?? 0,
+        ...(typeof config.fxName === 'string' ? { fxName: config.fxName } : {}),
         sx: config.sx ?? 128,
         ix: config.ix ?? 128,
         col: config.col || [[255, 255, 255], [0, 0, 0], [0, 0, 0]],

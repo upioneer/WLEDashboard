@@ -36,7 +36,6 @@
 }
 .primary:hover {
   background-color: hsl(38, 92%, 64%);
-  box-shadow: 0 0 16px hsl(38, 92%, 58%, 0.4);
 }
 
 .secondary {

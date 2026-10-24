@@ -7,6 +7,7 @@ import { Groups } from '../views/Groups/Groups.jsx'
 import { Automation } from '../views/Automation/Automation.jsx'
 import { SpatialView } from '../views/SpatialView/SpatialView.jsx'
 import StudioView from '../views/Studio/StudioView.jsx'
+import { VirtualStripsView } from '../views/VirtualStrips/VirtualStripsView.jsx'
 import { Guides } from '../views/Guides/Guides.jsx'
 import { AdvancedView } from '../views/Advanced/AdvancedView.jsx'
 
@@ -35,6 +36,7 @@ const childRoutes = [
   { path: 'groups',        element: <Groups /> },
   { path: 'automation',    element: <Automation /> },
   { path: 'studio',        element: <StudioView /> },
+  { path: 'strips',        element: <VirtualStripsView /> },
   { path: 'advanced',      element: <AdvancedView /> },
   { path: 'guides',        element: <Guides /> },
   { path: 'settings',      element: <Settings /> },

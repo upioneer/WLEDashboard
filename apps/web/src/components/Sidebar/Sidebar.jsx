@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/groups',     label: 'Groups',         icon: GroupsIcon },
   { to: '/automation', label: 'Automation',     icon: AutoIcon },
   { to: '/studio',     label: 'Studio',         icon: StudioIcon },
+  { to: '/strips',     label: 'Virtual Strips', icon: StripsIcon },
   { to: '/devices',    label: 'Device Manager', icon: DevicesIcon },
 ]
 
@@ -203,6 +204,17 @@ function StudioIcon() {
       <path d="M13.5 2.5a2.121 2.121 0 0 1 3 3L13 9l-3-3 3.5-3.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
       <path d="M10 6l-5 5c-1.5 1.5-3.5 1.5-3.5 1.5s0-2 1.5-3.5l5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M8 8l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function StripsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect x="1" y="6" width="16" height="6" rx="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="5.5" cy="9" r="1" fill="currentColor" />
+      <circle cx="9" cy="9" r="1" fill="currentColor" opacity="0.55" />
+      <circle cx="12.5" cy="9" r="1" fill="currentColor" opacity="0.55" />
     </svg>
   )
 }

@@ -3,6 +3,8 @@ import SunCalc from 'suncalc'
 import { getDb } from '../db/database.js'
 import { sendDeviceCommand, listDevices, getDevice } from './deviceService.js'
 import { sendGroupCommand, getGroup } from './groupService.js'
+import { getStrip } from './stripService.js'
+import { playStrip, stopStrip } from './stripPlayer.js'
 
 let schedulerTimer = null
 
@@ -113,6 +115,8 @@ export async function executeScheduleAction(schedule) {
   } else if (target_type === 'group') {
     const group = getGroup(target_id)
     if (group) await sendGroupCommand(group.id, payload)
+  } else if (target_type === 'strip') {
+    if (getStrip(target_id)) await executeStripAction(target_id, payload)
   } else if (target_type === 'routine') {
     await executeRoutineNow(target_id)
   }
@@ -203,8 +207,23 @@ export function deleteRoutine(id) {
 }
 
 /**
+ * Virtual strip action shared by schedules and routine steps.
+ * Payload: { action: 'play'|'stop', pattern?: string, params?: object }
+ */
+export async function executeStripAction(stripId, payload = {}) {
+  if (!getStrip(stripId)) return
+  if (payload?.action === 'stop') {
+    await stopStrip(stripId)
+    return
+  }
+  if (typeof payload?.pattern === 'string') {
+    await playStrip(stripId, { pattern: payload.pattern, params: payload.params ?? {} })
+  }
+}
+
+/**
  * Execute routine step timeline sequentially with delays.
- * Step structure: { target_type: 'device'|'group', target_id: string, payload: object, delay_ms: number }
+ * Step structure: { target_type: 'device'|'group'|'strip', target_id: string, payload: object, delay_ms: number }
  */
 export async function executeRoutineNow(routineId) {
   const routine = getRoutine(routineId)
@@ -221,6 +240,8 @@ export async function executeRoutineNow(routineId) {
     } else if (step.target_type === 'group') {
       const group = getGroup(step.target_id)
       if (group) await sendGroupCommand(group.id, step.payload || {})
+    } else if (step.target_type === 'strip') {
+      if (getStrip(step.target_id)) await executeStripAction(step.target_id, step.payload || {})
     }
   }
 }

@@ -6,14 +6,11 @@ const PIXEL_COUNT = 60
 
 export function PixelStripCanvas() {
   const canvasRef = useRef(null)
-  const selectedEffectId = useStudioStore(s => s.selectedEffectId)
+  const activeEffectName = useStudioStore(s => s.selectedEffectName) ?? 'Solid'
   const selectedPaletteId = useStudioStore(s => s.selectedPaletteId)
   const speed = useStudioStore(s => s.speed)
   const intensity = useStudioStore(s => s.intensity)
   const previewColor = useStudioStore(s => s.previewColor)
-  const effects = useStudioStore(s => s.effects)
-
-  const activeEffectName = effects.find(e => e.id === selectedEffectId)?.name || 'Solid'
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -30,19 +27,19 @@ export function PixelStripCanvas() {
       baseB = parseInt(previewColor.slice(5, 7), 16)
     }
 
-    // Dynamic (FX 7) keeps stepped per-pixel hues like WLED mode_dynamic:
+    // Dynamic keeps stepped per-pixel hues like WLED mode_dynamic:
     // every LED gets a random color-wheel color, then each cycle re-rolls
     // an intensity-driven fraction of them. No motion, no gradient.
     const dynamicHues = Array.from({ length: PIXEL_COUNT }, () => Math.random() * 360)
     let dynamicLastRoll = performance.now()
 
-    // Android (FX 26): primary-color window sliding over a static palette
+    // Android: primary-color window sliding over a static palette
     // gradient, breathing in width between 2 and the intensity-set max.
     let androidStart = 0
     let androidSize = 2
     let androidDir = 1
 
-    // Chase Random (FX 28): fixed-color comet; the background behind the
+    // Chase Random: fixed-color comet; the background behind the
     // head is the new random color, ahead of it the previous one.
     let chaseAux0 = Math.random() * 360
     let chaseAux1 = Math.random() * 360
@@ -71,7 +68,7 @@ export function PixelStripCanvas() {
       const intFact = intensity / 255
 
       // Dynamic re-roll cycle matches firmware: 50 + (255 - speed) * 15 ms
-      if (selectedEffectId === 7 && speed > 0) {
+      if (activeEffectName === 'Dynamic' && speed > 0) {
         const now = performance.now()
         if (now - dynamicLastRoll >= 50 + (255 - speed) * 15) {
           dynamicLastRoll = now
@@ -81,7 +78,7 @@ export function PixelStripCanvas() {
         }
       }
 
-      if (selectedEffectId === 26) {
+      if (activeEffectName === 'Android') {
         const maxSize = Math.max(4, (intensity / 255) * PIXEL_COUNT)
         const step = Math.max(0.04, (speed / 255) * 0.9)
         androidStart = (androidStart + step) % PIXEL_COUNT
@@ -90,7 +87,7 @@ export function PixelStripCanvas() {
         if (androidSize <= 2) { androidSize = 2; androidDir = 1 }
       }
 
-      if (selectedEffectId === 28) {
+      if (activeEffectName === 'Chase Random') {
         const aNow = (frame * 0.65) % PIXEL_COUNT
         if (aNow < chaseLastA) {
           chaseAux1 = chaseAux0
@@ -113,27 +110,29 @@ export function PixelStripCanvas() {
         let alpha = 1
 
         // ─── 50 Authentic WLED Effect Simulation Algorithms ─────────────
-        switch (selectedEffectId) {
-          case 0: { // Solid
+        // Keyed by name: indices drift across firmware, names do not.
+        // Effects without a dedicated sim fall through to the default wave.
+        switch (activeEffectName) {
+          case 'Solid': { // Solid
             alpha = 1
             break
           }
-          case 1: { // Blink
+          case 'Blink': { // Blink
             const period = Math.max(6, 50 - (speed / 255) * 38)
             alpha = (frame % period) < (period * 0.5) ? 1 : 0.04
             break
           }
-          case 2: { // Breathe
+          case 'Breathe': { // Breathe
             const brVal = (Math.sin(frame * 0.06) + 1) / 2
             alpha = 0.05 + 0.95 * Math.pow(brVal, 1.6)
             break
           }
-          case 3: { // Wipe
+          case 'Wipe': { // Wipe
             const progress = (frame % 70) / 70
             alpha = (i / PIXEL_COUNT) <= progress ? 1 : 0.05
             break
           }
-          case 4: { // Wipe Random
+          case 'Wipe Random': { // Wipe Random
             const pass = Math.floor(frame / 70)
             const progress = (frame % 70) / 70
             const wipeHue = (pass * 77) % 360
@@ -142,7 +141,7 @@ export function PixelStripCanvas() {
             alpha = (i / PIXEL_COUNT) <= progress ? 1 : 0.05
             break
           }
-          case 5: { // Random Colors
+          case 'Random Colors': { // Random Colors
             const pSeed = Math.sin(i * 12.9898 + Math.floor(frame * 0.05) * 43.23)
             const rHue = Math.abs(Math.sin(pSeed) * 360)
             const [rcR, rcG, rcB] = hslToRgb(rHue / 360, 0.9, 0.55)
@@ -150,41 +149,41 @@ export function PixelStripCanvas() {
             alpha = 0.9
             break
           }
-          case 6: { // Sweep
+          case 'Sweep': { // Sweep
             const sweepPos = ((Math.sin(frame * 0.05) + 1) / 2) * PIXEL_COUNT
             const dist = Math.abs(i - sweepPos)
             const beamWidth = 3 + intFact * 8
             alpha = Math.max(0.06, 1 - dist / beamWidth)
             break
           }
-          case 7: { // Dynamic: stepped random rainbow, firmware-faithful
+          case 'Dynamic': { // Dynamic: stepped random rainbow, firmware-faithful
             const [dyR, dyG, dyB] = hslToRgb(dynamicHues[i] / 360, 0.95, 0.55)
             r = dyR; g = dyG; b = dyB
             alpha = 1
             break
           }
-          case 8: { // Colorloop
+          case 'Colorloop': { // Colorloop
             const loopHue = (frame * 1.5) % 360
             const [clR, clG, clB] = hslToRgb(loopHue / 360, 0.9, 0.55)
             r = clR; g = clG; b = clB
             alpha = 1
             break
           }
-          case 9: { // Rainbow
+          case 'Rainbow': { // Rainbow
             const rHue = ((i / PIXEL_COUNT) * 360 + frame * 2.5) % 360
             const [rbR, rbG, rbB] = hslToRgb(rHue / 360, 0.95, 0.55)
             r = rbR; g = rbG; b = rbB
             alpha = 1
             break
           }
-          case 10: { // Scan (Knight Rider)
+          case 'Scan': { // Scan (Knight Rider)
             const scanPos = ((Math.sin(frame * 0.06) + 1) / 2) * (PIXEL_COUNT - 1)
             const sDist = Math.abs(i - scanPos)
             const beam = 2 + intFact * 4
             alpha = Math.max(0.04, 1 - sDist / beam)
             break
           }
-          case 11: { // Dual Scan
+          case 'Dual Scan': { // Dual Scan
             const pA = ((Math.sin(frame * 0.06) + 1) / 2) * (PIXEL_COUNT - 1)
             const pB = (PIXEL_COUNT - 1) - pA
             const dA = Math.abs(i - pA)
@@ -192,17 +191,17 @@ export function PixelStripCanvas() {
             alpha = Math.max(0.04, Math.max(1 - dA / 3.5, 1 - dB / 3.5))
             break
           }
-          case 12: { // Fade
+          case 'Fade': { // Fade
             const fVal = (Math.sin(frame * 0.04) + 1) / 2
             alpha = Math.max(0.03, fVal)
             break
           }
-          case 13: { // Theater
+          case 'Theater': { // Theater
             const tStep = Math.floor(frame * 0.3) % 3
             alpha = (i + tStep) % 3 === 0 ? 1 : 0.06
             break
           }
-          case 14: { // Theater Rainbow
+          case 'Theater Rainbow': { // Theater Rainbow
             const tStep = Math.floor(frame * 0.3) % 3
             const trHue = (i * 6 + frame * 2) % 360
             const [trR, trG, trB] = hslToRgb(trHue / 360, 0.95, 0.55)
@@ -210,30 +209,30 @@ export function PixelStripCanvas() {
             alpha = (i + tStep) % 3 === 0 ? 1 : 0.06
             break
           }
-          case 15: { // Running: sine brightness waves, firmware wave count
+          case 'Running': { // Running: sine brightness waves, firmware wave count
             const waves = Math.max(1, (PIXEL_COUNT * (intensity >> 2)) / 256)
             const runVal = Math.sin((i / PIXEL_COUNT) * waves * Math.PI * 2 - frame * 0.15)
             alpha = 0.08 + 0.92 * ((runVal + 1) / 2)
             break
           }
-          case 16: { // Saw: same engine, sawtooth ramps instead of sine
+          case 'Saw': { // Saw: same engine, sawtooth ramps instead of sine
             const sawPeriod = Math.max(4, 256 / Math.max(1, intensity >> 2))
             const sawPos = (((i - frame * 0.5) % sawPeriod) + sawPeriod) % sawPeriod
             alpha = 0.05 + 0.95 * (sawPos / sawPeriod)
             break
           }
-          case 17: { // Twinkle
+          case 'Twinkle': { // Twinkle
             const twThresh = 0.85 - intFact * 0.4
             const twPhase = Math.sin(i * 19.3 + frame * 0.15)
             alpha = twPhase > twThresh ? (twPhase - twThresh) / (1 - twThresh) : 0.05
             break
           }
-          case 18: { // Dissolve
+          case 'Dissolve': { // Dissolve
             const dHash = Math.abs(Math.sin(i * 91.3 + Math.floor(frame * 0.06) * 7.7) * 10000) % 1
             alpha = dHash > 0.4 ? (Math.sin(frame * 0.2 + i) + 1) / 2 : 0.05
             break
           }
-          case 19: { // Sparkle
+          case 'Sparkle': { // Sparkle
             const spk = Math.sin(i * 47.1 + frame * 0.9)
             if (spk > (0.98 - intFact * 0.06)) {
               r = 255; g = 255; b = 255; alpha = 1
@@ -242,12 +241,12 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 20: { // Sparkle Dark
+          case 'Sparkle Dark': { // Sparkle Dark
             const spkDark = Math.sin(i * 47.1 + frame * 0.9)
             alpha = spkDark > (0.97 - intFact * 0.05) ? 0.05 : 1
             break
           }
-          case 21: { // Sparkle+
+          case 'Sparkle+': { // Sparkle+
             const spkP = Math.sin(i * 23.4 + frame * 0.9)
             if (spkP > 0.9) {
               r = 255; g = 255; b = 255; alpha = 1
@@ -258,13 +257,13 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 22: { // Strobe
+          case 'Strobe': { // Strobe
             const strPer = Math.max(6, 42 - (speed / 255) * 34)
             const strOn = (frame % strPer) < 2
             alpha = strOn ? 1 : 0.02
             break
           }
-          case 23: { // Strobe Rainbow
+          case 'Strobe Rainbow': { // Strobe Rainbow
             const strPer = Math.max(6, 42 - (speed / 255) * 34)
             const strOn = (frame % strPer) < 2
             const bCount = Math.floor(frame / strPer)
@@ -274,13 +273,13 @@ export function PixelStripCanvas() {
             alpha = strOn ? 1 : 0.02
             break
           }
-          case 24: { // Mega Strobe
+          case 'Mega Strobe': { // Mega Strobe
             const mPhase = frame % 60
             const isBurst = (mPhase < 26) && (Math.floor(mPhase / 3) % 2 === 0)
             alpha = isBurst ? 1 : 0.02
             break
           }
-          case 25: { // Blink Rainbow
+          case 'Blink Rainbow': { // Blink Rainbow
             const bPer = 32
             const bOn = (frame % bPer) < 16
             const bPass = Math.floor(frame / bPer)
@@ -289,7 +288,7 @@ export function PixelStripCanvas() {
             alpha = bOn ? 1 : 0.04
             break
           }
-          case 26: { // Android: primary window over static palette gradient
+          case 'Android': { // Android: primary window over static palette gradient
             const winEnd = androidStart + androidSize
             const inWindow = androidSize >= PIXEL_COUNT || (winEnd <= PIXEL_COUNT
               ? (i >= androidStart && i < winEnd)
@@ -309,14 +308,14 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 27: { // Chase
+          case 'Chase': { // Chase
             const cHead = (frame * 0.65) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
             const cLen = 5 + intFact * 12
             alpha = cDist < cLen ? Math.pow(1 - cDist / cLen, 1.8) : 0.04
             break
           }
-          case 28: { // Chase Random: fixed comet, background steps per sweep
+          case 'Chase Random': { // Chase Random: fixed comet, background steps per sweep
             const cHead = (frame * 0.65) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
             const cLen = 5 + intFact * 12
@@ -330,7 +329,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 29: { // Chase Rainbow
+          case 'Chase Rainbow': { // Chase Rainbow
             const cHead = (frame * 0.65) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
             const [crbR, crbG, crbB] = hslToRgb(((i * 7 + frame * 3) % 360) / 360, 0.95, 0.55)
@@ -338,7 +337,7 @@ export function PixelStripCanvas() {
             alpha = cDist < 11 ? (1 - cDist / 11) : 0.04
             break
           }
-          case 30: { // Chase Flash
+          case 'Chase Flash': { // Chase Flash
             const cHead = (frame * 0.7) % PIXEL_COUNT
             if (cHead > PIXEL_COUNT - 3) {
               r = 255; g = 255; b = 255; alpha = 1
@@ -348,7 +347,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 31: { // Chase Flash Random
+          case 'Chase Flash Random': { // Chase Flash Random
             const cHead = (frame * 0.7) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
             const [cfrR, cfrG, cfrB] = hslToRgb(((Math.floor(frame / 60) * 137) % 360) / 360, 0.9, 0.55)
@@ -356,7 +355,7 @@ export function PixelStripCanvas() {
             alpha = cDist < 8 ? (1 - cDist / 8) : 0.04
             break
           }
-          case 32: { // Chase Rainbow Flash
+          case 'Chase Rainbow Flash': { // Chase Rainbow Flash
             const cHead = (frame * 0.8) % PIXEL_COUNT
             const cDist = (i - cHead + PIXEL_COUNT) % PIXEL_COUNT
             if (cDist === 0) {
@@ -370,18 +369,18 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 33: { // Chase Blackout (inverse chase)
+          case 'Chase Blackout': { // Chase Blackout (inverse chase)
             const bHead = (frame * 0.6) % PIXEL_COUNT
             const bDist = (i - bHead + PIXEL_COUNT) % PIXEL_COUNT
             alpha = bDist < 7 ? (bDist / 7) * 0.9 : 1
             break
           }
-          case 34: { // Chaser Flash
+          case 'Chaser Flash': { // Chaser Flash
             const chPos = (frame * 0.9) % 10
             alpha = (i % 10 === Math.floor(chPos)) ? 1 : 0.05
             break
           }
-          case 35: { // Fireworks
+          case 'Fireworks': { // Fireworks
             const fCycle = frame % 70
             if (fCycle < 30) {
               const rPos = (fCycle / 30) * PIXEL_COUNT
@@ -400,7 +399,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 36: { // Fireworks Random
+          case 'Fireworks Random': { // Fireworks Random
             const fwCycle = frame % 55
             const fwCenter = ((Math.floor(frame / 55) * 37) % (PIXEL_COUNT - 20)) + 10
             const fwRad = fwCycle * 0.5
@@ -410,7 +409,7 @@ export function PixelStripCanvas() {
             alpha = Math.abs(fwDist - fwRad) < 2.5 ? Math.max(0.04, 1 - fwCycle / 55) : 0.04
             break
           }
-          case 37: { // Merry Christmas
+          case 'Merry Christmas': { // Merry Christmas
             const isRed = Math.floor((i + Math.floor(frame * 0.08)) / 4) % 2 === 0
             if (isRed) {
               r = 240; g = 15; b = 25
@@ -421,7 +420,7 @@ export function PixelStripCanvas() {
             alpha = 0.35 + 0.65 * mcTw
             break
           }
-          case 38: { // Fire 2012
+          case 'Fire 2012': { // Fire 2012
             const heat = Math.sin(i * 0.25 - frame * 0.15) * 60 + Math.cos(i * 0.4 + frame * 0.08) * 40 + 150
             r = Math.min(255, heat * 1.6)
             g = Math.min(255, Math.max(0, (heat - 80) * 1.8))
@@ -429,12 +428,12 @@ export function PixelStripCanvas() {
             alpha = Math.max(0.15, heat / 255)
             break
           }
-          case 39: { // Flicker
+          case 'Flicker': { // Flicker
             const flk = Math.sin(frame * 0.4 + i * 0.5) * 0.25 + Math.sin(frame * 0.9 + i * 1.1) * 0.25
             alpha = Math.max(0.12, Math.min(1, 0.7 + flk))
             break
           }
-          case 40: { // Pacifica
+          case 'Pacifica': { // Pacifica
             const wave1 = Math.sin(i * 0.15 + frame * 0.04)
             const wave2 = Math.cos(i * 0.22 - frame * 0.06)
             const swell = (wave1 + wave2 + 2) / 4
@@ -444,7 +443,7 @@ export function PixelStripCanvas() {
             alpha = 0.3 + 0.7 * swell
             break
           }
-          case 41: { // Candle
+          case 'Candle': { // Candle
             const cFlick = Math.sin(frame * 0.3) * 0.1 + Math.sin(frame * 0.7) * 0.15 + Math.sin(frame * 1.3) * 0.08
             r = 255
             g = Math.round(135 + cFlick * 40)
@@ -452,7 +451,7 @@ export function PixelStripCanvas() {
             alpha = Math.max(0.2, Math.min(1, 0.8 + cFlick))
             break
           }
-          case 42: { // Lightning
+          case 'Lightning': { // Lightning
             const lCycle = frame % 110
             const isStrike = lCycle < 18 && (Math.sin(lCycle * 2.5) > 0.2)
             if (isStrike) {
@@ -462,7 +461,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 43: { // ICU
+          case 'ICU': { // ICU
             const eyePos = ((Math.sin(frame * 0.03) + 1) / 2) * (PIXEL_COUNT - 6)
             const eyeA = Math.floor(eyePos)
             const eyeB = eyeA + 3
@@ -475,7 +474,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 44: { // Multi Comet
+          case 'Multi Comet': { // Multi Comet
             let maxA = 0.04
             for (let c = 0; c < 3; c++) {
               const head = (frame * 0.5 + c * (PIXEL_COUNT / 3)) % PIXEL_COUNT
@@ -485,7 +484,7 @@ export function PixelStripCanvas() {
             alpha = maxA
             break
           }
-          case 45: { // Dual Scanner
+          case 'Dual Scanner': { // Dual Scanner
             const dsA = ((Math.sin(frame * 0.05) + 1) / 2) * (PIXEL_COUNT - 1)
             const dsB = (PIXEL_COUNT - 1) - dsA
             const d1 = Math.abs(i - dsA)
@@ -493,12 +492,12 @@ export function PixelStripCanvas() {
             alpha = Math.max(0.04, Math.max(1 - d1 / 4, 1 - d2 / 4))
             break
           }
-          case 46: { // Stream
+          case 'Stream': { // Stream
             const strPos = (i * 0.5 - frame * 0.4) % 6
             alpha = (strPos < 0 ? strPos + 6 : strPos) < 2.5 ? 0.95 : 0.08
             break
           }
-          case 47: { // Glitter
+          case 'Glitter': { // Glitter
             const hasGlitter = Math.sin(i * 37.1 + frame * 0.6) > (0.95 - intFact * 0.05)
             if (hasGlitter) {
               r = 255; g = 240; b = 160; alpha = 1
@@ -507,7 +506,7 @@ export function PixelStripCanvas() {
             }
             break
           }
-          case 48: { // Sunrise
+          case 'Sunrise': { // Sunrise
             const sunProg = (Math.sin(frame * 0.02) + 1) / 2
             r = Math.round(180 + 75 * sunProg)
             g = Math.round(30 + 180 * sunProg)
@@ -515,7 +514,7 @@ export function PixelStripCanvas() {
             alpha = 0.2 + 0.8 * sunProg
             break
           }
-          case 49: { // Colorwaves
+          case 'Colorwaves': { // Colorwaves
             const cw1 = Math.sin(i * 0.12 + frame * 0.05)
             const cw2 = Math.cos(i * 0.18 - frame * 0.03)
             const cwHue = ((cw1 + cw2 + 2) * 90 + frame) % 360
@@ -556,7 +555,7 @@ export function PixelStripCanvas() {
     return () => {
       if (animId) cancelAnimationFrame(animId)
     }
-  }, [selectedEffectId, selectedPaletteId, speed, intensity, previewColor])
+  }, [activeEffectName, selectedPaletteId, speed, intensity, previewColor])
 
   return (
     <div className={styles.canvasCard}>

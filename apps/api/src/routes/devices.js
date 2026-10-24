@@ -9,6 +9,8 @@ import {
   sendDeviceCommand,
   refreshDeviceState,
   syncDeviceNames,
+  syncDeviceLedCounts,
+  getDeviceEffects,
   getCachedState,
   getAllCachedStates,
 } from '../services/deviceService.js'
@@ -105,6 +107,22 @@ export async function deviceRoutes(fastify) {
     const parsed = SyncNamesSchema.safeParse(req.body ?? {})
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
     return await syncDeviceNames(parsed.data.ids)
+  })
+
+  // POST /api/devices/sync-led-counts - pull configured LED counts from controllers
+  fastify.post('/devices/sync-led-counts', async (req, reply) => {
+    const parsed = SyncNamesSchema.safeParse(req.body ?? {})
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.flatten() })
+    return await syncDeviceLedCounts(parsed.data.ids)
+  })
+
+  // GET /api/devices/:id/effects - live effect names for name based fx resolution
+  fastify.get('/devices/:id/effects', async (req, reply) => {
+    const device = getDevice(req.params.id)
+    if (!device) return reply.code(404).send({ error: 'Device not found' })
+    const effects = await getDeviceEffects(device)
+    if (!effects) return reply.code(502).send({ error: 'Device unreachable' })
+    return { effects }
   })
 
   // POST /api/devices/:id/command - proxy command to WLED device

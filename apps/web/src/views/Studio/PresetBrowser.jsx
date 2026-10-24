@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useStudioStore } from '../../stores/studioStore.js'
 import { useDeviceStore } from '../../stores/deviceStore.js'
@@ -8,6 +8,8 @@ import { Slider } from '../../components/Slider/Slider.jsx'
 import { sortedByName } from '../../lib/sort.js'
 import { buildPreviewPayload } from '../../lib/commands.js'
 import { resolveTargetSlot } from '../../lib/targetSlots.js'
+import { effectNameById } from '../../lib/effects.js'
+import { useTargetEffects } from '../../hooks/useTargetEffects.js'
 import styles from './PresetBrowser.module.css'
 
 const CATEGORIES = ['All', 'Basic', 'Dynamic', 'Fire', 'Festive', 'Nature']
@@ -37,7 +39,7 @@ function ListIcon() {
 }
 
 export function PresetBrowser() {
-  const effects           = useStudioStore(s => s.effects)
+  const staticEffects     = useStudioStore(s => s.effects)
   const paletteCatalog    = useStudioStore(s => s.paletteCatalog)
   const selectedEffectId  = useStudioStore(s => s.selectedEffectId)
   const selectedPaletteId = useStudioStore(s => s.selectedPaletteId)
@@ -80,6 +82,21 @@ export function PresetBrowser() {
     } catch {}
   }
 
+  const [targetKind, setTargetKind] = useState('device')
+  const [targetId, setTargetId] = useState('')
+
+  // Device targets browse the controller live effect list (indices differ
+  // per firmware); groups and unreachable devices use the static catalog.
+  const { entries: effects } = useTargetEffects(targetKind, targetId, staticEffects)
+
+  // A new list can orphan the selection (id 41 is Candle on old firmware,
+  // Lighthouse on new): fall back to Solid, which is id 0 everywhere.
+  useEffect(() => {
+    if (effects.length > 0 && !effects.some(e => e.id === selectedEffectId)) {
+      setEffect(0, 'Solid')
+    }
+  }, [effects, selectedEffectId, setEffect])
+
   const filteredEffects = useMemo(() => {
     return sortedByName(effects.filter(e => {
       const matchesCat = activeCategory === 'All' || e.category === activeCategory
@@ -87,9 +104,6 @@ export function PresetBrowser() {
       return matchesCat && matchesSearch
     }))
   }, [effects, activeCategory, searchQuery])
-
-  const [targetKind, setTargetKind] = useState('device')
-  const [targetId, setTargetId] = useState('')
   const sandbox = useStudioStore(s => s.sandbox)
   const sandboxCount = Object.keys(sandbox).length
   const sandboxNames = Object.values(sandbox).map(e => e.name).join(', ')
@@ -108,8 +122,10 @@ export function PresetBrowser() {
     const kind = overrides.kind ?? targetKind
     const id = overrides.id ?? targetId
     if (!id) return
+    const effectId = overrides.effectId ?? selectedEffectId
     const payload = buildPreviewPayload({
-      effectId: overrides.effectId ?? selectedEffectId,
+      effectId,
+      effectName: effectNameById(effects, effectId),
       speed: overrides.speed ?? speed,
       intensity: overrides.intensity ?? intensity,
       paletteId: overrides.paletteId ?? selectedPaletteId,
@@ -147,7 +163,7 @@ export function PresetBrowser() {
   }
 
   const handleSelectEffect = (id) => {
-    setEffect(id)
+    setEffect(id, effectNameById(effects, id) ?? 'Solid')
     applyPreview({ effectId: id })
   }
 
@@ -159,7 +175,7 @@ export function PresetBrowser() {
   const handleResetPreview = async () => {
     setTargetId('')
     const solid = effects.find(e => e.id === 0) ?? effects.find(e => e.name?.toLowerCase() === 'solid')
-    if (solid) setEffect(solid.id)
+    if (solid) setEffect(solid.id, solid.name)
     const count = await restoreSandbox()
     addToast({
       message: count > 0

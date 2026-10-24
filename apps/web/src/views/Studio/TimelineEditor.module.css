@@ -90,6 +90,16 @@
   background-color: var(--accent-amber);
 }
 
+.stripSelect {
+  height: 34px;
+  padding: 0 var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  color: var(--text-primary);
+}
+
 .stopBtn {
   height: 34px;
   padding: 0 var(--sp-4);

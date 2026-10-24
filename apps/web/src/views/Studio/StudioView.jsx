@@ -10,6 +10,7 @@ import { PaletteDesigner } from './PaletteDesigner.jsx'
 import { AudioVisualizer } from '../../components/AudioVisualizer/AudioVisualizer.jsx'
 import { MatrixEditor } from './MatrixEditor.jsx'
 import { ObjectDesigner } from './ObjectDesigner.jsx'
+import { StripPerformer } from './StripPerformer.jsx'
 import styles from './StudioView.module.css'
 
 export default function StudioView() {
@@ -46,16 +47,16 @@ export default function StudioView() {
   if (error) return <StudioError message={error} onRetry={fetchStudioData} />
 
   return (
-    <main className={styles.page}>
-      <div className={styles.container}>
-        {/* Header Title */}
-        <header className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Effect Studio</h1>
-            <p className={styles.subtitle}>
-              Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, design 2D matrix artwork, and build 3D objects.
-            </p>
-          </div>
+    <main className={styles.page} id="main-content">
+      {/* Header Title */}
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>Effect Studio</h1>
+          <p className={styles.subtitle}>
+            Browse WLED presets, build multi-track keyframe timelines, stream audio DDP visualizers, design 2D matrix artwork, and build 3D objects.
+          </p>
+        </div>
+        <div className={styles.headerActions}>
           <Link
             to="/guides?topic=studio-timelines-matrix"
             className={styles.guideLink}
@@ -63,62 +64,69 @@ export default function StudioView() {
           >
             Studio Guide
           </Link>
-        </header>
-
-        {/* Live LED Strip Pixel Simulator - Pinned / Sticky when scrolling */}
-        <div className={styles.stickySimulator}>
-          <PixelStripCanvas />
         </div>
+      </header>
 
-        {/* Navigation Tabs */}
-        <div className={styles.tabBar}>
-          <button
-            className={[styles.tabBtn, activeTab === 'presets' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('presets')}
-          >
-            Preset Browser
-          </button>
-          <button
-            className={[styles.tabBtn, activeTab === 'timeline' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('timeline')}
-          >
-            Timeline Animator
-          </button>
-          <button
-            className={[styles.tabBtn, activeTab === 'palette' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('palette')}
-          >
-            Palette Creator
-          </button>
-          <button
-            className={[styles.tabBtn, activeTab === 'audio' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('audio')}
-          >
-            Audio Visualizer
-          </button>
-          <button
-            className={[styles.tabBtn, activeTab === 'matrix' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('matrix')}
-          >
-            2D Matrix Canvas
-          </button>
-          <button
-            className={[styles.tabBtn, activeTab === 'objects' && styles.tabBtnActive].filter(Boolean).join(' ')}
-            onClick={() => setActiveTab('objects')}
-          >
-            3D Objects
-          </button>
-        </div>
+      {/* Live LED Strip Pixel Simulator - Pinned / Sticky when scrolling */}
+      <div className={styles.stickySimulator}>
+        <PixelStripCanvas />
+      </div>
 
-        {/* Active Tab Panel */}
-        <div className={styles.tabContent}>
-          {activeTab === 'presets' && <PresetBrowser />}
-          {activeTab === 'timeline' && <TimelineEditor />}
-          {activeTab === 'palette' && <PaletteDesigner />}
-          {activeTab === 'audio' && <AudioVisualizer />}
-          {activeTab === 'matrix' && <MatrixEditor />}
-          {activeTab === 'objects' && <ObjectDesigner />}
-        </div>
+      {/* Navigation Tabs */}
+      <div className={styles.tabBar}>
+        <button
+          className={[styles.tabBtn, activeTab === 'presets' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('presets')}
+        >
+          Preset Browser
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'timeline' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('timeline')}
+        >
+          Timeline Animator
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'palette' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('palette')}
+        >
+          Palette Creator
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'audio' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('audio')}
+        >
+          Audio Visualizer
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'matrix' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('matrix')}
+        >
+          2D Matrix Canvas
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'objects' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('objects')}
+        >
+          3D Objects
+        </button>
+        <button
+          className={[styles.tabBtn, activeTab === 'strips' && styles.tabBtnActive].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('strips')}
+        >
+          Virtual Strips
+        </button>
+      </div>
+
+      {/* Active Tab Panel */}
+      <div className={styles.tabContent}>
+        {activeTab === 'presets' && <PresetBrowser />}
+        {activeTab === 'timeline' && <TimelineEditor />}
+        {activeTab === 'palette' && <PaletteDesigner />}
+        {activeTab === 'audio' && <AudioVisualizer />}
+        {activeTab === 'matrix' && <MatrixEditor />}
+        {activeTab === 'objects' && <ObjectDesigner />}
+        {activeTab === 'strips' && <StripPerformer />}
       </div>
     </main>
   )
@@ -127,10 +135,8 @@ export default function StudioView() {
 function StudioSkeleton() {
   return (
     <main className={styles.page} aria-busy="true">
-      <div className={styles.container}>
-        <div className={styles.skeletonHeader} />
-        <div className={styles.skeletonCanvas} />
-      </div>
+      <div className={styles.skeletonHeader} />
+      <div className={styles.skeletonCanvas} />
     </main>
   )
 }

@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
+import { useStripStore } from '../../stores/stripStore.js'
 import { sortedByName, sortedByLabel } from '../../lib/sort.js'
+import { hexToRgb, rgbToHex } from '../../lib/colors.js'
+import { STRIP_PATTERNS } from '../../lib/stripPatterns.js'
 import styles from './ScheduleEditorModal.module.css'
 
 const TRIGGER_TYPES = [
@@ -27,6 +30,12 @@ const WEATHER_CONDITIONS = [
 export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
   const devices = useDeviceStore(s => s.devices)
   const groups  = useGroupStore(s => s.groups)
+  const strips  = useStripStore(s => s.strips)
+  const fetchStrips = useStripStore(s => s.fetchStrips)
+
+  useEffect(() => {
+    fetchStrips()
+  }, [fetchStrips])
 
   const [name, setName]                   = useState(schedule?.name ?? '')
   const [triggerType, setTriggerType]     = useState(schedule?.trigger_type ?? 'time')
@@ -35,6 +44,11 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
   const [targetId, setTargetId]           = useState(schedule?.target_id ?? (devices[0]?.id || ''))
   const [actionPower, setActionPower]     = useState(schedule?.payload?.on ?? true)
   const [actionBri, setActionBri]         = useState(schedule?.payload?.bri ?? 255)
+  const [stripAction, setStripAction]     = useState(schedule?.payload?.action ?? 'play')
+  const [stripPattern, setStripPattern]   = useState(schedule?.payload?.pattern ?? 'solid')
+  const [stripColor, setStripColor]       = useState(
+    rgbToHex(...(schedule?.payload?.params?.color1 ?? [139, 92, 246])),
+  )
   const [enabled, setEnabled]             = useState(schedule?.enabled ?? true)
   const [saving, setSaving]               = useState(false)
 
@@ -43,8 +57,9 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
     if (!targetId) {
       if (targetType === 'device' && devices[0]) setTargetId(devices[0].id)
       if (targetType === 'group'  && groups[0])  setTargetId(groups[0].id)
+      if (targetType === 'strip'  && strips[0])  setTargetId(strips[0].id)
     }
-  }, [targetType, devices, groups, targetId])
+  }, [targetType, devices, groups, strips, targetId])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -58,7 +73,11 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
         trigger_value: triggerValue,
         target_type: targetType,
         target_id: targetId,
-        payload: { on: actionPower, bri: actionBri },
+        payload: targetType === 'strip'
+          ? (stripAction === 'stop'
+            ? { action: 'stop' }
+            : { action: 'play', pattern: stripPattern, params: { color1: hexToRgb(stripColor) } })
+          : { on: actionPower, bri: actionBri },
         enabled,
       })
       onClose()
@@ -168,11 +187,13 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
                   setTargetType(e.target.value)
                   if (e.target.value === 'device') setTargetId(devices[0]?.id || '')
                   if (e.target.value === 'group')  setTargetId(groups[0]?.id || '')
+                  if (e.target.value === 'strip')  setTargetId(strips[0]?.id || '')
                 }}
                 className={styles.selectInput}
               >
                 <option value="device">Single Device</option>
                 <option value="group">Group / Zone</option>
+                <option value="strip">Virtual Strip</option>
               </select>
             </div>
 
@@ -186,6 +207,8 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
               >
                 {targetType === 'device' ? (
                   sortedByName(devices).map(d => <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>)
+                ) : targetType === 'strip' ? (
+                  sortedByName(strips).map(s => <option key={s.id} value={s.id}>{s.name} ({s.total_leds} LEDs)</option>)
                 ) : (
                   sortedByName(groups).map(g => <option key={g.id} value={g.id}>{g.name} ({g.type})</option>)
                 )}
@@ -196,31 +219,62 @@ export function ScheduleEditorModal({ schedule = null, onClose, onSave }) {
           {/* Action Settings */}
           <div className={styles.fieldLabel}>
             Action State
-            <div className={styles.actionRow}>
-              <label className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  checked={actionPower}
-                  onChange={e => setActionPower(e.target.checked)}
-                  className={styles.checkbox}
-                />
-                Power On
-              </label>
-
-              {actionPower && (
-                <div className={styles.briRow}>
-                  <span>Brightness: {Math.round(actionBri / 255 * 100)}%</span>
+            {targetType === 'strip' ? (
+              <div className={styles.actionRow}>
+                <select
+                  value={stripAction}
+                  onChange={e => setStripAction(e.target.value)}
+                  className={styles.selectInput}
+                >
+                  <option value="play">Play</option>
+                  <option value="stop">Stop</option>
+                </select>
+                {stripAction !== 'stop' && (
+                  <>
+                    <select
+                      value={stripPattern}
+                      onChange={e => setStripPattern(e.target.value)}
+                      className={styles.selectInput}
+                    >
+                      {STRIP_PATTERNS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                    </select>
+                    <input
+                      type="color"
+                      value={stripColor}
+                      onChange={e => setStripColor(e.target.value)}
+                      className={styles.colorInput}
+                      aria-label="Pattern color"
+                    />
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className={styles.actionRow}>
+                <label className={styles.checkboxLabel}>
                   <input
-                    type="range"
-                    min="1"
-                    max="255"
-                    value={actionBri}
-                    onChange={e => setActionBri(Number(e.target.value))}
-                    className={styles.rangeInput}
+                    type="checkbox"
+                    checked={actionPower}
+                    onChange={e => setActionPower(e.target.checked)}
+                    className={styles.checkbox}
                   />
-                </div>
-              )}
-            </div>
+                  Power On
+                </label>
+
+                {actionPower && (
+                  <div className={styles.briRow}>
+                    <span>Brightness: {Math.round(actionBri / 255 * 100)}%</span>
+                    <input
+                      type="range"
+                      min="1"
+                      max="255"
+                      value={actionBri}
+                      onChange={e => setActionBri(Number(e.target.value))}
+                      className={styles.rangeInput}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}

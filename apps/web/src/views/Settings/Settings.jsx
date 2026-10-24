@@ -115,6 +115,8 @@ export function Settings() {
   const [nameSyncDeselected, setNameSyncDeselected] = useState(() => new Set())
   const [nameSyncing, setNameSyncing] = useState(false)
   const [nameSyncResult, setNameSyncResult] = useState(null)
+  const [ledSyncing, setLedSyncing] = useState(false)
+  const [ledSyncResult, setLedSyncResult] = useState(null)
   const [geoSupport] = useState(() => checkGeolocationSupport(
     typeof window === 'undefined'
       ? {}
@@ -378,6 +380,28 @@ export function Settings() {
       setNameSyncing(false)
     }
   }, [devices, nameSyncDeselected, nameSyncing, addToast])
+
+  // ── Device LED Count Sync ────────────────────────────────────────────────────
+  const handleLedSync = useCallback(async () => {
+    const ids = sortedByName(devices).filter(d => !nameSyncDeselected.has(d.id)).map(d => d.id)
+    if (ids.length === 0 || ledSyncing) return
+    setLedSyncing(true)
+    setLedSyncResult(null)
+    try {
+      const out = await devicesApi.syncLedCounts(ids)
+      await useDeviceStore.getState().fetchDevices()
+      setLedSyncResult(out)
+      if (out.failed === 0) {
+        addToast({ message: `LED counts synced: ${out.updated} updated, ${out.unchanged} unchanged`, type: 'success' })
+      } else {
+        addToast({ message: `LED sync finished with ${out.failed} failure${out.failed === 1 ? '' : 's'}`, type: 'error' })
+      }
+    } catch (err) {
+      addToast({ message: `LED sync failed: ${err.message}`, type: 'error' })
+    } finally {
+      setLedSyncing(false)
+    }
+  }, [devices, nameSyncDeselected, ledSyncing, addToast])
 
   const toggleNameSyncDevice = useCallback((id) => {
     setNameSyncDeselected(prev => {
@@ -1000,7 +1024,8 @@ export function Settings() {
           <p className={styles.sectionDesc}>
             Pull the friendly name stored on each controller (the Name field in
             the WLED Config UI) and save it here. Select specific devices or
-            sync them all.
+            sync them all. LED counts sync the same way and set the hard
+            bookends for virtual strip ranges.
           </p>
           {devices.length === 0 ? (
             <p className={styles.sectionDesc}>No devices registered yet.</p>
@@ -1024,10 +1049,18 @@ export function Settings() {
                 <button
                   type="button"
                   className={styles.syncNowBtn}
-                  disabled={nameSyncing || devices.every(d => nameSyncDeselected.has(d.id))}
+                  disabled={nameSyncing || ledSyncing || devices.every(d => nameSyncDeselected.has(d.id))}
                   onClick={handleNameSync}
                 >
-                  {nameSyncing ? 'Syncing...' : 'Sync Now'}
+                  {nameSyncing ? 'Syncing...' : 'Sync Names'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  disabled={nameSyncing || ledSyncing || devices.every(d => nameSyncDeselected.has(d.id))}
+                  onClick={handleLedSync}
+                >
+                  {ledSyncing ? 'Syncing...' : 'Sync LED Counts'}
                 </button>
               </div>
               <div className={styles.nameSyncList} role="group" aria-label="Devices to sync">
@@ -1046,7 +1079,9 @@ export function Settings() {
                       />
                       <span className={[styles.nameSyncDot, dev.is_online ? styles.nameSyncDotOnline : styles.nameSyncDotOffline].join(' ')} />
                       <span className={styles.nameSyncTitle}>{dev.name}</span>
-                      <span className={styles.nameSyncSub}>{dev.ip_address}</span>
+                      <span className={styles.nameSyncSub}>
+                        {dev.ip_address} • {dev.led_count != null ? `${dev.led_count} LEDs` : 'LEDs unknown'}
+                      </span>
                     </label>
                   )
                 })}
@@ -1054,11 +1089,25 @@ export function Settings() {
               {nameSyncResult && (
                 <div className={styles.nameSyncResult} role="status">
                   <span>
-                    {nameSyncResult.updated} updated, {nameSyncResult.unchanged} unchanged, {nameSyncResult.failed} failed
+                    Names: {nameSyncResult.updated} updated, {nameSyncResult.unchanged} unchanged, {nameSyncResult.failed} failed
                   </span>
                   {nameSyncResult.results.some(r => !r.ok) && (
                     <ul className={styles.nameSyncFailures}>
                       {nameSyncResult.results.filter(r => !r.ok).map(r => (
+                        <li key={r.id}>{r.name ?? r.id}: {r.error}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              {ledSyncResult && (
+                <div className={styles.nameSyncResult} role="status">
+                  <span>
+                    LED counts: {ledSyncResult.updated} updated, {ledSyncResult.unchanged} unchanged, {ledSyncResult.failed} failed
+                  </span>
+                  {ledSyncResult.results.some(r => !r.ok) && (
+                    <ul className={styles.nameSyncFailures}>
+                      {ledSyncResult.results.filter(r => !r.ok).map(r => (
                         <li key={r.id}>{r.name ?? r.id}: {r.error}</li>
                       ))}
                     </ul>

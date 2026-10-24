@@ -1,0 +1,113 @@
+.card {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-m);
+  padding: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.cardTitle {
+  font: var(--type-h3);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.cardDesc {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.inlineLink {
+  color: var(--accent-violet);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.stripList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.stripRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-s);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotOn { background-color: var(--accent-emerald); }
+.dotOff { background-color: var(--text-tertiary); }
+
+.stripName {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stripMeta {
+  font: var(--type-small);
+  color: var(--text-secondary);
+  margin-right: auto;
+}
+
+.primaryBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: var(--accent-violet);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stopBtn {
+  height: 32px;
+  padding: 0 var(--sp-4);
+  background-color: var(--surface-input);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-s);
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.manageLink {
+  font: var(--type-small);
+  font-weight: 600;
+  color: var(--accent-violet);
+  text-decoration: none;
+}
+
+.manageLink:hover {
+  text-decoration: underline;
+}

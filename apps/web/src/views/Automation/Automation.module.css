@@ -52,7 +52,6 @@
 .sunBadge:hover {
   background-color: var(--surface-overlay);
   border-color: var(--accent-violet);
-  box-shadow: 0 0 16px -4px hsl(262, 68%, 62%, 0.35);
   transform: translateY(-1px);
 }
 

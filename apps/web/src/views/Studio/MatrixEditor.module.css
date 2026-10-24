@@ -216,7 +216,6 @@
 
 .swatchActive {
   border-color: var(--text-primary);
-  box-shadow: 0 0 10px var(--accent-violet);
 }
 
 .colorPicker {

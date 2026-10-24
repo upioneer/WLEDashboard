@@ -36,15 +36,15 @@ Safely evaluate features, test multi-room configurations, and flash virtual firm
 
 ### Dashboard
 
-Control all your WLED devices with real time power toggles, dynamic brightness sliders with responsive color glow, anti-aliased conic-gradient color wheel pickers, four corner symmetrical hardware and action chicklets, and live telemetry headers.
+Control all your WLED devices with real time power toggles, flat hairline cards tinted by live color, live LED preview bars, brightness sliders, color wheel pickers, hardware and action chips, and live telemetry headers. Unreachable devices render uniform marching ants with crisp names.
 
-![WLEDashboard Main Dashboard](project_details/changelog/v0.18.0/screenshots/01-dashboard-grid.png)
+![WLEDashboard Main Dashboard](project_details/changelog/v0.31.0/screenshots/dashboard-hairline.png)
 
 ### Group Management
 
 Organize devices into physical zones, synchronized scenes, and custom lighting clusters. Control group power, group brightness, and group colors simultaneously with automatic device command distribution.
 
-![WLEDashboard Groups View](project_details/changelog/v0.18.0/screenshots/02-groups-view.png)
+![WLEDashboard Groups View](project_details/changelog/v0.31.0/screenshots/groups-flat.png)
 
 ### Group Editor Modal
 
@@ -153,6 +153,13 @@ Dress the whole dashboard shell in one of seven subtle ambient patterns, from Au
 Pull the friendly name stored on each WLED controller into the dashboard with one click. Select specific devices or sync them all from the new Settings section, with honest per device reporting when a controller is unreachable or returns an empty name.
 
 ![Device Name Sync](project_details/changelog/v0.30.0/screenshots/settings-names.png)
+
+### Virtual Strips
+
+Chain controllers into continuous 1D runs where patterns travel from member to member over DDP. Ranges are hard bookended by firmware LED counts, the swap button reverses travel direction per member, and playback carries fallback snapshots with auto resume.
+
+![Virtual Strips](project_details/changelog/v0.31.0/screenshots/strips-running.png)
+
 
 ---
 

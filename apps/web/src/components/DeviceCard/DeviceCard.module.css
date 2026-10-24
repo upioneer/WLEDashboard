@@ -34,6 +34,61 @@
 
 .cardOffline {
   opacity: 0.6;
+  border-style: dashed;
+}
+
+/* The header (name row) paints above the offline blur so the device stays
+   identifiable; everything below it keeps the dimmed blurred treatment. */
+.cardOffline .topBar {
+  position: relative;
+  z-index: 11;
+}
+
+/* Uniform offline treatment: dark grey marching ants on the preview strip. */
+.singleStrip.stripAnts,
+.multiSegmentStrip.stripAnts .stripSegment {
+  background: repeating-linear-gradient(
+    to right,
+    var(--surface-overlay) 0 8px,
+    var(--surface-input) 8px 16px
+  );
+  animation: stripAntsMarch 1.4s linear infinite;
+}
+
+@keyframes stripAntsMarch {
+  to { background-position-x: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .singleStrip.stripAnts,
+  .multiSegmentStrip.stripAnts .stripSegment {
+    animation: none;
+  }
+}
+
+/* ── Live preview strip ───────────────────────────────────────────── */
+/* Flat hairline: real bar geometry, no glow. Inline styles paint the color. */
+.previewStrip {
+  display: flex;
+  flex-direction: column;
+}
+
+.multiSegmentStrip {
+  display: flex;
+  gap: 3px;
+  height: 14px;
+}
+
+.stripSegment {
+  flex: 1;
+  border-radius: 3px;
+  background-color: var(--surface-input);
+}
+
+.singleStrip {
+  height: 14px;
+  border-radius: 4px;
+  background-color: var(--surface-input);
 }
 
 /* ── Header / Top Bar ───────────────────────────────────────── */

@@ -8,7 +8,7 @@ import { Toggle } from '../Toggle/Toggle.jsx'
 import { Slider } from '../Slider/Slider.jsx'
 import { ColorPickerCompact } from '../ColorPicker/ColorPickerCompact.jsx'
 import { ContextMenu } from '../ContextMenu/ContextMenu.jsx'
-import { pctToWledBri, wledBriToPct } from '../../lib/colors.js'
+import { hexToRgb, pctToWledBri, wledBriToPct } from '../../lib/colors.js'
 import styles from './GroupCard.module.css'
 
 const DEBOUNCE_MS = 50
@@ -145,13 +145,22 @@ export function GroupCard({ group, onEdit }) {
   // Hover spring
   const [cardVals, setCardVals] = useSpringGroup({ y: 0, shadowLevel: 0 }, 'responsive')
 
+  // Flat hairline, matching DeviceCard: a lit group tints its 1px border with
+  // the group color instead of carrying a neon accent bar.
+  const borderTint = (() => {
+    if (!isAnyOn || !group.color) return undefined
+    const [r, g, b] = hexToRgb(group.color)
+    return `rgba(${r}, ${g}, ${b}, 0.38)`
+  })()
+
   return (
     <>
       <article
-        className={styles.card}
+        className={[styles.card, !isOnline && styles.cardOffline].filter(Boolean).join(' ')}
         style={{
           transform: `translateY(${cardVals.y}px)`,
           boxShadow: cardVals.shadowLevel > 0.5 ? 'var(--shadow-3)' : 'var(--shadow-2)',
+          borderColor: borderTint,
           '--group-accent': group.color || 'var(--accent-violet)',
         }}
         onMouseEnter={() => setCardVals({ y: -2, shadowLevel: 1 })}
@@ -160,9 +169,6 @@ export function GroupCard({ group, onEdit }) {
         aria-labelledby={`group-name-${group.id}`}
         data-group-id={group.id}
       >
-        {/* Accent bar */}
-        <div className={styles.accentBar} style={{ backgroundColor: group.color || 'var(--accent-violet)' }} />
-
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.identity}>

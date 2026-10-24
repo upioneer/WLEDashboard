@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useDeviceStore } from '../../stores/deviceStore.js'
 import { useGroupStore } from '../../stores/groupStore.js'
+import { useStripStore } from '../../stores/stripStore.js'
 import { sortedByName } from '../../lib/sort.js'
+import { hexToRgb, rgbToHex } from '../../lib/colors.js'
+import { STRIP_PATTERNS } from '../../lib/stripPatterns.js'
 import styles from './RoutineEditorModal.module.css'
 
 export function RoutineEditorModal({ routine = null, onClose, onSave }) {
   const devices = useDeviceStore(s => s.devices)
   const groups  = useGroupStore(s => s.groups)
+  const strips  = useStripStore(s => s.strips)
+  const fetchStrips = useStripStore(s => s.fetchStrips)
+
+  useEffect(() => {
+    fetchStrips()
+  }, [fetchStrips])
 
   const [name, setName]               = useState(routine?.name ?? '')
   const [description, setDescription] = useState(routine?.description ?? '')
@@ -139,14 +148,22 @@ export function RoutineEditorModal({ routine = null, onClose, onSave }) {
                           value={step.target_type}
                           onChange={e => {
                             const newType = e.target.value
-                            const newId   = newType === 'device' ? (devices[0]?.id || '') : (groups[0]?.id || '')
+                            const newId = newType === 'device'
+                              ? (devices[0]?.id || '')
+                              : newType === 'strip'
+                                ? (strips[0]?.id || '')
+                                : (groups[0]?.id || '')
                             updateStep(idx, 'target_type', newType)
                             updateStep(idx, 'target_id', newId)
+                            updateStep(idx, 'payload', newType === 'strip'
+                              ? { action: 'play', pattern: 'solid', params: { color1: [139, 92, 246] } }
+                              : { on: true, bri: 255 })
                           }}
                           className={styles.selectInput}
                         >
                           <option value="device">Device</option>
                           <option value="group">Group</option>
+                          <option value="strip">Strip</option>
                         </select>
 
                         <select
@@ -156,20 +173,33 @@ export function RoutineEditorModal({ routine = null, onClose, onSave }) {
                         >
                           {step.target_type === 'device' ? (
                             sortedByName(devices).map(d => <option key={d.id} value={d.id}>{d.name}</option>)
+                          ) : step.target_type === 'strip' ? (
+                            sortedByName(strips).map(s => <option key={s.id} value={s.id}>{s.name}</option>)
                           ) : (
                             sortedByName(groups).map(g => <option key={g.id} value={g.id}>{g.name}</option>)
                           )}
                         </select>
 
-                        <label className={styles.powerLabel}>
-                          <input
-                            type="checkbox"
-                            checked={step.payload?.on ?? true}
-                            onChange={e => updateStepPayload(idx, 'on', e.target.checked)}
-                            className={styles.checkbox}
-                          />
-                          Power
-                        </label>
+                        {step.target_type === 'strip' ? (
+                          <select
+                            value={step.payload?.action ?? 'play'}
+                            onChange={e => updateStepPayload(idx, 'action', e.target.value)}
+                            className={styles.selectInput}
+                          >
+                            <option value="play">Play</option>
+                            <option value="stop">Stop</option>
+                          </select>
+                        ) : (
+                          <label className={styles.powerLabel}>
+                            <input
+                              type="checkbox"
+                              checked={step.payload?.on ?? true}
+                              onChange={e => updateStepPayload(idx, 'on', e.target.checked)}
+                              className={styles.checkbox}
+                            />
+                            Power
+                          </label>
+                        )}
                       </div>
 
                       <div className={styles.stepRow}>
@@ -185,18 +215,47 @@ export function RoutineEditorModal({ routine = null, onClose, onSave }) {
                           />
                         </label>
 
-                        {step.payload?.on && (
-                          <label className={styles.smallLabel}>
-                            Brightness ({Math.round((step.payload?.bri ?? 255) / 255 * 100)}%)
-                            <input
-                              type="range"
-                              min="1"
-                              max="255"
-                              value={step.payload?.bri ?? 255}
-                              onChange={e => updateStepPayload(idx, 'bri', Number(e.target.value))}
-                              className={styles.rangeInput}
-                            />
-                          </label>
+                        {step.target_type === 'strip' ? (
+                          step.payload?.action !== 'stop' && (
+                            <>
+                              <label className={styles.smallLabel}>
+                                Pattern
+                                <select
+                                  value={step.payload?.pattern ?? 'solid'}
+                                  onChange={e => updateStepPayload(idx, 'pattern', e.target.value)}
+                                  className={styles.selectInput}
+                                >
+                                  {STRIP_PATTERNS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                                </select>
+                              </label>
+                              <label className={styles.smallLabel}>
+                                Color
+                                <input
+                                  type="color"
+                                  value={rgbToHex(...(step.payload?.params?.color1 ?? [139, 92, 246]))}
+                                  onChange={e => updateStepPayload(idx, 'params', {
+                                    ...step.payload?.params,
+                                    color1: hexToRgb(e.target.value),
+                                  })}
+                                  className={styles.colorInput}
+                                />
+                              </label>
+                            </>
+                          )
+                        ) : (
+                          step.payload?.on && (
+                            <label className={styles.smallLabel}>
+                              Brightness ({Math.round((step.payload?.bri ?? 255) / 255 * 100)}%)
+                              <input
+                                type="range"
+                                min="1"
+                                max="255"
+                                value={step.payload?.bri ?? 255}
+                                onChange={e => updateStepPayload(idx, 'bri', Number(e.target.value))}
+                                className={styles.rangeInput}
+                              />
+                            </label>
+                          )
                         )}
                       </div>
                     </div>

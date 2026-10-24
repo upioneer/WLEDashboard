@@ -42,8 +42,8 @@ export function DeviceManager() {
 
   return (
     <main className={styles.page} id="main-content">
-      <header className={styles.pageHeader}>
-        <div>
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
           <h1 className={styles.title}>Device Manager</h1>
           <p className={styles.subtitle}>
             {devices.length} device{devices.length !== 1 ? 's' : ''} registered

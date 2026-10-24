@@ -29,6 +29,8 @@ import { studioRoutes } from './routes/studio.js'
 import { mqttRoutes } from './routes/mqtt.js'
 import { audioRoutes } from './routes/audio.js'
 import { matrixRoutes } from './routes/matrix.js'
+import { stripRoutes } from './routes/strips.js'
+import { resumeAutoPlay } from './services/stripPlayer.js'
 import { mcpRoutes } from './routes/mcp.js'
 import { spotifyRoutes } from './routes/spotify.js'
 import { weatherRoutes } from './routes/weather.js'
@@ -121,6 +123,7 @@ await fastify.register(async (api) => {
   await api.register(mqttRoutes)
   await api.register(audioRoutes)
   await api.register(matrixRoutes)
+  await api.register(stripRoutes)
   await api.register(mcpRoutes)
   await api.register(spotifyRoutes)
   await api.register(weatherRoutes)
@@ -172,6 +175,9 @@ async function start() {
 
   // Start polling all known devices
   startAllPolling()
+
+  // Resume virtual strips flagged for auto play
+  resumeAutoPlay().catch(() => {})
 
   // Start mDNS discovery
   startDiscovery()

@@ -228,6 +228,28 @@ export function MatrixEditor() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [mode, addToast, stopPushWithClear])
 
+  // Draw mode push: re-send on every stroke (pixels identity changes) plus
+  // a slow keepalive so the panel never times out back to built-in state.
+  useEffect(() => {
+    if (mode !== 'draw' || !pushing || !pushDeviceId) return
+    const send = () => {
+      const device = devices.find(d => d.id === pushDeviceId)
+      if (!device?.ip_address) return
+      const ordered = marqueeSerpentine ? applySerpentine(pixels, cols, rows) : pixels
+      matrixApi.streamDdp({ target_ip: device.ip_address, pixels: frameToRgbTriplets(ordered) })
+        .catch(() => {
+          if (!pushFailedRef.current) {
+            pushFailedRef.current = true
+            setPushing(false)
+            addToast({ message: 'DDP push failed. Check the device is online and reachable.', type: 'error' })
+          }
+        })
+    }
+    send()
+    const timer = setInterval(send, 500)
+    return () => clearInterval(timer)
+  }, [mode, pushing, pushDeviceId, pixels, cols, rows, marqueeSerpentine, devices, addToast])
+
   const handlePixelMouseDown = (index, e) => {
     e?.preventDefault()
     if (e?.button === 2) {
@@ -332,7 +354,7 @@ export function MatrixEditor() {
     }
     pushFailedRef.current = false
     setPushing(true)
-    addToast({ message: `Pushing marquee to ${device.name || device.ip_address}`, type: 'info' })
+    addToast({ message: `Pushing ${mode} to ${device.name || device.ip_address}`, type: 'info' })
   }
 
   const handleAddMarqueeRow = () => {
@@ -529,6 +551,48 @@ export function MatrixEditor() {
 
   const gridPixels = mode === 'marquee' ? marqueeFrame : pixels
 
+  // Shared push row: both modes stream DDP to the target. Marquee scrolls
+  // at 10fps; drawings re-send on every stroke plus a slow keepalive so the
+  // panel never times out back to its built-in state.
+  const pushRow = (
+    <div className={styles.marqueePush}>
+      <label className={styles.marqueeOption}>
+        <span className={styles.label}>Target device</span>
+        <select
+          value={pushDeviceId}
+          onChange={e => setPushDeviceId(e.target.value)}
+          className={styles.sizeSelect}
+        >
+          <option value="">Select device...</option>
+          {sortedByName(devices).map(d => (
+            <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
+          ))}
+          {pushDeviceId && !devices.some(d => d.id === pushDeviceId) && (
+            <option value={pushDeviceId}>Unknown device (unbound)</option>
+          )}
+        </select>
+      </label>
+      <label className={styles.marqueeCheck}>
+        <input
+          type="checkbox"
+          checked={marqueeSerpentine}
+          onChange={e => setMarqueeSerpentine(e.target.checked)}
+        />
+        <span className={styles.label}>Serpentine wiring</span>
+      </label>
+      <button
+        type="button"
+        className={[styles.pushBtn, pushing && styles.pushBtnActive].filter(Boolean).join(' ')}
+        onClick={handlePushToggle}
+      >
+        {pushing ? 'Stop Push' : 'Push to Device'}
+      </button>
+      <span className={styles.dimBadge}>
+        {cols} x {rows} ({cols * rows} LEDs)
+      </span>
+    </div>
+  )
+
   return (
     <div className={styles.container}>
       <div className={styles.editorCard}>
@@ -696,6 +760,7 @@ export function MatrixEditor() {
               <button type="button" className={styles.toolBtn} onClick={handleClear}>Clear</button>
             </div>
           </div>
+          {pushRow}
         </div>
         ) : (
         <div className={styles.marqueePanel}>
@@ -782,14 +847,6 @@ export function MatrixEditor() {
               </select>
             </label>
 
-            <label className={styles.marqueeCheck}>
-              <input
-                type="checkbox"
-                checked={marqueeSerpentine}
-                onChange={e => setMarqueeSerpentine(e.target.checked)}
-              />
-              <span className={styles.label}>Serpentine wiring</span>
-            </label>
           </div>
 
           <div className={styles.marqueeConfigs}>
@@ -825,34 +882,7 @@ export function MatrixEditor() {
             )}
           </div>
 
-          <div className={styles.marqueePush}>
-            <label className={styles.marqueeOption}>
-              <span className={styles.label}>Target device</span>
-              <select
-                value={pushDeviceId}
-                onChange={e => setPushDeviceId(e.target.value)}
-                className={styles.sizeSelect}
-              >
-                <option value="">Select device...</option>
-                {sortedByName(devices).map(d => (
-                  <option key={d.id} value={d.id}>{d.name} ({d.ip_address})</option>
-                ))}
-                {pushDeviceId && !devices.some(d => d.id === pushDeviceId) && (
-                  <option value={pushDeviceId}>Unknown device (unbound)</option>
-                )}
-              </select>
-            </label>
-            <button
-              type="button"
-              className={[styles.pushBtn, pushing && styles.pushBtnActive].filter(Boolean).join(' ')}
-              onClick={handlePushToggle}
-            >
-              {pushing ? 'Stop Push' : 'Push to Device'}
-            </button>
-            <span className={styles.dimBadge}>
-              {cols} x {rows} ({cols * rows} LEDs)
-            </span>
-          </div>
+          {pushRow}
           </>
           )}
         </div>

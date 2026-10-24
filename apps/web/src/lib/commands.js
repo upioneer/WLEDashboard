@@ -59,9 +59,16 @@ export function snapshotToCommand(snapshot) {
  * Build the WLED command payload for a Studio live preview. The primary
  * color rides along so hardware matches the on-screen simulator.
  */
-export function buildPreviewPayload({ effectId = 0, speed = 128, intensity = 128, paletteId = 0, color = '#ffffff' } = {}) {
+export function buildPreviewPayload({ effectId = 0, effectName = null, speed = 128, intensity = 128, paletteId = 0, color = '#ffffff' } = {}) {
   return {
     on: true,
-    seg: [{ fx: effectId, sx: speed, ix: intensity, pal: paletteId, col: [hexToRgb(color)] }],
+    seg: [{
+      fx: effectId,
+      ...(typeof effectName === 'string' ? { fxName: effectName } : {}),
+      sx: speed,
+      ix: intensity,
+      pal: paletteId,
+      col: [hexToRgb(color)],
+    }],
   }
 }

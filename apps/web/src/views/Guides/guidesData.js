@@ -503,6 +503,46 @@ export const GUIDES = [
     ],
   },
   {
+    id: "virtual-strips",
+    category: "traveling",
+    title: "Virtual Strips: One Pattern Across Many Controllers",
+    summary: "Chain 1D controllers into a single continuous run where chases and wipes travel from strip to strip.",
+    readTime: "4 min read",
+    tags: ["virtual", "strips", "traveling", "ddp", "1d", "routines", "schedules", "fallback"],
+    sections: [
+      {
+        title: "What Virtual Strips Do",
+        content: "Groups play the same payload on every member at once. Virtual strips go further: you define an ordered run of member ranges (for example LEDs 0 to 149 on the hallway controller followed by LEDs 0 to 99 on the stairs controller), and the server renders one pattern across the full virtual length, then slices it per member and streams each slice over DDP. A chase physically travels out of one strip and into the next.",
+      },
+      {
+        title: "Building And Playing A Strip",
+        content: "Open Virtual Strips in the sidebar to name a strip, stack its members in physical order with start and end LEDs, and press Play with a pattern, color, and speed. Six starter patterns ship in this release: Solid, Chase, Wipe, Rainbow, Gradient, and Theater Chase. The swap button between Start and End reverses travel direction through a member, for controllers whose strips are wired far to near. Each device can appear in a strip only once. The Studio Strips tab keeps a slim play and stop panel for live show use.",
+        steps: [
+          "List members in the order the pattern should travel. Order defines the virtual coordinates.",
+          "Set each member start offset to the first LED it contributes on its own controller.",
+          "Press Play, then watch per member health: Live means frames are flowing, Unreachable members are skipped until they return.",
+          "Stopping restores every member to the state it had before playback started.",
+        ],
+      },
+      {
+        title: "Automations And Timelines",
+        content: "Routine steps and schedules accept a Virtual Strip target with Play or Stop actions, so strips can start on a schedule, at sunset, or mid routine. Timeline keyframes can also tag a strip target today; live timeline playback to hardware is still to come, so those tags are stored for the future player.",
+      },
+      {
+        title: "Limits In This Release",
+        content: "First iteration limits keep playback smooth on typical home networks: 1,500 total LEDs per strip, 8 member devices per strip, and a 30 frames per second player tick. Only 1D runs are supported; spanning 2D matrices across controllers is tabled for a later release. Each member Start and End is hard bookended by its device LED count, which the dashboard pulls from firmware and refreshes automatically. A device the dashboard has never reached needs a Sync LED Counts pass or a manual count in Device Manager before it can join a strip. These limits will be revisited once real world usage data exists.",
+      },
+      {
+        title: "Continuity When Things Go Wrong",
+        content: "Cross device sync is same millisecond approximate over UDP, which reads as continuous for traveling patterns but is not sample exact phase lock. Before streaming starts, each member gets a matching built-in effect written as its current state, so if the dashboard goes away the strips fall back to living light instead of freezing. A dropped member rejoins mid pattern with no strip wide pause, and strips flagged for auto resume restart themselves after a server reboot.",
+      },
+      {
+        title: "Power Injection And Common Ground",
+        content: "A virtual strip is still physical copper: long runs must be power injected every few meters per strip manufacturer guidance, and every power supply on the run must share a common ground with its controllers. DDP keeps the data continuous, but only adequate power keeps the far end bright and color accurate. When in doubt, inject earlier than the math suggests.",
+      },
+    ],
+  },
+  {
     id: "spatial-3d-anchors",
     category: "spatial",
     title: "3D Spatial Layout & Light Anchors",

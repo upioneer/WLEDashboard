@@ -12,12 +12,9 @@
   overflow: hidden;
 }
 
-.accentBar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
+.cardOffline {
+  opacity: 0.6;
+  border-style: dashed;
 }
 
 /* ── Header ─────────────────────────────────────────────────── */
