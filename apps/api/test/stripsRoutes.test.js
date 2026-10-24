@@ -1,6 +1,5 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import http from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -26,14 +25,16 @@ function seed(id, ip, leds = 1500) {
   getDb().prepare('INSERT INTO devices (id, name, ip_address, led_count) VALUES (?, ?, ?, ?)').run(id, id, ip, leds)
 }
 
-function startMockDevice(ip) {
-  const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ on: true, bri: 128, seg: [{ fx: 0 }] }))
-  })
-  return new Promise((resolve, reject) => {
-    server.on('error', reject)
-    server.listen(80, ip, () => resolve(server))
+// HTTP is mocked at the fetch layer: real WLED URLs carry no port, so a socket
+// mock would need privileged port 80, which CI runners cannot bind.
+function installFetchMock(t) {
+  const state = { on: true, bri: 128, seg: [{ fx: 0 }] }
+  t.mock.method(globalThis, 'fetch', async (url, opts = {}) => {
+    const method = String(opts?.method ?? 'GET').toUpperCase()
+    if (method === 'POST' || method === 'PUT') {
+      return { ok: true, status: 200, json: async () => ({ on: true }) }
+    }
+    return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(state)) }
   })
 }
 
@@ -46,9 +47,7 @@ test('virtual strip routes and automation actions', async (t) => {
   })
 
   seed('strip-r-dev', '127.0.0.41')
-  const mock = await startMockDevice('127.0.0.41')
   t.after(() => {
-    mock.close()
     getDb().prepare('DELETE FROM devices WHERE id = ?').run('strip-r-dev')
   })
 
@@ -97,7 +96,8 @@ test('virtual strip routes and automation actions', async (t) => {
     assert.equal(gone.statusCode, 200)
   })
 
-  await t.test('play stop status cycle', async () => {
+  await t.test('play stop status cycle', async (t) => {
+    installFetchMock(t)
     const created = await fastify.inject({
       method: 'POST',
       url: '/api/virtual-strips',
@@ -132,7 +132,8 @@ test('virtual strip routes and automation actions', async (t) => {
     await fastify.inject({ method: 'DELETE', url: `/api/virtual-strips/${strip.id}` })
   })
 
-  await t.test('routines and schedules drive strips', async () => {
+  await t.test('routines and schedules drive strips', async (t) => {
+    installFetchMock(t)
     const created = await fastify.inject({
       method: 'POST',
       url: '/api/virtual-strips',

@@ -1,6 +1,5 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import http from 'node:http'
 import dgram from 'dgram'
 import os from 'node:os'
 import path from 'node:path'
@@ -23,31 +22,33 @@ const { renderStripFrame } = await import('../src/services/stripPatterns.js')
 const { playStrip, stopStrip, getStripStatus } = await import('../src/services/stripPlayer.js')
 const { getDb } = await import('../src/db/database.js')
 
-function startMockDevice(ip) {
+// HTTP is mocked at the fetch layer: real WLED URLs carry no port, so a socket
+// mock would need privileged port 80, which CI runners cannot bind. DDP over
+// UDP stays real (see startDdpCapture). Hostnames added to `dead` refuse
+// connections, simulating a device that drops mid test.
+function installFetchMock(t) {
   const posts = []
-  const server = http.createServer((req, res) => {
-    if (req.url === '/json/info') {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ name: 'Mock', arch: 'esp32' }))
-      return
+  const dead = new Set()
+  const state = { on: false, bri: 100, seg: [{ fx: 0 }] }
+  t.mock.method(globalThis, 'fetch', async (url, opts = {}) => {
+    const raw = typeof url === 'string' ? url : url?.url
+    const u = new URL(raw)
+    if (dead.has(u.hostname)) {
+      const err = new Error(`connect ECONNREFUSED ${u.hostname}:80`)
+      err.code = 'ECONNREFUSED'
+      throw err
     }
-    if (req.method === 'GET') {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ on: false, bri: 100, seg: [{ fx: 0 }] }))
-      return
+    const method = String(opts.method ?? 'GET').toUpperCase()
+    if (method === 'POST' || method === 'PUT') {
+      posts.push(JSON.parse(opts.body || '{}'))
+      return { ok: true, status: 200, json: async () => ({ on: true }) }
     }
-    let raw = ''
-    req.on('data', (c) => { raw += c })
-    req.on('end', () => {
-      try { posts.push(JSON.parse(raw || '{}')) } catch {}
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ on: true }))
-    })
+    if (u.pathname === '/json/info') {
+      return { ok: true, status: 200, json: async () => ({ name: 'Mock', arch: 'esp32' }) }
+    }
+    return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(state)) }
   })
-  return new Promise((resolve, reject) => {
-    server.on('error', reject)
-    server.listen(80, ip, () => resolve({ server, posts }))
-  })
+  return { posts, dead }
 }
 
 function startDdpCapture(ip) {
@@ -78,9 +79,8 @@ function seed(id, ip, leds = 1500) {
 }
 
 test('virtual strip player', async (t) => {
-  await t.test('play slices one frame across members with DDP offsets', async () => {
-    const devA = await startMockDevice('127.0.0.11')
-    const devB = await startMockDevice('127.0.0.12')
+  await t.test('play slices one frame across members with DDP offsets', async (t) => {
+    installFetchMock(t)
     const ddpA = await startDdpCapture('127.0.0.11')
     const ddpB = await startDdpCapture('127.0.0.12')
     try {
@@ -116,15 +116,13 @@ test('virtual strip player', async (t) => {
       deleteStrip(strip.id)
       getDb().prepare('DELETE FROM devices WHERE id IN (?, ?)').run('strip-a', 'strip-b')
     } finally {
-      devA.server.close()
-      devB.server.close()
       ddpA.sock.close()
       ddpB.sock.close()
     }
   })
 
-  await t.test('reversed member receives its slice in flipped order', async () => {
-    const devA = await startMockDevice('127.0.0.51')
+  await t.test('reversed member receives its slice in flipped order', async (t) => {
+    installFetchMock(t)
     const ddpA = await startDdpCapture('127.0.0.51')
     try {
       seed('strip-rev', '127.0.0.51')
@@ -149,36 +147,33 @@ test('virtual strip player', async (t) => {
       deleteStrip(strip.id)
       getDb().prepare('DELETE FROM devices WHERE id = ?').run('strip-rev')
     } finally {
-      devA.server.close()
       ddpA.sock.close()
     }
   })
 
-  await t.test('fallback is written on play and snapshots restore on stop', async () => {
-    const devA = await startMockDevice('127.0.0.21')
+  await t.test('fallback is written on play and snapshots restore on stop', async (t) => {
+    const mock = installFetchMock(t)
+    seed('strip-fb', '127.0.0.21')
     try {
-      seed('strip-fb', '127.0.0.21')
       const strip = createStrip({ name: 'fb', members: [{ device_id: 'strip-fb', offset: 0, length: 4 }] })
       await playStrip(strip.id, { pattern: 'chase', params: { color1: [9, 9, 9] } }, { tickMs: 60000, pingMs: 60000 })
       // First POST is the fallback write. The mock reports no /json/eff list,
       // so resolution keeps the safe Solid fallback and strips the name tag.
-      assert.equal(devA.posts[0].seg[0].fx, 0)
-      assert.deepEqual(devA.posts[0].seg[0].col, [[9, 9, 9]])
+      assert.equal(mock.posts[0].seg[0].fx, 0)
+      assert.deepEqual(mock.posts[0].seg[0].col, [[9, 9, 9]])
       await stopStrip(strip.id)
       // Restore POST carries the captured snapshot (mock reported on:false).
-      const last = devA.posts[devA.posts.length - 1]
+      const last = mock.posts[mock.posts.length - 1]
       assert.equal(last.on, false)
       assert.equal(last.bri, 100)
       deleteStrip(strip.id)
-      getDb().prepare('DELETE FROM devices WHERE id = ?').run('strip-fb')
     } finally {
-      devA.server.close()
+      getDb().prepare('DELETE FROM devices WHERE id = ?').run('strip-fb')
     }
   })
 
-  await t.test('unhealthy members are skipped while the rest play on', async () => {
-    const devA = await startMockDevice('127.0.0.31')
-    const devB = await startMockDevice('127.0.0.32')
+  await t.test('unhealthy members are skipped while the rest play on', async (t) => {
+    const mock = installFetchMock(t)
     const ddpA = await startDdpCapture('127.0.0.31')
     const ddpB = await startDdpCapture('127.0.0.32')
     try {
@@ -194,7 +189,7 @@ test('virtual strip player', async (t) => {
       await playStrip(strip.id, { pattern: 'solid', params: { color1: [1, 2, 3] } }, { tickMs: 30, pingMs: 50 })
       await sleep(150)
       assert.ok(ddpB.packets.length > 0)
-      devB.server.close()
+      mock.dead.add('127.0.0.32')
       await sleep(250)
       ddpA.packets.length = 0
       ddpB.packets.length = 0
@@ -208,8 +203,6 @@ test('virtual strip player', async (t) => {
       deleteStrip(strip.id)
       getDb().prepare('DELETE FROM devices WHERE id IN (?, ?)').run('strip-sa', 'strip-sb')
     } finally {
-      devA.server.close()
-      try { devB.server.close() } catch {}
       ddpA.sock.close()
       ddpB.sock.close()
     }
